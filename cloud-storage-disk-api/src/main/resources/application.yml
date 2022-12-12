@@ -1,0 +1,23 @@
+# web application server visit port
+server:
+  port: 8100
+# application name
+spring:
+  application:
+    name: cloud-storage-disk-api
+  # database driver
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # database source name
+    name: defaultDataSource
+    # database url
+    url: jdbc:mysql://localhost:3306/blue?serverTimezone=UTC
+    # database username and password
+    username: root
+    password: Jhxz951129Jhxz
+# mybatis config
+mybatis:
+  # mybatis entity direction
+  type-aliases-package: online.yangcloud.model.po
+
+
