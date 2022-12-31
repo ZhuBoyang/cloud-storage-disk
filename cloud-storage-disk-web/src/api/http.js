@@ -11,7 +11,7 @@ service.interceptors.response.use(config => {
   const response = config.data
   if (response.code === 200) {
     if (response.msg !== '') {
-        console.log(response.msg)
+      console.log(response.msg)
     }
     return response.data
   } else if (response.code >= 10000) {
@@ -20,9 +20,12 @@ service.interceptors.response.use(config => {
 })
 
 const modules = {
+  block: 'file_block/'
 }
 
-const url = {}
+const url = {
+  uploadBlocks: modules.block + 'upload'
+}
 
 const methods = {
   get: 'get',
@@ -31,12 +34,16 @@ const methods = {
 }
 
 const req = function (url, method, data, headers) {
+  if (headers === undefined || headers === null) {
+    headers = {'content-type': 'application/json;charset=utf-8'}
+  }
+  data['headers'] = headers
   if (methods.post === method) {
-    return service.post(url, data)
+    return service.post(url, data);
   } else if (methods.get === method) {
     return service.get(url, {
       params: data
-    })
+    });
   }
 }
 
