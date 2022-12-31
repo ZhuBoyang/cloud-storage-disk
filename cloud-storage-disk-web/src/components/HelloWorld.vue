@@ -6,15 +6,18 @@
 
 <script>
 import http from "../api/http.js";
-// import { ref } from 'vue'
-//
-// defineProps({
-//   msg: String,
-// })
-//
-// const count = ref(0)
+import {reactive} from "vue";
+
 export default {
   name: 'HelloWorld',
+  setup() {
+    const data = reactive({
+      blockSize: 4 * 1024 * 1024
+    })
+    return {
+      data
+    }
+  },
   methods: {
     // 点击上传文件
     readFile(e) {
@@ -54,11 +57,11 @@ export default {
         formData.append('file', item, new Date().getTime().toString())
         formData.append('data', item)
         formData.append('chunkIndex', index + 1)
-        formData.append('shardingSize', this.blockSize.toString())
+        formData.append('shardingSize', this.data.blockSize.toString())
         formData.append('chunkSize', item.size)
         formData.append('fileSize', file.size)
         formData.append('identifier', identifier.toString())
-        formData.append('fileName', file.name)
+        formData.append('filename', file.name)
         formData.append('chunkCount', fileBlockList.length)
         formData.append('shard', false)
         return {formData: formData}

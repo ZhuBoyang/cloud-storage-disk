@@ -20,10 +20,10 @@ public class CorsOrigin {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowCredentials(true);
-        corsConfiguration.addAllowedOrigin("*");
         corsConfiguration.addAllowedHeader("*");
         corsConfiguration.addAllowedMethod("*");
         corsConfiguration.setMaxAge(3600L);
+        corsConfiguration.addAllowedOriginPattern("*");
         source.registerCorsConfiguration("/**", corsConfiguration);
         return new CorsFilter(source);
     }

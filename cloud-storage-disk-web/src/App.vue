@@ -1,36 +1,23 @@
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo"/>
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo"/>
-    </a>
-  </div>
-  <hello-world/>
+  <router-view v-slot="{ Component }">
+    <transition>
+      <component :is="Component" />
+    </transition>
+  </router-view>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
 
 export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
+  name: 'App'
 }
 </script>
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
+<style>
+.component-fade-enter-active, .component-fade-leave-active {
+  transition: opacity .3s ease;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+.component-fade-enter, .component-fade-leave-to {
+  opacity: 0;
 }
 </style>

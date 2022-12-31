@@ -1,10 +1,15 @@
-import {createRouter, createWebHashHistory} from "vue-router";
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: () => import('./App.vue')
+    component: () => import('./App.vue'),
+    redirect: '/dashboard'
+  },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: () => import('./pages/DashboardPage.vue')
   }
 ]
 

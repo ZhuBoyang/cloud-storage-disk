@@ -1,6 +1,8 @@
 import axios from "axios";
+import config from "./config.js";
 
 const service = axios.create({
+  baseURL: config.api_base_url,
   timeout: 8000,
   headers: {
     'content-type': 'application/json;charset=utf-8'
@@ -30,20 +32,22 @@ const url = {
 const methods = {
   get: 'get',
   post: 'post',
-  put: 'put'
+  put: 'put',
+  form: 'form'
 }
 
 const req = function (url, method, data, headers) {
   if (headers === undefined || headers === null) {
     headers = {'content-type': 'application/json;charset=utf-8'}
   }
-  data['headers'] = headers
   if (methods.post === method) {
-    return service.post(url, data);
+    return service.post(url, data, {headers})
   } else if (methods.get === method) {
     return service.get(url, {
       params: data
-    });
+    }, {headers})
+  } else if (methods.form === method) {
+    return service.post(url, data, {headers})
   }
 }
 
