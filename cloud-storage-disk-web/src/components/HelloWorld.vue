@@ -5,12 +5,12 @@
 </template>
 
 <script>
-import http from "../api/http.js";
-import {reactive} from "vue";
+import http from '../api/http.js'
+import { reactive } from 'vue'
 
 export default {
   name: 'HelloWorld',
-  setup() {
+  setup () {
     const data = reactive({
       blockSize: 4 * 1024 * 1024
     })
@@ -20,7 +20,7 @@ export default {
   },
   methods: {
     // 点击上传文件
-    readFile(e) {
+    readFile (e) {
       const uploadFiles = e.target.files
       console.log(uploadFiles)
       for (let i = 0; i < uploadFiles.length; i++) {
@@ -43,14 +43,14 @@ export default {
       //     this.splitFileBlock(currentFile, uploadedFileLength + i)
       //   }
     },
-    splitFileBlock(file) {
+    splitFileBlock (file) {
       const fileBlockList = []
       fileBlockList.push(file.slice(0, file.size))
       const blockList = this.generateUploadFormData(file, fileBlockList)
       this.sendRequest(blockList)
     },
     // 将文件分片生成form表单数据
-    generateUploadFormData(file, fileBlockList) {
+    generateUploadFormData (file, fileBlockList) {
       const identifier = new Date().getTime()
       return fileBlockList.map((item, index) => {
         const formData = new FormData()
@@ -64,14 +64,14 @@ export default {
         formData.append('filename', file.name)
         formData.append('chunkCount', fileBlockList.length)
         formData.append('shard', false)
-        return {formData: formData}
+        return { formData }
       })
     },
     // 发送上传文件的请求
-    sendRequest(blocks) {
-      const header = {'Content-Type': 'multipart/form-data'}
+    sendRequest (blocks) {
+      const header = { 'Content-Type': 'multipart/form-data' }
       for (let i = 0; i < blocks.length; i++) {
-        http.req(http.url.uploadBlocks, http.methods.form, blocks[i].formData, header).then(response => {
+        http.req(http.url.block.uploadBlocks, http.methods.form, blocks[i].formData, header).then(response => {
           console.log(response)
         })
       }

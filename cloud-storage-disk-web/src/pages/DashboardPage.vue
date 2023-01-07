@@ -1,187 +1,318 @@
 <template>
   <div class="dashboard-page">
-    <div class="dashboard-left">
-      <div class="dashboard-avatar row-col-center">
-        <div class="avatar-image row-col-center">R</div>
-        <div class="avatar-name">Rain Drive</div>
-      </div>
-      <div class="dashboard-menu">
-        <div class="menu-item is-selected">
-          <div class="menu-icon">
-            <img src="../assets/icons/Category.png" alt="dashboard">
-          </div>
-          <div class="menu-name">仪表盘</div>
-        </div>
-        <div class="menu-item">
-          <div class="menu-icon">
-            <img src="../assets/icons/Heart.png" alt="Stared">
-          </div>
-          <div class="menu-name">关注的</div>
-        </div>
-        <div class="menu-item">
-          <div class="menu-icon">
-            <img src="../assets/icons/Delete.png" alt="Deleted">
-          </div>
-          <div class="menu-name">已删除的</div>
+    <div class="dashboard-center--box">
+      <div class="file-search-box">
+        <a-input class="file-search-input" placeholder="请输入关键词" size="large" allow-clear>
+          <template #prefix>
+            <img src="../assets/icons/search%20icon.svg" alt="search" width="40">
+          </template>
+        </a-input>
+        <div class="file-search-filter-icon">
+          <img src="../assets/icons/Filter.svg" alt="filter">
         </div>
       </div>
-    </div>
-    <div class="dashboard-center">center</div>
-    <div class="dashboard-right">
-      <div class="user-box">
-        <div class="user-avatar">
-          <img src="../assets/vue.svg" alt="username"/>
-        </div>
-        <div class="user-intro">
-          <div class="user-info">
-            <div class="user-name">zhuboyang</div>
-            <div class="user-email">email@qq.com</div>
-          </div>
-          <div class="user-more">
-            <img src="../assets/icons/Arrow%20-%20Down%202.png" alt="more"/>
-          </div>
-        </div>
+      <div class="file-breads-box">
+        <a-breadcrumb :max-count="3">
+          <a-breadcrumb-item v-for="(item, index) in data.breads" :key="index">
+            <a href="javascript:void(0)" @click="returnParent(item, index)">{{ item.name }}</a>
+          </a-breadcrumb-item>
+        </a-breadcrumb>
       </div>
-      <div class="file-actions">
-        上传文件
-        <img src="../assets/icons/Plus.png" alt="上传文件"/>
-      </div>
+      <!--      <div class="file-category-box">-->
+      <!--        <h3 class="box-title">类型</h3>-->
+      <!--        <div class="box-container">-->
+      <!--          <a-row>-->
+      <!--            <a-col :xxl="6"-->
+      <!--                   :xl="6"-->
+      <!--                   :lg="6"-->
+      <!--                   :md="6"-->
+      <!--            >-->
+      <!--              <div class="box-item">-->
+      <!--                <div class="item-image item-type-image">-->
+      <!--                  <img src="../assets/file/category/image.svg" alt="图片"/>-->
+      <!--                </div>-->
+      <!--                <div class="item-name">图片</div>-->
+      <!--                <div class="item-count">437 个文件</div>-->
+      <!--              </div>-->
+      <!--            </a-col>-->
+      <!--            <a-col :xxl="6"-->
+      <!--                   :xl="6"-->
+      <!--                   :lg="6"-->
+      <!--                   :md="6"-->
+      <!--            >-->
+      <!--              <div class="box-item">-->
+      <!--                <div class="item-image item-type-document">-->
+      <!--                  <img src="../assets/file/category/document.svg" alt="文档"/>-->
+      <!--                </div>-->
+      <!--                <div class="item-name">文档</div>-->
+      <!--                <div class="item-count">437 个文件</div>-->
+      <!--              </div>-->
+      <!--            </a-col>-->
+      <!--            <a-col :xxl="6"-->
+      <!--                   :xl="6"-->
+      <!--                   :lg="6"-->
+      <!--                   :md="6"-->
+      <!--            >-->
+      <!--              <div class="box-item">-->
+      <!--                <div class="item-image item-type-voice">-->
+      <!--                  <img src="../assets/file/category/voice.svg" alt="音频"/>-->
+      <!--                </div>-->
+      <!--                <div class="item-name">音频</div>-->
+      <!--                <div class="item-count">437 个文件</div>-->
+      <!--              </div>-->
+      <!--            </a-col>-->
+      <!--            <a-col :xxl="6"-->
+      <!--                   :xl="6"-->
+      <!--                   :lg="6"-->
+      <!--                   :md="6"-->
+      <!--            >-->
+      <!--              <div class="box-item">-->
+      <!--                <div class="item-image item-type-video">-->
+      <!--                  <img src="../assets/file/category/video.svg" alt="视频"/>-->
+      <!--                </div>-->
+      <!--                <div class="item-name">视频</div>-->
+      <!--                <div class="item-count">437 个文件</div>-->
+      <!--              </div>-->
+      <!--            </a-col>-->
+      <!--          </a-row>-->
+      <!--        </div>-->
+      <!--      </div>-->
+      <a-empty class="empty-box"
+               v-if="data.files.length === 0"
+               img-src="/src/assets/icons/empty-data.svg"
+               description="暂无文件，请上传文件"
+      />
+      <file-box class="file-list-box"
+                v-else
+                :file-list="data.files"
+                @load-more="loadMoreFile"
+                @select-change="selectChange"
+      ></file-box>
     </div>
   </div>
+  <dashboard-right :breads="data.breads"/>
 </template>
 
 <script>
+import dashboardRight from '../components/DashboardRight.vue'
+import FileBox from '../components/FileBox.vue'
+import { reactive } from 'vue'
+import http from '../api/http.js'
+import emitter from '../utils/emitter.js'
+import { useRouter } from 'vue-router'
+
 export default {
-  name: 'DashboardPage'
+  name: 'DashboardPage',
+  components: {
+    dashboardRight,
+    FileBox
+  },
+  setup: function () {
+    const router = useRouter()
+    const data = reactive({
+      breads: [], // 文件面包屑导航数据
+      files: [], // 文件列表
+      pager: {
+        fileId: '', // 起始点文件 id
+        size: 10, // 每次请求的数据量
+        keyword: '', // 搜索的关键词
+        hasMore: true // 是否有更多的文件
+      }
+    })
+    // 查询文件面包屑导航数据
+    const queryBreads = () => {
+      const query = router.currentRoute.value.query
+      let { id } = query
+      if (id === undefined) {
+        id = ''
+      }
+      const param = { id }
+      http.req(http.url.file.breads, http.methods.get, param).then(response => {
+        data.breads = []
+        for (const key in response) {
+          data.breads.push(response[key])
+        }
+        const { id } = response[response.length - 1]
+        const path = router.currentRoute.value.path
+        router.push({
+          path,
+          query: { id }
+        })
+        queryFiles()
+      })
+    }
+    // 查询文件列表数据
+    const queryFiles = () => {
+      let pid = ''
+      if (data.breads.length > 0) {
+        pid = data.breads[data.breads.length - 1].id
+      }
+      const param = {
+        pid,
+        fileId: data.pager.fileId,
+        size: data.pager.size,
+        fileName: data.pager.keyword
+      }
+      http.req(http.url.file.list, http.methods.get, param).then(response => {
+        if (response.length === 0) {
+          data.pager.hasMore = false
+          return
+        }
+        for (const key in response) {
+          data.files.push(response[key])
+        }
+      })
+    }
+    // 监听新建文件夹
+    emitter.on('mkdir-change', record => {
+      data.files.push(record)
+    })
+    // 监听上传文件
+    emitter.on('upload-change', record => {
+      console.log(record)
+      for (const key in record) {
+        data.files.push(record[key])
+      }
+    })
+    return {
+      router,
+      data,
+      queryBreads,
+      queryFiles
+    }
+  },
+  created () {
+    this.queryBreads()
+  },
+  methods: {
+    // 加载更多文件
+    loadMoreFile () {
+      if (!this.data.pager.hasMore) {
+        return
+      }
+      this.data.pager.fileId = this.data.files[this.data.files.length - 1].id
+      this.queryFiles()
+    },
+    // 跳转到某上层目录
+    returnParent (record, recordIndex) {
+      const { id } = record
+      const path = this.router.currentRoute.value.path
+      this.router.push({
+        path,
+        query: { id }
+      })
+      const spliceLength = this.data.breads.length - recordIndex - 1
+      this.data.breads.splice(recordIndex + 1, spliceLength)
+      this.data.files = []
+      this.queryFiles()
+    },
+    // 选择文件
+    selectChange (record) {
+      const { id, name, type } = record
+      if (type === 0) {
+        return
+      }
+      const current = this.router.currentRoute.value.path
+      this.router.push({
+        path: current,
+        query: { id }
+      })
+      this.data.breads.push({ id, name })
+      this.data.files = []
+      this.queryFiles()
+    }
+  }
 }
 </script>
 
 <style scoped lang="scss">
 .dashboard-page {
-  display: flex;
-  .dashboard-left {
-    width: 258px;
-    height: 100vh;
-    background-color: rgba(106, 75, 255, .05);
-    .dashboard-avatar {
-      margin: 50px auto 0;
-      .avatar-image {
-        width: 48px;
-        height: 48px;
-        color: #ffffff;
-        font-size: 24px;
-        background-color: rgb(106, 75, 254);
-        border-radius: 12px;
-      }
-      .avatar-name {
-        margin-left: 16px;
-        font-size: 18px;
-      }
-    }
-    .dashboard-menu {
-      margin: 88px auto 0;
-      width: 210px;
-      .menu-item {
-        margin: 12px 0;
-        padding: 0 20px;
-        height: 58px;
-        display: flex;
-        align-items: center;
-        border-radius: 20px;
-        cursor: pointer;
-        transition: all .3s;
-        &:hover,
-        &.is-selected {
-          color: #ffffff;
-          background-color: rgb(106, 75, 254);
-          transition: all .3s;
-        }
-        &:first-child {
-          margin-top: 0;
-        }
-        &:last-child {
-          margin-bottom: 0;
-        }
-        .menu-icon {
-          width: 28px;
-          height: 28px;
-          img {
-            width: 100%;
-            height: 100%;
-          }
-        }
-        .menu-name {
-          margin-left: 24px;
-        }
-      }
-    }
-  }
-  .dashboard-center {
-    width: calc(100% - 258px - 352px);
-    height: 100vh;
-  }
-  .dashboard-right {
-    width: 352px;
-    height: 100vh;
-    .user-box {
-      margin: 40px auto 0;
-      padding: 12px 16px;
-      width: 252px;
-      height: 60px;
+  width: calc(100% - 258px - 352px);
+  .dashboard-center--box {
+    margin: 50px auto 0;
+    width: 94%;
+    .file-search-box {
       display: flex;
-      align-items: center;
-      border-radius: 16px;
-      border: 1px solid #eaeaea;
-      .user-avatar {
+      justify-content: space-between;
+      .file-search-filter-icon {
+        margin-left: 30px;
         width: 60px;
         height: 60px;
-        border-radius: 50%;
-        overflow: hidden;
-        img {
-          width: 100%;
-          height: 100%;
-        }
-      }
-      .user-intro {
-        margin-left: 10px;
-        width: calc(100% - 70px);
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        .user-info {
-          .user-email {
-            margin-top: 5px;
-          }
-        }
-        .user-more {
-          width: 30px;
-          height: 30px;
-          img {
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-          }
+        justify-content: center;
+        background-color: #6a4bfe;
+        border-radius: 14px;
+        cursor: pointer;
+        img {
+          width: 28px;
+          height: 28px;
+          filter: brightness(100);
         }
       }
     }
-    .file-actions {
-      margin: 25px auto 0;
-      width: 284px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #ffffff;
-      font-size: 16px;
-      background-color: #6a4bfe;
-      border-radius: 14px;
-      cursor: pointer;
-      img {
-        margin-left: 10px;
-        width: 30px;
-        height: 30px;
-      }
+    .file-breads-box {
+      margin: 30px 0 20px;
     }
+    .empty-box {
+      margin: 50px 0;
+    }
+    //.file-category-box {
+    //  margin: 50px auto 0;
+    //  .box-title {
+    //    margin: 20px 0;
+    //    font-size: 16px;
+    //    color: #374670;
+    //  }
+    //  .box-container {
+    //    .box-item {
+    //      margin: 0 28px;
+    //      padding: 20px;
+    //      border: 1px solid #eaeaea;
+    //      border-radius: 24px;
+    //      cursor: pointer;
+    //      &:first-child {
+    //        margin-left: 0;
+    //      }
+    //      &:last-child {
+    //        margin-inside: 0;
+    //      }
+    //      .item-image {
+    //        width: 60px;
+    //        height: 60px;
+    //        display: flex;
+    //        align-items: center;
+    //        justify-content: center;
+    //        border-radius: 12px;
+    //        &.item-type-image {
+    //          background-color: #f7f6ff;
+    //        }
+    //        &.item-type-document {
+    //          background-color: #ddeffc;
+    //        }
+    //        &.item-type-voice {
+    //          background-color: #fff8df;
+    //        }
+    //        &.item-type-video {
+    //          background-color: #e2f7e8;
+    //        }
+    //        img {
+    //          width: 36px;
+    //          height: 36px;
+    //        }
+    //      }
+    //      .item-name {
+    //        margin: 20px 0 10px;
+    //        font-size: 20px;
+    //        font-weight: bolder;
+    //      }
+    //      .item-count {
+    //        font-weight: bolder;
+    //        color: #92929d;
+    //      }
+    //    }
+    //  }
+    //}
   }
 }
 </style>

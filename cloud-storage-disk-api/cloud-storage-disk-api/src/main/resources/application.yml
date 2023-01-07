@@ -30,8 +30,9 @@ spring:
   jackson:
     time-zone: GMT+8
   # static resources location
-  resources:
-    static-locations: classpath:/resources/,classpath:/static/,classpath:/templates/
+  web:
+    resources:
+      static-locations: classpath:/resources/,classpath:/static/,classpath:/templates/
   # max size of upload file and request
   servlet:
     multipart:
@@ -58,4 +59,4 @@ mybatis:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 project:
-  path: /rain_cloud_storage_disk
+  path: rain_cloud_storage_disk

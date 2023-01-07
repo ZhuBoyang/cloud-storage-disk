@@ -89,4 +89,34 @@ public class SystemRecognition {
         return uploadPath;
     }
 
+    /**
+     * 生成文件块存储路径
+     *
+     * @return 文件块存储路径
+     */
+    public String generateBlockStoragePath() {
+        String uploadPath = generateUploadPath();
+        String blockPath = uploadPath + File.separator + "block";
+        if (!FileUtil.exist(blockPath)) {
+            FileUtil.mkdir(blockPath);
+            logger.info("block storage path is not exist, and has exist now");
+        }
+        return blockPath;
+    }
+
+    /**
+     * 生成文件存储路径
+     *
+     * @return 文件存储路径
+     */
+    public String generateFileStoragePath() {
+        String uploadPath = generateUploadPath();
+        String blockPath = uploadPath + File.separator + "file";
+        if (!FileUtil.exist(blockPath)) {
+            FileUtil.mkdir(blockPath);
+            logger.info("file storage path is not exist, and has exist now");
+        }
+        return blockPath;
+    }
+
 }

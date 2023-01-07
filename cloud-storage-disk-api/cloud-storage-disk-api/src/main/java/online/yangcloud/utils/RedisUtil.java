@@ -1,5 +1,6 @@
 package online.yangcloud.utils;
 
+import cn.hutool.core.util.ObjUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,9 +8,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -136,6 +135,30 @@ public class RedisUtil {
     public void delete(String redisKey) {
         logger.info("删除redis[{}]", redisKey);
         redisTemplate.delete(redisKey);
+    }
+
+    /**
+     * 存储有序集合单项
+     *
+     * @param redisKey   redis key
+     * @param redisValue redis value
+     * @param score      score
+     */
+    public void zSetAdd(String redisKey, String redisValue, Double score) {
+        redisTemplate.opsForZSet().add(redisKey, redisValue, score);
+    }
+
+    /**
+     * 安装分数获取集合中的元素
+     *
+     * @param redisKey redis key
+     * @param min      最低分数
+     * @param max      最高分数
+     * @return 选中的元素
+     */
+    public List<String> zSetRange(String redisKey, Double min, Double max) {
+        Set<String> valueSet = redisTemplate.opsForZSet().rangeByScore(redisKey, min, max);
+        return ObjUtil.isNull(valueSet) || valueSet.size() == 0 ? Collections.emptyList() : new ArrayList<>(valueSet);
     }
 
     /**

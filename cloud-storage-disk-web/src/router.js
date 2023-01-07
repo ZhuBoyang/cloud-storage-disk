@@ -4,12 +4,19 @@ const routes = [
   {
     path: '/',
     component: () => import('./App.vue'),
-    redirect: '/dashboard'
+    redirect: '/index'
   },
   {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: () => import('./pages/DashboardPage.vue')
+    path: '/index',
+    component: () => import('./pages/HomePage.vue'),
+    redirect: '/dashboard',
+    children: [
+      {
+        path: '/dashboard',
+        name: 'Dashboard',
+        component: () => import('./pages/DashboardPage.vue')
+      }
+    ]
   }
 ]
 

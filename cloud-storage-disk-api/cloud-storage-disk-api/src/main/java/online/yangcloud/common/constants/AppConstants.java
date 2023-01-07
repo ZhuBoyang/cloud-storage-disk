@@ -8,32 +8,17 @@ package online.yangcloud.common.constants;
 public interface AppConstants {
 
     /**
-     * %号
+     * 特殊符号
      */
     String PERCENT = "%";
-
-    /**
-     * 错误码：
-     * 10001.参数错误
-     */
-    int PARAM_ERROR = 10001;
-
-    /**
-     * 文件类型不支持，文件块缓存过期时间
-     */
-    Long BLOCK_EXPIRE_TIME = 30L;
-
-    /**
-     * 请输入变量内容。用于填充网站内容时使用
-     */
-    String DEFAULT_CONTENT = "请输入内容";
+    String LEFT_BRACKET = "（";
+    String RIGHT_BRACKET = "）";
 
     /**
      * 执行耗时
      */
     long NORMAL_TIMING = 1000L;
     long WARN_TIMING = 2 * NORMAL_TIMING;
-    long ERROR_TIMING = 3 * NORMAL_TIMING;
 
     /**
      * 登录状态续期
@@ -63,20 +48,14 @@ public interface AppConstants {
     String LOCAL_IPV6_ADDRESS = "0:0:0:0:0:0:0:1";
 
     /**
-     * 时间精确化换算单位（将毫秒换算为秒）
-     */
-    Long TIME_CONVERSION_UNIT = 1000L;
-
-    /**
      * 访问者 ip 地址前缀
      */
     String VISITOR_IP_PREFIX = "visit_ip:";
 
     /**
-     * 时间格式化
+     * 文件块上传缓存
      */
-    String FORMAT_TIME = "yyyy-MM-dd HH:mm:ss";
-
-    String VERSION_RELEASE = "version_release";
+    String FILE_BLOCK_UPLOAD_PREFIX = "file_block_upload:";
+    String FILE_BLOCK_UPLOAD_BUFFER_PREFIX = "file_block_buffer_upload:";
 
 }
