@@ -69,6 +69,11 @@ public class FileMetadata extends RichEntity {
      */
     private String ancestors;
 
+    /**
+     * 是否已删除
+     */
+    private Integer isDelete;
+
     public String getId() {
         return id;
     }
@@ -168,6 +173,15 @@ public class FileMetadata extends RichEntity {
         return this;
     }
 
+    public Integer getIsDelete() {
+        return isDelete;
+    }
+
+    public FileMetadata setIsDelete(Integer isDelete) {
+        this.isDelete = isDelete;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "FileMetadata["
@@ -181,7 +195,8 @@ public class FileMetadata extends RichEntity {
                 + " size=" + size + ","
                 + " uploadTime=" + uploadTime + ","
                 + " updateTime=" + updateTime + ","
-                + " ancestors=" + ancestors
+                + " ancestors=" + ancestors + ","
+                + " isDelete=" + isDelete
                 + " ]"
                 + " "
                 + super.toString();

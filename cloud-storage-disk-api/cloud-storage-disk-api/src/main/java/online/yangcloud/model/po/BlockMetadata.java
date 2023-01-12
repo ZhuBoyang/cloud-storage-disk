@@ -34,6 +34,11 @@ public class BlockMetadata extends RichEntity {
      */
     private Long blockSize;
 
+    /**
+     * 是否已删除
+     */
+    private Integer isDelete;
+
     public String getId() {
         return id;
     }
@@ -70,13 +75,23 @@ public class BlockMetadata extends RichEntity {
         return this;
     }
 
+    public Integer getIsDelete() {
+        return isDelete;
+    }
+
+    public BlockMetadata setIsDelete(Integer isDelete) {
+        this.isDelete = isDelete;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "BlockMetadata["
                 + " id=" + id + ","
                 + " hash=" + hash + ","
                 + " storagePath=" + storagePath + ","
-                + " blockSize=" + blockSize
+                + " blockSize=" + blockSize + ","
+                + " isDelete=" + isDelete
                 + " ]"
                 + " "
                 + super.toString();

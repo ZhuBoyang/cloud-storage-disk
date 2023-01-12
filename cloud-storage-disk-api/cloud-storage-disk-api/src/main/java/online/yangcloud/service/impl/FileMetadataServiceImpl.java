@@ -11,6 +11,7 @@ import online.yangcloud.common.ResultBean;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.common.resultcode.AppResultCode;
 import online.yangcloud.enumration.FileTypeEnum;
+import online.yangcloud.enumration.YesOrNoEnum;
 import online.yangcloud.exception.BusinessException;
 import online.yangcloud.model.ao.file.FileSearchRequest;
 import online.yangcloud.model.mapper.FileBlockMapper;
@@ -106,7 +107,9 @@ public class FileMetadataServiceImpl implements FileMetadataService {
         List<String> fileBlocksIds = fileBlocks.stream().map(FileBlock::getId).collect(Collectors.toList());
 
         // 删除文件
-        int updateResult = fileMetadataMapper.deleteByIds(fileIds);
+        int updateResult = fileMetadataMapper.updateBy(fileMetadataMapper.updater()
+                .set.isDelete().is(YesOrNoEnum.YES.getCode()).end()
+                .where.id().in(fileIds).end());
         if (updateResult != fileIds.size()) {
             logger.error("文件删除失败，请重试");
             throw new BusinessException("文件删除失败，请重试");
@@ -114,7 +117,9 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
         // 删除文件与文件块的关联关系
         if (fileBlocksIds.size() > 0) {
-            updateResult = fileBlockMapper.deleteByIds(fileBlocksIds);
+            updateResult = fileBlockMapper.updateBy(fileBlockMapper.updater()
+                    .set.isDelete().is(YesOrNoEnum.YES.getCode()).end()
+                    .where.id().in(fileBlocksIds).end());
             if (updateResult != fileBlocksIds.size()) {
                 logger.error("文件块删除失败，导致文件删除失败，请重试");
                 throw new BusinessException("文件删除失败，请重新尝试");
