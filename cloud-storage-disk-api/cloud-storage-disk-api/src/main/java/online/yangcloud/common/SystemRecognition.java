@@ -81,7 +81,7 @@ public class SystemRecognition {
      */
     public String generateUploadPath() {
         String systemPath = generateSystemPath();
-        String uploadPath = systemPath + "upload";
+        String uploadPath = systemPath + "upload" + File.separator;
         if (!FileUtil.exist(uploadPath)) {
             FileUtil.mkdir(uploadPath);
             logger.info("upload path is not exist, and has exist now");
@@ -96,7 +96,7 @@ public class SystemRecognition {
      */
     public String generateBlockStoragePath() {
         String uploadPath = generateUploadPath();
-        String blockPath = uploadPath + File.separator + "block";
+        String blockPath = uploadPath + "block" + File.separator;
         if (!FileUtil.exist(blockPath)) {
             FileUtil.mkdir(blockPath);
             logger.info("block storage path is not exist, and has exist now");
@@ -111,7 +111,7 @@ public class SystemRecognition {
      */
     public String generateFileStoragePath() {
         String uploadPath = generateUploadPath();
-        String blockPath = uploadPath + File.separator + "file";
+        String blockPath = uploadPath + "file" + File.separator;
         if (!FileUtil.exist(blockPath)) {
             FileUtil.mkdir(blockPath);
             logger.info("file storage path is not exist, and has exist now");

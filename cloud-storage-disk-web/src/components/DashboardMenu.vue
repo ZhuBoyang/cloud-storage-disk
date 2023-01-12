@@ -7,13 +7,13 @@
     <div class="dashboard-menu">
       <div class="menu-item is-selected">
         <div class="menu-icon">
-          <img src="../assets/icons/Category.svg" alt="dashboard">
+          <img src="../assets/icons/full/Category.svg" alt="dashboard">
         </div>
         <div class="menu-name">仪表盘</div>
       </div>
       <div class="menu-item">
         <div class="menu-icon">
-          <img src="../assets/icons/Heart.svg" alt="Stared">
+          <img src="../assets/icons/full/Heart.svg" alt="Stared">
         </div>
         <div class="menu-name">关注的</div>
       </div>
@@ -25,7 +25,7 @@
 <!--      </div>-->
       <div class="menu-item">
         <div class="menu-icon">
-          <img src="../assets/icons/Delete.svg" alt="Deleted">
+          <img src="../assets/icons/full/Delete.svg" alt="Deleted">
         </div>
         <div class="menu-name">已删除的</div>
       </div>

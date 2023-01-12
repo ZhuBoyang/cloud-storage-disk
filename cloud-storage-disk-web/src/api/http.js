@@ -29,6 +29,7 @@ const modules = {
 const url = {
   file: {
     mkdir: modules.file + 'mkdir', // 新建文件夹
+    batchDelete: modules.file + 'batch_delete', // 批量删除文件
     breads: modules.file + 'breads', // 查询文件面包屑导航
     list: modules.file + 'list' // 文件列表
   },

@@ -7,18 +7,20 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import online.yangcloud.common.ResultBean;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.common.resultcode.AppResultCode;
 import online.yangcloud.enumration.FileTypeEnum;
 import online.yangcloud.exception.BusinessException;
 import online.yangcloud.model.ao.file.FileSearchRequest;
+import online.yangcloud.model.mapper.FileBlockMapper;
 import online.yangcloud.model.mapper.FileMetadataMapper;
+import online.yangcloud.model.po.FileBlock;
 import online.yangcloud.model.po.FileMetadata;
 import online.yangcloud.model.vo.file.FileBreadView;
 import online.yangcloud.model.vo.file.FileMetadataView;
 import online.yangcloud.model.wrapper.FileMetadataQuery;
 import online.yangcloud.service.FileMetadataService;
-import online.yangcloud.utils.PagerHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +45,9 @@ public class FileMetadataServiceImpl implements FileMetadataService {
     @Autowired
     private FileMetadataMapper fileMetadataMapper;
 
+    @Autowired
+    private FileBlockMapper fileBlockMapper;
+
     @Override
     public FileMetadata insertOne(FileMetadata file) {
         int updateResult = fileMetadataMapper.insertWithPk(file);
@@ -62,27 +67,10 @@ public class FileMetadataServiceImpl implements FileMetadataService {
         }
 
         // 查询与文件夹名称有关的文件夹
-        List<FileMetadata> existDirectories = fileMetadataMapper.listEntity(fileMetadataMapper.query()
-                .where.pid().eq(pid)
-                .and.name().like(fileName.trim() + AppConstants.PERCENT)
-                .and.type().eq(FileTypeEnum.DIR.getCode()).end());
+        List<FileMetadata> existDirectories = queryLikePrefix(pid, fileName, FileTypeEnum.DIR);
 
-        int fileNumber = 0;
-        if (existDirectories.size() > 0) {
-            // 1. 将文件夹名称刨除掉，过滤掉名称不同的文件夹。如：test（1）切分为 1
-            // 2. 将名称刨除掉后，剩下的名称部分，留下是数字的
-            // 3. 将数字（字符串）转为数字，并升序排序
-            List<Integer> fileNumbers = existDirectories.stream()
-                    .map(file -> fileName.equals(file.getName()) ?
-                            CharSequenceUtil.EMPTY : file.getName().substring(fileName.length() + 1, file.getName().length() - 1))
-                    .filter(nameNumber -> CharSequenceUtil.isBlank(nameNumber) || NumberUtil.isInteger(nameNumber))
-                    .map(nameNumber -> CharSequenceUtil.isBlank(nameNumber) ? 0 : Integer.parseInt(nameNumber))
-                    .sorted(Comparator.comparingInt(Integer::intValue))
-                    .collect(Collectors.toList());
-            if (fileNumbers.size() > 0) {
-                fileNumber = fileNumbers.get(fileNumbers.size() - 1) + 1;
-            }
-        }
+        // 计算存储文件的文件名后的后缀数字
+        int fileNumber = calculateFileNumber(existDirectories, fileName);
 
         // 封装文件元数据并入库
         FileMetadata file = new FileMetadata()
@@ -105,6 +93,61 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
         // 返回视图数据
         return BeanUtil.copyProperties(file, FileMetadataView.class);
+    }
+
+    @Override
+    public ResultBean<?> batchDeleteFile(List<String> fileIds) {
+        // 检测存在的文件
+        List<FileMetadata> files = fileMetadataMapper.listByIds(fileIds);
+
+        // 查询文件对应的，文件与文件块的关联记录
+        fileIds = files.stream().map(FileMetadata::getId).collect(Collectors.toList());
+        List<FileBlock> fileBlocks = fileBlockMapper.listEntity(fileBlockMapper.query().where.fileId().in(fileIds).end());
+        List<String> fileBlocksIds = fileBlocks.stream().map(FileBlock::getId).collect(Collectors.toList());
+
+        // 删除文件
+        int updateResult = fileMetadataMapper.deleteByIds(fileIds);
+        if (updateResult != fileIds.size()) {
+            logger.error("文件删除失败，请重试");
+            throw new BusinessException("文件删除失败，请重试");
+        }
+
+        // 删除文件与文件块的关联关系
+        if (fileBlocksIds.size() > 0) {
+            updateResult = fileBlockMapper.deleteByIds(fileBlocksIds);
+            if (updateResult != fileBlocksIds.size()) {
+                logger.error("文件块删除失败，导致文件删除失败，请重试");
+                throw new BusinessException("文件删除失败，请重新尝试");
+            }
+        }
+        return ResultBean.success();
+    }
+
+    /**
+     * 计算文件名名后的后缀数字
+     *
+     * @param files    计算文件范围列表
+     * @param fileName 文件名
+     * @return result
+     */
+    public static int calculateFileNumber(List<FileMetadata> files, String fileName) {
+        int fileNumber = 0;
+        if (files.size() > 0) {
+            // 1. 将文件夹名称刨除掉，过滤掉名称不同的文件夹。如：test（1）切分为 1
+            // 2. 将名称刨除掉后，剩下的名称部分，留下是数字的
+            // 3. 将数字（字符串）转为数字，并升序排序
+            List<Integer> fileNumbers = files.stream()
+                    .map(file -> fileName.equals(file.getName()) ?
+                            CharSequenceUtil.EMPTY : file.getName().substring(fileName.length() + 1, file.getName().length() - 1))
+                    .filter(nameNumber -> CharSequenceUtil.isBlank(nameNumber) || NumberUtil.isInteger(nameNumber))
+                    .map(nameNumber -> CharSequenceUtil.isBlank(nameNumber) ? 0 : Integer.parseInt(nameNumber))
+                    .sorted(Comparator.comparingInt(Integer::intValue))
+                    .collect(Collectors.toList());
+            if (fileNumbers.size() > 0) {
+                fileNumber = fileNumbers.get(fileNumbers.size() - 1) + 1;
+            }
+        }
+        return fileNumber;
     }
 
     @Override
@@ -168,6 +211,14 @@ public class FileMetadataServiceImpl implements FileMetadataService {
         return files.stream()
                 .map(file -> BeanUtil.copyProperties(file, FileMetadataView.class))
                 .sorted((o1, o2) -> DateUtil.compare(o1.getUploadTime(), o2.getUploadTime())).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<FileMetadata> queryLikePrefix(String pid, String fileName, FileTypeEnum type) {
+        return fileMetadataMapper.listEntity(fileMetadataMapper.query()
+                .where.pid().eq(pid)
+                .and.name().like(fileName.trim() + AppConstants.PERCENT)
+                .and.type().eq(type.getCode()).end());
     }
 
 }

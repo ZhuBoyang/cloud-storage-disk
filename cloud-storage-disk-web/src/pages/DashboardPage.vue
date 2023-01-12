@@ -4,11 +4,11 @@
       <div class="file-search-box">
         <a-input class="file-search-input" placeholder="请输入关键词" size="large" allow-clear>
           <template #prefix>
-            <img src="../assets/icons/search%20icon.svg" alt="search" width="40">
+            <img src="../assets/icons/full/search%20icon.svg" alt="search" width="40">
           </template>
         </a-input>
         <div class="file-search-filter-icon">
-          <img src="../assets/icons/Filter.svg" alt="filter">
+          <img src="../assets/icons/full/Filter.svg" alt="filter">
         </div>
       </div>
       <div class="file-breads-box">
@@ -79,7 +79,7 @@
       <!--      </div>-->
       <a-empty class="empty-box"
                v-if="data.files.length === 0"
-               img-src="/src/assets/icons/empty-data.svg"
+               img-src="/src/assets/icons/full/empty-data.svg"
                description="暂无文件，请上传文件"
       />
       <file-box class="file-list-box"
@@ -87,6 +87,7 @@
                 :file-list="data.files"
                 @load-more="loadMoreFile"
                 @select-change="selectChange"
+                @action-change="removeFile"
       ></file-box>
     </div>
   </div>
@@ -220,6 +221,14 @@ export default {
       this.data.breads.push({ id, name })
       this.data.files = []
       this.queryFiles()
+    },
+    // 删除单个文件
+    removeFile (record) {
+      const { fileIds } = record
+      for (const key in fileIds) {
+        const fileIndex = this.data.files.findIndex(file => file.id === fileIds[key])
+        this.data.files.splice(fileIndex, 1)
+      }
     }
   }
 }

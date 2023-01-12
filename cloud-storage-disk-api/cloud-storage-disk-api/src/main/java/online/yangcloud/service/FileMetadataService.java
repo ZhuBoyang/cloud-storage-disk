@@ -1,10 +1,11 @@
 package online.yangcloud.service;
 
+import online.yangcloud.common.ResultBean;
+import online.yangcloud.enumration.FileTypeEnum;
 import online.yangcloud.model.ao.file.FileSearchRequest;
 import online.yangcloud.model.po.FileMetadata;
 import online.yangcloud.model.vo.file.FileBreadView;
 import online.yangcloud.model.vo.file.FileMetadataView;
-import online.yangcloud.utils.PagerHelper;
 
 import java.util.List;
 
@@ -32,6 +33,14 @@ public interface FileMetadataService {
     FileMetadataView mkdir(String pid, String fileName);
 
     /**
+     * 批量删除文件及文件夹
+     *
+     * @param fileIds 文件或文件夹 id 列表
+     * @return result
+     */
+    ResultBean<?> batchDeleteFile(List<String> fileIds);
+
+    /**
      * 查询当前所在目录的文件面包屑导航
      *
      * @param id 当前所在目录的文件 id
@@ -54,5 +63,15 @@ public interface FileMetadataService {
      * @return result
      */
     List<FileMetadataView> queryFiles(FileSearchRequest searchRequest);
+
+    /**
+     * 查询以文件名为前缀的所有文件列表
+     *
+     * @param pid      父级目录文件 id
+     * @param fileName 待查询文件名（不带文件后缀）
+     * @param type     文件类型
+     * @return result
+     */
+    List<FileMetadata> queryLikePrefix(String pid, String fileName, FileTypeEnum type);
 
 }

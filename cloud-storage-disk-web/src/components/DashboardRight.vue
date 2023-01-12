@@ -14,7 +14,7 @@
             <div class="user-email">email@qq.com</div>
           </div>
           <div class="user-more">
-            <img src="../assets/icons/Arrow%20-%20Down%202.svg" alt="more"/>
+            <img src="../assets/icons/full/Arrow%20-%20Down%202.svg" alt="more"/>
           </div>
         </div>
       </div>
@@ -31,7 +31,7 @@
     >
       <div class="add-file-btn">
         添加文件
-        <img src="../assets/icons/Plus.svg" alt="添加文件"/>
+        <img src="../assets/icons/full/Plus.svg" alt="添加文件"/>
       </div>
       <div class="file-actions--list"
            :class="[{'is-show': data.showAddBox}]"

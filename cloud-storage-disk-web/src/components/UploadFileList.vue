@@ -8,17 +8,17 @@
     <div class="box-header">
       <div class="box-header--info">
         <div class="box-upload-icon">
-          <img src="../assets/icons/Upload.svg" alt="文件上传"/>
+          <img src="../assets/icons/full/Upload.svg" alt="文件上传"/>
         </div>
         <div class="box-upload-title">上传文件</div>
       </div>
       <div class="box-header--close">
-        <img src="../assets/icons/Close%20Square.svg"
+        <img src="../assets/icons/full/Close%20Square.svg"
              alt="关闭"
              v-if="visible && !data.hideModalVisible"
              @click="closeUploadModal"
         />
-        <img src="../assets/icons/Arrow%20-%20Up%20Circle.svg"
+        <img src="../assets/icons/full/Arrow%20-%20Up%20Circle.svg"
              alt="显示"
              v-else
              @click="data.hideModalVisible = false"
@@ -37,9 +37,9 @@
           <div class="item-name">{{ item.fileName }}</div>
           <div class="item-size">{{ globalProperties.$formatSizeInPerson(item.fileSize) }}</div>
           <div class="item-status">
-            <img src="../assets/icons/success.svg" class="upload-success" alt="成功" v-if="item.status === 'success'"/>
-            <img src="../assets/icons/error.svg" class="upload-error" alt="失败" v-if="item.status === 'error'"/>
-            <img src="../assets/icons/loading.svg" class="upload-loading" alt="加载中"/>
+            <img src="../assets/icons/full/success.svg" class="upload-success" alt="成功" v-if="item.status === 'success'"/>
+            <img src="../assets/icons/full/error.svg" class="upload-error" alt="失败" v-if="item.status === 'error'"/>
+            <img src="../assets/icons/full/loading.svg" class="upload-loading" alt="加载中" v-if="item.status === 'loading'"/>
           </div>
         </div>
         <div class="item-process">
@@ -118,7 +118,7 @@ export default {
           process: 0, // 上传进度
           blockNumber: 0, // 已上传文件块数量
           blockCount: 0, // 文件块总数据量
-          status: '', // 上传状态
+          status: 'loading', // 上传状态
           type: 0 // 文件类型
         }
         this.data.upload.uploading.push(file)
@@ -218,6 +218,7 @@ export default {
       const currentItem = this.data.upload.uploading[fileIndex]
       if (flag) {
         currentItem.process = 1
+        currentItem.status = 'success'
       } else {
         currentItem.blockNumber++
         currentItem.process = currentItem.blockNumber / (currentItem.blockCount + 1)
@@ -348,6 +349,9 @@ export default {
           width: 28px;
           img {
             width: 100%;
+            &.upload-loading {
+              animation: infinite-rotation 1s linear infinite;
+            }
           }
         }
       }
@@ -364,6 +368,17 @@ export default {
         margin-right: 0;
       }
     }
+  }
+}
+
+// 无限旋转动画
+@keyframes infinite-rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+    transition: all 5s;
   }
 }
 

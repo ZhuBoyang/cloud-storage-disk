@@ -22,7 +22,6 @@ import online.yangcloud.model.vo.file.FileMetadataView;
 import online.yangcloud.service.BlockMetadataService;
 import online.yangcloud.service.FileBlockService;
 import online.yangcloud.service.FileMetadataService;
-import online.yangcloud.utils.FileUtils;
 import online.yangcloud.utils.RedisUtil;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -38,6 +37,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static online.yangcloud.service.impl.FileMetadataServiceImpl.calculateFileNumber;
 
 /**
  * @author zhuboyang
@@ -63,7 +64,7 @@ public class FileBlockServiceImpl implements FileBlockService {
 
     @Autowired
     private RedisUtil redisUtil;
-    
+
     @Autowired
     private RedissonClient redissonClient;
 
@@ -117,17 +118,24 @@ public class FileBlockServiceImpl implements FileBlockService {
         // 解析已经上传的文件块
         List<BlockUpload> uploadedBlocks
                 = uploadedFileBlock.stream().map(block -> JSONUtil.toBean(block, BlockUpload.class)).collect(Collectors.toList());
-        
+
         // 查询父级目录元数据
         BlockUpload blockUpload = uploadedBlocks.get(0);
         FileMetadata parent = fileMetadataService.queryById(blockUpload.getPid());
+
+        // 查询与文件夹名称有关的文件夹
+        String fileName = blockUpload.getFileName().substring(0, blockUpload.getFileName().lastIndexOf(StrUtil.DOT));
+        List<FileMetadata> files = fileMetadataService.queryLikePrefix(blockUpload.getPid(), fileName, FileTypeEnum.FILE);
+
+        // 计算存储文件的文件名后的后缀数字
+        int fileNumber = calculateFileNumber(files, fileName);
 
         // 封装文件元数据并入库
         String fileExt = FileUtil.extName(blockUpload.getFileName());
         FileMetadata file = new FileMetadata()
                 .setId(IdUtil.fastSimpleUUID())
                 .setPid(blockUpload.getPid())
-                .setName(blockUpload.getFileName())
+                .setName(fileNumber == 0 ? fileName : fileName + AppConstants.LEFT_BRACKET + fileNumber + AppConstants.RIGHT_BRACKET)
                 .setHash(hash)
                 .setExt(fileExt)
                 .setPath(systemRecognition.generateFileStoragePath() + hash)
@@ -160,7 +168,7 @@ public class FileBlockServiceImpl implements FileBlockService {
             logger.error("文件[{}]合并失败", blockUpload.getFileName());
             throw new BusinessException("文件合并失败");
         }
-        
+
         return BeanUtil.copyProperties(file, FileMetadataView.class);
 
 //        // 文件合并

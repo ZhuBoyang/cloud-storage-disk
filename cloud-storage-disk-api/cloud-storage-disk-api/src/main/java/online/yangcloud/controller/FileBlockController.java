@@ -1,22 +1,22 @@
 package online.yangcloud.controller;
 
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.util.ObjUtil;
 import online.yangcloud.common.ResultData;
 import online.yangcloud.exception.ParamErrorException;
 import online.yangcloud.model.ao.BlockUpload;
 import online.yangcloud.model.ao.file.BlockCheckExistRequest;
 import online.yangcloud.model.ao.file.FileMergeRequest;
-import online.yangcloud.model.po.BlockMetadata;
 import online.yangcloud.model.vo.file.FileMetadataView;
 import online.yangcloud.service.BlockMetadataService;
 import online.yangcloud.service.FileBlockService;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
+import online.yangcloud.service.FileMetadataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,12 +30,15 @@ import java.util.List;
 public class FileBlockController {
 
     private static final Logger logger = LoggerFactory.getLogger(FileBlockController.class);
-
+    
     @Autowired
-    private FileBlockService fileBlockService;
+    private FileMetadataService fileMetadataService;
 
     @Autowired
     private BlockMetadataService blockMetadataService;
+
+    @Autowired
+    private FileBlockService fileBlockService;
 
     /**
      * 检测文件块是否已入库

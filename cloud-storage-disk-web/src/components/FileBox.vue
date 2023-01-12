@@ -2,7 +2,7 @@
   <div class="file-box">
     <div class="file-box--header">
       <div class="header--multiselect row-col-center">
-        <a-checkbox value="1"></a-checkbox>
+        <a-checkbox v-model="data.selectAll" @change="selectAllFiles"></a-checkbox>
       </div>
       <div class="header--icon row-col-center"></div>
       <div class="header--name">文件名</div>
@@ -15,44 +15,112 @@
     >
       <div class="file-box--body-item"
            v-for="(item, index) in fileList"
+           :class="[{'is-selected': data.selected[index]}]"
            :key="index"
-           @click="clickFile(item)"
       >
         <div class="body--multiselect row-col-center">
-          <a-checkbox value="1"></a-checkbox>
+          <a-checkbox v-model="data.selected[index]" @change="selectFile(item, index)"></a-checkbox>
         </div>
         <div class="body--icon row-col-center">
-          <div class="body--icon-img row-col-center">
+          <div class="body--icon-img row-col-center"
+               @click="clickFile(item)"
+          >
             <img :src="globalProperties.$identifyFileIcon(item)" alt="文件"/>
           </div>
         </div>
-        <div class="body--name">{{ item.name }}</div>
+        <div class="body--name"
+             @click="clickFile(item)"
+        >{{ item.name }}
+        </div>
         <div class="body--category">{{ item.type === 1 ? '文件夹' : `${item.ext} 文件` }}</div>
         <div class="body--size">{{ globalProperties.$formatSizeInPerson(item.size) }}</div>
         <div class="body--actions row-col-center">
-          <a-dropdown trigger="hover">
+          <a-dropdown trigger="hover" @select="fileChangeEvent($event, item, index)">
             <div class="body--actions-btn row-col-center">
-              <img src="../assets/icons/more.svg" alt="更多">
+              <img src="../assets/icons/full/more.svg" alt="更多">
             </div>
             <template #content>
-              <a-doption>分享</a-doption>
-              <a-doption>获取链接</a-doption>
-              <a-doption>下载</a-doption>
-              <a-doption>重命名</a-doption>
-              <a-doption>复制</a-doption>
-              <a-doption>删除</a-doption>
-              <a-doption>添加到喜欢</a-doption>
-              <a-doption>查看详情</a-doption>
+              <a-doption value="share">分享</a-doption>
+              <a-doption value="link">获取链接</a-doption>
+              <a-doption value="download">下载</a-doption>
+              <a-doption value="rename">重命名</a-doption>
+              <a-doption value="copy">复制</a-doption>
+              <a-doption value="delete">删除</a-doption>
+              <a-doption value="like">添加到喜欢</a-doption>
+              <a-doption value="detail">查看详情</a-doption>
             </template>
           </a-dropdown>
         </div>
       </div>
     </div>
+    <div class="files-actions"
+         :class="[{'is-hide': data.selected.length < 2}]"
+    >
+      <a-trigger position="top" auto-fit-position :unmount-on-close="false">
+        <div class="actions-item row-col-center">
+          <img src="../assets/icons/full/Download.svg" alt="下载"/>
+        </div>
+        <template #content>
+          <div class="action-trigger">下载</div>
+        </template>
+      </a-trigger>
+      <a-trigger position="top" auto-fit-position :unmount-on-close="false">
+        <div class="actions-item row-col-center">
+          <img src="../assets/icons/full/Arrow%20-%20Right%202.svg" alt="复制"/>
+        </div>
+        <template #content>
+          <div class="action-trigger">复制</div>
+        </template>
+      </a-trigger>
+      <a-trigger position="top" auto-fit-position :unmount-on-close="false">
+        <div class="actions-item row-col-center">
+          <img src="../assets/icons/half/Arrow%20-%20Right%202.png" alt="移动"/>
+        </div>
+        <template #content>
+          <div class="action-trigger">移动</div>
+        </template>
+      </a-trigger>
+      <a-trigger position="top" auto-fit-position :unmount-on-close="false">
+        <div class="actions-item row-col-center" @click="data.remove.visible = true">
+          <img src="../assets/icons/full/Delete.svg" alt="删除"/>
+        </div>
+        <template #content>
+          <div class="action-trigger">删除</div>
+        </template>
+      </a-trigger>
+      <a-trigger position="top" auto-fit-position :unmount-on-close="false">
+        <div class="actions-item row-col-center" @click="clearSelected">
+          <img src="../assets/icons/full/Close%20Square.svg" alt="取消"/>
+        </div>
+        <template #content>
+          <div class="action-trigger">取消</div>
+        </template>
+      </a-trigger>
+    </div>
+    <!-- 删除文件的警告框 -->
+    <a-modal :visible="data.remove.visible"
+             @ok="confirmRemoveFile"
+             @cancel="data.remove.visible = false"
+             @close="clearRemoveInfo"
+    >
+      <template #title>删除文件</template>
+      <div>文件{{ data.remove.fileName }}删除将不可恢复，是否确定删除？</div>
+    </a-modal>
+    <!-- 批量删除文件的警告框 -->
+    <a-modal :visible="data.remove.visible"
+             @ok="batchRemoveFiles"
+             @cancel="data.remove.visible = false"
+             @close="clearRemoveInfo"
+    >
+      <template #title>批量删除文件</template>
+      <div>文件删除将不可恢复，是否确定删除？</div>
+    </a-modal>
   </div>
 </template>
 
 <script>
-import { getCurrentInstance } from 'vue'
+import { getCurrentInstance, reactive } from 'vue'
+import http from '../api/http.js'
 
 export default {
   name: 'FileBox',
@@ -64,14 +132,26 @@ export default {
       }
     }
   },
-  emits: ['load-more', 'select-change'],
+  emits: ['load-more', 'select-change', 'action-change'],
   setup (props, { emit }) {
     const { appContext } = getCurrentInstance()
     const { config } = appContext
     const { globalProperties } = config
+    const data = reactive({
+      selectAll: false, // 是否选中所有
+      selected: [], // 判断文件列表中的文件是否被选中
+      selectedFiles: [], // 选中的文件列表
+      remove: {
+        visible: false, // 是否显示删除文件的警告框
+        fileId: 0, // 待删除文件 id
+        fileName: '', // 待删除文件名称
+        index: -1 // 待删除文件在列表中的位置
+      }
+    })
     return {
       globalProperties,
-      emit
+      emit,
+      data
     }
   },
   methods: {
@@ -81,10 +161,80 @@ export default {
         this.emit('load-more')
       }
     },
+    // 选择所有文件
+    selectAllFiles (record) {
+      this.data.selected = []
+      this.data.selectedFiles = []
+      if (record) {
+        for (const key in this.fileList) {
+          this.data.selected[key] = true
+          this.data.selectedFiles.push(this.fileList[key].id)
+        }
+      }
+    },
+    // 选择单个文件
+    selectFile (record, recordIndex) {
+      const selectedIndex = this.data.selectedFiles.findIndex(item => item === record.id)
+      if (selectedIndex === -1) {
+        this.data.selected[recordIndex] = true
+        this.data.selectedFiles.push(record.id)
+      } else {
+        this.data.selected[recordIndex] = false
+        this.data.selectedFiles.splice(selectedIndex, 1)
+      }
+      this.data.selectAll = this.data.selectedFiles.length === this.fileList.length
+    },
     // 点击文件
     clickFile (record) {
       const { id, name, type } = record
       this.emit('select-change', { id, name, type })
+    },
+    // 文件的操作
+    fileChangeEvent (action, record, recordIndex) {
+      console.log(action, record, recordIndex)
+      if (action === 'delete') {
+        const { id, name } = record
+        this.data.remove.fileId = id
+        this.data.remove.fileName = name
+        this.data.remove.index = recordIndex
+        this.data.remove.visible = true
+      }
+    },
+    // 确定删除文件
+    confirmRemoveFile () {
+      http.req(http.url.file.batchDelete, http.methods.post, {
+        fileString: this.data.remove.fileId
+      }).then(response => {
+        if (response !== undefined) {
+          this.data.remove.visible = false
+          this.emit('action-change', { action: 'delete', fileIds: [this.data.remove.fileId] })
+        }
+      })
+    },
+    // 清除删除文件的预留 id
+    clearRemoveInfo () {
+      this.data.remove.fileId = 0
+      this.data.remove.fileName = ''
+      this.data.remove.index = -1
+    },
+    // 确定批量删除文件
+    batchRemoveFiles () {
+      http.req(http.url.file.batchDelete, http.methods.post, {
+        fileString: this.data.selectedFiles.join(',')
+      }).then(response => {
+        if (response !== undefined) {
+          const selectedFiles = this.data.selectedFiles
+          this.clearSelected()
+          this.data.remove.visible = false
+          this.emit('action-change', { action: 'delete', fileIds: selectedFiles })
+        }
+      })
+    },
+    // 清空已选中的文件
+    clearSelected () {
+      this.data.selected = []
+      this.data.selectedFiles = []
+      this.data.selectAll = this.data.selectedFiles.length === this.fileList.length
     }
   }
 }
@@ -135,6 +285,7 @@ export default {
       border-radius: 12px;
       cursor: pointer;
       transition: all .3s;
+      &.is-selected,
       &:hover {
         background-color: #f0edfe;
         transition: all .3s;
@@ -194,5 +345,50 @@ export default {
       }
     }
   }
+}
+.files-actions {
+  position: fixed;
+  top: 50px;
+  left: 50%;
+  padding: 10px 20px;
+  display: flex;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #a3a3a3;
+  transform: translateX(-50%);
+  transition: all .3s;
+  &.is-hide {
+    top: -11%;
+    transition: all .3s;
+  }
+  .actions-item {
+    margin: 0 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    transition: all .3s;
+    cursor: pointer;
+    &:first-child {
+      margin-left: 0;
+    }
+    &:last-child {
+      margin-right: 0;
+    }
+    &:hover {
+      background-color: #d2d2d2;
+      transition: all .3s;
+    }
+    img {
+      width: 80%;
+      height: 80%;
+    }
+  }
+}
+.action-trigger {
+  margin-bottom: 5px;
+  padding: 10px;
+  color: #ffffff;
+  background-color: #626266;
+  border-radius: 5px;
 }
 </style>
