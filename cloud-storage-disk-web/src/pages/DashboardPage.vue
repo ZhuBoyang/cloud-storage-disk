@@ -87,7 +87,7 @@
                 :file-list="data.files"
                 @load-more="loadMoreFile"
                 @select-change="selectChange"
-                @action-change="removeFile"
+                @action-change="actionResult"
       ></file-box>
     </div>
   </div>
@@ -222,12 +222,15 @@ export default {
       this.data.files = []
       this.queryFiles()
     },
-    // 删除单个文件
-    removeFile (record) {
-      const { fileIds } = record
-      for (const key in fileIds) {
-        const fileIndex = this.data.files.findIndex(file => file.id === fileIds[key])
-        this.data.files.splice(fileIndex, 1)
+    // 文件操作的结果
+    actionResult (record) {
+      const { action, fileIds } = record
+      // 删除文件，移动文件
+      if (action === 'delete' || action === 'move') {
+        for (const key in fileIds) {
+          const fileIndex = this.data.files.findIndex(file => file.id === fileIds[key])
+          this.data.files.splice(fileIndex, 1)
+        }
       }
     }
   }

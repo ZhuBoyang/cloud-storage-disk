@@ -1,5 +1,6 @@
 import axios from 'axios'
 import config from './config.js'
+import { Notification } from '@arco-design/web-vue'
 
 const service = axios.create({
   baseURL: config.apiBaseUrl,
@@ -13,10 +14,17 @@ service.interceptors.response.use(config => {
   const response = config.data
   if (response.code === 200) {
     if (response.message !== '') {
-      console.log(response.message)
+      Notification.info({
+        title: response.message,
+        content: ''
+      })
     }
     return response.data
   } else if (response.code >= 10000) {
+    Notification.error({
+      title: response.message,
+      content: ''
+    })
     return Promise.reject(response)
   }
 })
@@ -30,8 +38,11 @@ const url = {
   file: {
     mkdir: modules.file + 'mkdir', // 新建文件夹
     batchDelete: modules.file + 'batch_delete', // 批量删除文件
+    batchMove: modules.file + 'batch_move', // 批量移动文件及文件夹
     breads: modules.file + 'breads', // 查询文件面包屑导航
-    list: modules.file + 'list' // 文件列表
+    list: modules.file + 'list', // 文件列表
+    dirBreads: modules.file + 'dir_breads', // 查询文件夹的面包屑导航数据
+    dirs: modules.file + 'dirs' // 查询目录下次一级的所有文件夹
   },
   fileBlock: {
     checkExist: modules.fileBlock + 'check_exist', // 检查文件块是否已入库

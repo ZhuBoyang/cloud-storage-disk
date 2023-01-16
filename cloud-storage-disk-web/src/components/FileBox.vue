@@ -40,12 +40,13 @@
               <img src="../assets/icons/full/more.svg" alt="更多">
             </div>
             <template #content>
-              <a-doption value="share">分享</a-doption>
-              <a-doption value="link">获取链接</a-doption>
-              <a-doption value="download">下载</a-doption>
               <a-doption value="rename">重命名</a-doption>
               <a-doption value="copy">复制</a-doption>
+              <a-doption value="move">移动</a-doption>
+              <a-doption value="download">下载</a-doption>
               <a-doption value="delete">删除</a-doption>
+              <a-doption value="share">分享</a-doption>
+              <a-doption value="link">获取链接</a-doption>
               <a-doption value="like">添加到喜欢</a-doption>
               <a-doption value="detail">查看详情</a-doption>
             </template>
@@ -54,7 +55,7 @@
       </div>
     </div>
     <div class="files-actions"
-         :class="[{'is-hide': data.selected.length < 2}]"
+         :class="[{'is-hide': data.selectedFiles.length < 2}]"
     >
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center">
@@ -73,7 +74,7 @@
         </template>
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
-        <div class="actions-item row-col-center">
+        <div class="actions-item row-col-center" @click="data.move.visible = true">
           <img src="../assets/icons/half/Arrow%20-%20Right%202.png" alt="移动"/>
         </div>
         <template #content>
@@ -115,15 +116,20 @@
       <template #title>批量删除文件</template>
       <div>文件删除将不可恢复，是否确定删除？</div>
     </a-modal>
+    <file-move-modal :visible="data.move.visible" @on-change="moveResult"/>
   </div>
 </template>
 
 <script>
 import { getCurrentInstance, reactive } from 'vue'
 import http from '../api/http.js'
+import FileMoveModal from './FileMoveModal.vue'
 
 export default {
   name: 'FileBox',
+  components: {
+    FileMoveModal
+  },
   props: {
     fileList: {
       type: Array,
@@ -141,6 +147,9 @@ export default {
       selectAll: false, // 是否选中所有
       selected: [], // 判断文件列表中的文件是否被选中
       selectedFiles: [], // 选中的文件列表
+      move: {
+        visible: false // 是否显示移动文件的警告框
+      },
       remove: {
         visible: false, // 是否显示删除文件的警告框
         fileId: 0, // 待删除文件 id
@@ -192,13 +201,40 @@ export default {
     // 文件的操作
     fileChangeEvent (action, record, recordIndex) {
       console.log(action, record, recordIndex)
+      // 删除单个文件
       if (action === 'delete') {
         const { id, name } = record
         this.data.remove.fileId = id
         this.data.remove.fileName = name
         this.data.remove.index = recordIndex
         this.data.remove.visible = true
+        return
       }
+      // 移动单个文件
+      if (action === 'move') {
+        const { id } = record
+        this.data.selected[recordIndex] = true
+        this.data.selectedFiles.push(id)
+        this.data.move.visible = true
+      }
+    },
+    // 移动文件
+    moveResult (record) {
+      const { action, id } = record
+      if (action === 'cancel' || action === 'close') {
+        this.data.move.visible = false
+        return
+      }
+      http.req(http.url.file.batchMove, http.methods.post, {
+        sources: this.data.selectedFiles,
+        target: id
+      }).then(response => {
+        if (response !== undefined) {
+          this.data.move.visible = false
+          const selectedFiles = this.clearSelected()
+          this.emit('action-change', { action: 'move', fileIds: [selectedFiles] })
+        }
+      })
     },
     // 确定删除文件
     confirmRemoveFile () {
@@ -223,8 +259,7 @@ export default {
         fileString: this.data.selectedFiles.join(',')
       }).then(response => {
         if (response !== undefined) {
-          const selectedFiles = this.data.selectedFiles
-          this.clearSelected()
+          const selectedFiles = this.clearSelected()
           this.data.remove.visible = false
           this.emit('action-change', { action: 'delete', fileIds: selectedFiles })
         }
@@ -232,9 +267,11 @@ export default {
     },
     // 清空已选中的文件
     clearSelected () {
+      const selectedFiles = this.data.selectedFiles
       this.data.selected = []
       this.data.selectedFiles = []
       this.data.selectAll = this.data.selectedFiles.length === this.fileList.length
+      return selectedFiles
     }
   }
 }

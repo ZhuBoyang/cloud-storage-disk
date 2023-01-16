@@ -1,0 +1,245 @@
+<template>
+  <transition name="file-move-bg">
+    <div class="file-move-list" v-show="visible && !data.hideModalVisible"></div>
+  </transition>
+  <div class="file-move-modal"
+       :class="[{'is-close': !visible}]"
+  >
+    <div class="box-header">
+      <div class="box-header--theme">文件移动</div>
+      <div class="box-header--close" @click="closeModal">
+        <img src="../assets/icons/full/Close%20Square.svg" alt="关闭"/>
+      </div>
+    </div>
+    <div class="box-bread">
+      <a-breadcrumb>
+        <a-breadcrumb-item v-for="(item, index) in data.breads" :key="index">
+          <a href="javascript:void(0)" @click="returnFolder(index)">{{ item.name }}</a>
+        </a-breadcrumb-item>
+      </a-breadcrumb>
+    </div>
+    <div class="box-body" v-if="data.pager.list.length > 0">
+      <div class="box-body--list">
+        <div class="box-body--list-item"
+             v-for="(item, index) in data.pager.list"
+             :key="index"
+             @click="openFolder(item)"
+        >{{ item.name }}
+        </div>
+      </div>
+    </div>
+    <div class="box-body-empty" v-else>
+      <a-empty img-src="/src/assets/icons/full/empty-data.svg"/>
+    </div>
+    <div class="box-footer">
+      <a-button type="primary" shape="round" @click="moveToCurrentFolder">移动至此</a-button>
+      <a-button type="dashed" shape="round" @click="cancelMove">取消</a-button>
+    </div>
+  </div>
+</template>
+
+<script>
+import { reactive } from 'vue'
+import http from '../api/http.js'
+
+export default {
+  name: 'FileMoveModal',
+  props: {
+    // 是否显示上传文件的窗口
+    visible: {
+      type: Boolean,
+      default: false
+    }
+  },
+  emits: ['on-change'],
+  setup (props, { emit }) {
+    const data = reactive({
+      hideModalVisible: false, // 是否半隐藏上传文件的弹窗
+      parentId: '', // 父级目录文件 id
+      breads: [], // 面包屑数据
+      pager: {
+        list: [], // 文件夹列表
+        dirId: '', // 查询列表的起始点
+        size: 10 // 每次查询的数据量
+      }
+    })
+    // 查询文件夹的面包屑导航数据
+    const queryBreads = () => {
+      http.req(http.url.file.dirBreads, http.methods.get, {
+        parentId: data.pager.dirId
+      }).then(response => {
+        data.breads = []
+        for (const key in response) {
+          data.breads.push(response[key])
+        }
+      })
+    }
+    // 查询目录下次一级所有的文件夹
+    const queryDirs = () => {
+      http.req(http.url.file.dirs, http.methods.get, {
+        parentId: data.pager.dirId,
+        size: data.pager.size
+      }).then(response => {
+        if (response.length === 0) {
+          return
+        }
+        for (const key in response) {
+          data.pager.list.push(response[key])
+        }
+      })
+    }
+    return {
+      emit,
+      data,
+      queryBreads,
+      queryDirs
+    }
+  },
+  watch: {
+    visible (newVal) {
+      if (!newVal) {
+        this.data.pager.list = []
+        this.data.pager.dirId = ''
+      }
+    }
+  },
+  created () {
+    this.queryBreads()
+    this.queryDirs()
+  },
+  methods: {
+    // 进入文件夹
+    openFolder (record) {
+      const { id, name } = record
+      this.data.breads.push({ id, name })
+      this.data.pager.list = []
+      this.data.pager.dirId = id
+      this.queryDirs()
+    },
+    // 返回文件夹
+    returnFolder (recordIndex) {
+      const bread = this.data.breads[recordIndex]
+      this.data.breads.splice(recordIndex + 1, this.data.breads.length - recordIndex)
+      this.data.pager.list = []
+      const { id } = bread
+      this.data.pager.dirId = id
+      this.queryDirs()
+    },
+    // 移动至此
+    moveToCurrentFolder () {
+      const currentFolder = this.data.breads[this.data.breads.length - 1]
+      const { id } = currentFolder
+      this.emit('on-change', { action: 'confirm', id })
+    },
+    // 取消移动
+    cancelMove () {
+      this.emit('on-change', { action: 'cancel' })
+    },
+    // 官博弹窗
+    closeModal () {
+      this.emit('on-change', { action: 'close' })
+    }
+  }
+}
+</script>
+
+<style scoped lang="scss">
+.file-move-list {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, .5);
+  z-index: 10;
+}
+.file-move-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  padding: 36px 40px;
+  min-width: 1012px;
+  width: 60%;
+  background-color: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 0 10px #909090;
+  transform: translate(-50%, -50%);
+  transition: all .3s;
+  z-index: 10;
+  &.is-close {
+    top: 150%;
+    transition: all .3s;
+  }
+  .box-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    .box-header--theme {
+      margin-left: 10px;
+      font-size: 16px;
+      font-weight: bolder;
+    }
+    .box-header--close {
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      img {
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
+  .box-bread {
+    margin: 10px;
+  }
+  .box-body {
+    .box-body--list {
+      .box-body--list-item {
+        padding: 0 10px;
+        width: calc(100% - 20px);
+        height: 50px;
+        display: flex;
+        align-items: center;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all .3s;
+        &:hover {
+          background-color: #f0edfe;
+          transition: all .3s;
+        }
+      }
+    }
+  }
+  .box-footer {
+    width: 100%;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    button {
+      margin: 0 10px;
+      &:first-child {
+        margin-left: 0;
+      }
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+}
+
+.file-move-bg-enter-active {
+  animation: file-move-bg-animation .5s;
+}
+.file-move-bg-leave-active {
+  animation: file-move-bg-animation .5s reverse;
+}
+@keyframes file-move-bg-animation {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+</style>

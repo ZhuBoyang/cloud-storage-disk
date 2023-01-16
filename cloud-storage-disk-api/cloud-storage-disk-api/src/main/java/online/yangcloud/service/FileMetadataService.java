@@ -41,6 +41,15 @@ public interface FileMetadataService {
     ResultBean<?> batchDeleteFile(List<String> fileIds);
 
     /**
+     * 批量移动文件
+     *
+     * @param sources 待移动文件列表
+     * @param target  目标目录
+     * @return result
+     */
+    ResultBean<?> batchMoveFiles(List<String> sources, String target);
+
+    /**
      * 查询当前所在目录的文件面包屑导航
      *
      * @param id 当前所在目录的文件 id
@@ -65,6 +74,14 @@ public interface FileMetadataService {
     List<FileMetadataView> queryFiles(FileSearchRequest searchRequest);
 
     /**
+     * 查询目录下所有的文件与文件夹
+     *
+     * @param fileId 目录文件 id
+     * @return result
+     */
+    List<FileMetadata> queryChildFiles(String fileId);
+
+    /**
      * 查询以文件名为前缀的所有文件列表
      *
      * @param pid      父级目录文件 id
@@ -73,5 +90,22 @@ public interface FileMetadataService {
      * @return result
      */
     List<FileMetadata> queryLikePrefix(String pid, String fileName, FileTypeEnum type);
+
+    /**
+     * 查询文件夹的面包屑
+     *
+     * @param parentId 父级目录 id
+     * @return result
+     */
+    List<FileBreadView> queryDirBreads(String parentId);
+
+    /**
+     * 查询目录下次一层的所有文件夹
+     *
+     * @param parentId 目录 id
+     * @param size     每次查询的数据量
+     * @return result
+     */
+    List<FileMetadata> queryDirs(String parentId, Integer size);
 
 }

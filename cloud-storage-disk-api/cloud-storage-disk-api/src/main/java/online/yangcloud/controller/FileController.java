@@ -4,9 +4,8 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.StrUtil;
 import online.yangcloud.common.ResultBean;
 import online.yangcloud.common.ResultData;
-import online.yangcloud.model.ao.file.BatchDeleteRequest;
-import online.yangcloud.model.ao.file.FileSearchRequest;
-import online.yangcloud.model.ao.file.MkdirRequest;
+import online.yangcloud.model.ao.file.*;
+import online.yangcloud.model.po.FileMetadata;
 import online.yangcloud.model.vo.file.FileBreadView;
 import online.yangcloud.model.vo.file.FileMetadataView;
 import online.yangcloud.service.FileMetadataService;
@@ -55,6 +54,21 @@ public class FileController {
     }
 
     /**
+     * 批量移动文件
+     *
+     * @param moveRequest 待移动文件与目标文件夹
+     * @return result
+     */
+    @PostMapping("/batch_move")
+    public ResultData batchMoveFiles(@RequestBody FileMoveRequest moveRequest) {
+        ResultBean<?> resultBean = fileMetadataService.batchMoveFiles(moveRequest.getSources(), moveRequest.getTarget());
+        if (resultBean.isSuccess()) {
+            return ResultData.success(resultBean.getResultCode());
+        }
+        return ResultData.errorMessage(resultBean.getResultCode());
+    }
+
+    /**
      * 查询当前所在目录文件的面包屑导航数据
      *
      * @param id 当前所在目录的文件 id
@@ -76,6 +90,30 @@ public class FileController {
     public ResultData queryFiles(FileSearchRequest searchRequest) {
         List<FileMetadataView> views = fileMetadataService.queryFiles(searchRequest);
         return ResultData.success(views);
+    }
+
+    /**
+     * 查询文件夹的面包屑导航数据
+     *
+     * @param queryRequest 父级目录 id
+     * @return result
+     */
+    @GetMapping("/dir_breads")
+    public ResultData queryDirBreads(DirBreadsQueryRequest queryRequest) {
+        List<FileBreadView> breads = fileMetadataService.queryDirBreads(queryRequest.getParentId());
+        return ResultData.success(breads);
+    }
+
+    /**
+     * 查询目录下次一级的所有文件夹
+     *
+     * @param searchRequest 查询条件
+     * @return result
+     */
+    @GetMapping("/dirs")
+    public ResultData queryDirs(DirsSearchRequest searchRequest) {
+        List<FileMetadata> dirs = fileMetadataService.queryDirs(searchRequest.getParentId(), searchRequest.getSize());
+        return ResultData.success(dirs);
     }
 
 }
