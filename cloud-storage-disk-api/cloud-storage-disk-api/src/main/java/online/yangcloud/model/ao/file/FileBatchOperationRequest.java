@@ -8,7 +8,7 @@ import java.util.List;
  * @author zhuboyang
  * @since 2023年01月12 16:00:54
  */
-public class FileMoveRequest {
+public class FileBatchOperationRequest {
 
     /**
      * 待移动文件 id 列表

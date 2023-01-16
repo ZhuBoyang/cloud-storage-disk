@@ -14,7 +14,7 @@ service.interceptors.response.use(config => {
   const response = config.data
   if (response.code === 200) {
     if (response.message !== '') {
-      Notification.info({
+      Notification.success({
         title: response.message,
         content: ''
       })
@@ -39,6 +39,7 @@ const url = {
     mkdir: modules.file + 'mkdir', // 新建文件夹
     batchDelete: modules.file + 'batch_delete', // 批量删除文件
     batchMove: modules.file + 'batch_move', // 批量移动文件及文件夹
+    batchCopy: modules.file + 'batch_copy', // 批量复制文件及文件夹
     breads: modules.file + 'breads', // 查询文件面包屑导航
     list: modules.file + 'list', // 文件列表
     dirBreads: modules.file + 'dir_breads', // 查询文件夹的面包屑导航数据

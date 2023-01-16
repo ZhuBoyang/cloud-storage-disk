@@ -14,6 +14,7 @@ import online.yangcloud.enumration.FileTypeEnum;
 import online.yangcloud.enumration.YesOrNoEnum;
 import online.yangcloud.exception.BusinessException;
 import online.yangcloud.model.ao.file.FileSearchRequest;
+import online.yangcloud.model.bo.FileOperationValidate;
 import online.yangcloud.model.mapper.FileBlockMapper;
 import online.yangcloud.model.mapper.FileMetadataMapper;
 import online.yangcloud.model.po.FileBlock;
@@ -28,9 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -157,50 +156,16 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
     @Override
     public ResultBean<?> batchMoveFiles(List<String> sources, String target) {
-        // 校验目标目录是否存在
-        FileMetadata targetFile = fileMetadataMapper.findById(target);
-        if (ObjUtil.isNull(targetFile)) {
-            logger.error("目标目录不存在，请刷新后重试");
-            throw new BusinessException("目标目录不存在，请刷新后重试");
-        }
+        // 对待操作文件和文件夹与目标目录进行校验
+        FileOperationValidate validate = validateFiles(sources, target);
+        FileMetadata targetFile = validate.getTargetFile();
+        List<FileMetadata> sourceFiles = validate.getSourceFiles();
 
-        // 检测目标文件是否是目录
-        if (YesOrNoEnum.NO.is(targetFile.getType())) {
-            logger.error("请选择目录");
-            throw new BusinessException("请选择目录");
-        }
-
-        // 校验待移动文件是否都存在
-        List<FileMetadata> sourceFiles = fileMetadataMapper.listByIds(sources);
-        if (sourceFiles.size() != sources.size()) {
-            logger.error("待移动文件非全部存在，请刷新后重试");
-            throw new BusinessException("待移动文件非全部存在，请刷新后重试");
-        }
-
-        // 检测目标目录是否为待移动文件的直接父级目录。如果是的话，抛出异常
-        if (target.equals(sourceFiles.get(0).getPid())) {
-            logger.error("已在目标目录下，无需移动");
-            throw new BusinessException("已在目标目录下，无需移动");
-        }
-
-        // 检测目标目录是否为待移动文件或文件夹的子级目录
-        String targetAncestors = targetFile.getAncestors();
-        List<String> targetIdList = CharSequenceUtil.split(targetAncestors, StrUtil.COMMA);
-        targetIdList.add(targetFile.getId());
-        for (FileMetadata source : sourceFiles) {
-            if (YesOrNoEnum.YES.is(source.getType())) {
-                if (targetIdList.contains(source.getId())) {
-                    logger.error("无法移动至下级目录，请选择其他目录");
-                    throw new BusinessException("无法移动至下级目录，请选择其他目录");
-                }
-            }
-        }
-
-        // 修改待移动文件的父级文件 id，和所有祖级 id
+        // 修改待移动文件的父级文件 id 和所有祖级 id
         String ancestor = targetFile.getId();
         if (CharSequenceUtil.isNotBlank(targetFile.getAncestors())) {
             ancestor += StrUtil.COMMA + targetFile.getAncestors();
-        }
+        } 
         int updateResult = fileMetadataMapper.updateBy(fileMetadataMapper.updater()
                 .set.pid().is(target).ancestors().is(ancestor).end()
                 .where.id().in(sources).end());
@@ -230,6 +195,125 @@ public class FileMetadataServiceImpl implements FileMetadataService {
     }
 
     @Override
+    public ResultBean<?> batchCopyFiles(List<String> sources, String target) {
+        // 对待操作文件和文件夹与目标目录进行校验
+        FileOperationValidate validate = validateFiles(sources, target);
+        FileMetadata targetFile = validate.getTargetFile();
+        List<FileMetadata> sourceFiles = validate.getSourceFiles();
+
+        // 修改呗复制文件的父级文件 id 和所有祖级 id
+        String ancestor;
+        if (CharSequenceUtil.isBlank(targetFile.getAncestors())) {
+            ancestor = targetFile.getId();
+        } else {
+            ancestor = targetFile.getId() + StrUtil.COMMA + targetFile.getAncestors();
+        }
+
+        // 构建复制后的文件及文件夹，并入库
+        for (FileMetadata file : sourceFiles) {
+            String fileId = file.getId();
+            // 查询与文件夹名称有关的文件夹
+            List<FileMetadata> existDirectories = queryLikePrefix(target, file.getName(), FileTypeEnum.DIR);
+            // 计算存储文件的文件名后的后缀数字
+            int fileNumber = calculateFileNumber(existDirectories, file.getName());
+            file.setId(IdUtil.fastSimpleUUID())
+                    .setPid(target)
+                    .setAncestors(ancestor)
+                    .setName(fileNumber == 0 ? file.getName() : file.getName() + AppConstants.LEFT_BRACKET + fileNumber + AppConstants.RIGHT_BRACKET);
+            int updateResult = fileMetadataMapper.insertWithPk(file);
+            if (updateResult == 0) {
+                logger.error("文件复制失败，请重试");
+                throw new BusinessException("");
+            }
+            // 递归复制下级的所有文件与文件夹
+            List<FileMetadata> childList = fileMetadataMapper.listEntity(fileMetadataMapper.query()
+                    .where.pid().eq(fileId)
+                    .and.isDelete().eq(YesOrNoEnum.NO.getCode()).end());
+            copyChildFiles(childList, file);
+        }
+        return ResultBean.success();
+    }
+
+    /**
+     * 递归复制文件及文件夹
+     *
+     * @param sources 待复制文件及文件夹
+     * @param target  目标目录
+     */
+    private void copyChildFiles(List<FileMetadata> sources, FileMetadata target) {
+        for (FileMetadata source : sources) {
+            String fileId = source.getId();
+            // 复制文件
+            source.setId(IdUtil.fastSimpleUUID())
+                    .setPid(target.getId())
+                    .setAncestors(target.getId() + StrUtil.COMMA + target.getAncestors());
+            int updateResult = fileMetadataMapper.insertWithPk(source);
+            if (updateResult == 0) {
+                logger.error("文件复制失败，请重新尝试");
+                throw new BusinessException("文件复制失败，请重新尝试");
+            }
+            // 如果是文件夹的话，需要复制文件夹下的所有的文件及文件夹
+            if (YesOrNoEnum.YES.is(source.getType())) {
+                List<FileMetadata> childList = fileMetadataMapper.listEntity(fileMetadataMapper.query()
+                        .where.pid().eq(fileId)
+                        .and.isDelete().eq(YesOrNoEnum.NO.getCode()).end());
+                copyChildFiles(childList, source);
+            }
+        }
+    }
+
+    /**
+     * 移动、复制时的文件校验
+     *
+     * @param sources 待操作文件
+     * @param target  目标目录
+     * @return result
+     */
+    private FileOperationValidate validateFiles(List<String> sources, String target) {
+        // 校验目标目录是否存在
+        FileMetadata targetFile = fileMetadataMapper.findById(target);
+        if (ObjUtil.isNull(targetFile) || YesOrNoEnum.YES.is(targetFile.getIsDelete())) {
+            logger.error("目标目录不存在，请刷新后重试");
+            throw new BusinessException("目标目录不存在，请刷新后重试");
+        }
+
+        // 检测目标文件是否是目录
+        if (YesOrNoEnum.NO.is(targetFile.getType())) {
+            logger.error("请选择目录");
+            throw new BusinessException("请选择目录");
+        }
+
+        // 校验待移动文件是否都存在
+        List<FileMetadata> sourceFiles = fileMetadataMapper.listByIds(sources);
+        if (sourceFiles.size() != sources.size()) {
+            logger.error("待操作文件非全部存在，请刷新后重试");
+            throw new BusinessException("待操作文件非全部存在，请刷新后重试");
+        }
+
+        // 检测目标目录是否为待移动文件的直接父级目录。如果是的话，抛出异常
+//        if (target.equals(sourceFiles.get(0).getPid())) {
+//            logger.error("已在目标目录下，无需操作");
+//            throw new BusinessException("已在目标目录下，无需操作");
+//        }
+
+        // 检测目标目录是否为待移动文件或文件夹的子级目录
+        String targetAncestors = targetFile.getAncestors();
+        List<String> targetIdList = CharSequenceUtil.split(targetAncestors, StrUtil.COMMA);
+        targetIdList.add(targetFile.getId());
+        for (FileMetadata source : sourceFiles) {
+            if (YesOrNoEnum.YES.is(source.getType())) {
+                if (targetIdList.contains(source.getId())) {
+                    logger.error("无法操作至下级目录，请选择其他目录");
+                    throw new BusinessException("无法操作至下级目录，请选择其他目录");
+                }
+            }
+        }
+        return new FileOperationValidate()
+                .setTargetFile(targetFile)
+                .setSourceFiles(sourceFiles);
+    }
+
+    @Override
     public List<FileBreadView> queryFileBreads(String id) {
         // 查询顶级目录
         if (CharSequenceUtil.isBlank(id)) {
@@ -239,7 +323,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
         // 校验目录是否存在
         FileMetadata file = fileMetadataMapper.findById(id);
-        if (ObjUtil.isNull(file)) {
+        if (ObjUtil.isNull(file) || YesOrNoEnum.YES.is(file.getIsDelete())) {
             logger.error("文件夹不存在，操作失败，请重试");
             throw new BusinessException("文件夹不存在，操作失败，请重试");
         }
@@ -269,17 +353,21 @@ public class FileMetadataServiceImpl implements FileMetadataService {
         // 查询起始点文件元数据
         FileMetadata beginFile;
         if (CharSequenceUtil.isBlank(searchRequest.getFileId())) {
-            beginFile = fileMetadataMapper.findOne(fileMetadataMapper.query().where.pid().eq(searchRequest.getFileId()).end());
+            beginFile = fileMetadataMapper.findOne(fileMetadataMapper.query()
+                    .where.pid().eq(searchRequest.getFileId()).end());
         } else {
             beginFile = fileMetadataMapper.findById(searchRequest.getFileId());
         }
-        if (ObjUtil.isNull(beginFile)) {
+        if (ObjUtil.isNull(beginFile) || YesOrNoEnum.YES.is(beginFile.getIsDelete())) {
             logger.error(AppResultCode.FAILURE.getMessage());
             throw new BusinessException(AppResultCode.FAILURE.getMessage());
         }
 
         // 构建查询条件
-        FileMetadataQuery query = fileMetadataMapper.query().where.uploadTime().gt(beginFile.getUploadTime()).end().limit(0, searchRequest.getSize());
+        FileMetadataQuery query = fileMetadataMapper.query()
+                .where.uploadTime().gt(beginFile.getUploadTime())
+                .and.isDelete().eq(YesOrNoEnum.NO.getCode()).end()
+                .limit(0, searchRequest.getSize());
         if (CharSequenceUtil.isNotBlank(searchRequest.getPid())) {
             query.where.pid().eq(searchRequest.getPid());
         }
@@ -295,7 +383,8 @@ public class FileMetadataServiceImpl implements FileMetadataService {
     @Override
     public List<FileMetadata> queryChildFiles(String fileId) {
         return fileMetadataMapper.listEntity(fileMetadataMapper.query()
-                .where.ancestors().like(AppConstants.PERCENT + fileId.trim() + AppConstants.PERCENT).end());
+                .where.ancestors().like(AppConstants.PERCENT + fileId.trim() + AppConstants.PERCENT)
+                .and.isDelete().eq(YesOrNoEnum.NO.getCode()).end());
     }
 
     @Override
@@ -303,7 +392,8 @@ public class FileMetadataServiceImpl implements FileMetadataService {
         return fileMetadataMapper.listEntity(fileMetadataMapper.query()
                 .where.pid().eq(pid)
                 .and.name().like(fileName.trim() + AppConstants.PERCENT)
-                .and.type().eq(type.getCode()).end());
+                .and.type().eq(type.getCode())
+                .and.isDelete().eq(YesOrNoEnum.NO.getCode()).end());
     }
 
     @Override

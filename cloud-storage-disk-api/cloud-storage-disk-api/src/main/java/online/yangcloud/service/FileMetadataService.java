@@ -50,6 +50,15 @@ public interface FileMetadataService {
     ResultBean<?> batchMoveFiles(List<String> sources, String target);
 
     /**
+     * 批量复制文件
+     *
+     * @param sources 待复制文件列表
+     * @param target  目标目录
+     * @return result
+     */
+    ResultBean<?> batchCopyFiles(List<String> sources, String target);
+
+    /**
      * 查询当前所在目录的文件面包屑导航
      *
      * @param id 当前所在目录的文件 id

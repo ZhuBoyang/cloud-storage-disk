@@ -66,7 +66,7 @@
         </template>
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
-        <div class="actions-item row-col-center">
+        <div class="actions-item row-col-center" @click="data.dirSelector.visible = true">
           <img src="../assets/icons/full/Arrow%20-%20Right%202.svg" alt="复制"/>
         </div>
         <template #content>
@@ -74,7 +74,7 @@
         </template>
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
-        <div class="actions-item row-col-center" @click="data.move.visible = true">
+        <div class="actions-item row-col-center" @click="data.dirSelector.visible = true">
           <img src="../assets/icons/half/Arrow%20-%20Right%202.png" alt="移动"/>
         </div>
         <template #content>
@@ -116,7 +116,7 @@
       <template #title>批量删除文件</template>
       <div>文件删除将不可恢复，是否确定删除？</div>
     </a-modal>
-    <file-move-modal :visible="data.move.visible" @on-change="moveResult"/>
+    <file-move-modal :visible="data.dirSelector.visible" @on-change="operationResult"/>
   </div>
 </template>
 
@@ -147,8 +147,9 @@ export default {
       selectAll: false, // 是否选中所有
       selected: [], // 判断文件列表中的文件是否被选中
       selectedFiles: [], // 选中的文件列表
-      move: {
-        visible: false // 是否显示移动文件的警告框
+      dirSelector: {
+        visible: false, // 是否显示移动文件的警告框
+        action: '' // 操作的标识
       },
       remove: {
         visible: false, // 是否显示删除文件的警告框
@@ -211,28 +212,31 @@ export default {
         return
       }
       // 移动单个文件
-      if (action === 'move') {
+      if (action === 'move' || action === 'copy') {
         const { id } = record
         this.data.selected[recordIndex] = true
         this.data.selectedFiles.push(id)
-        this.data.move.visible = true
+        this.data.dirSelector.visible = true
+        this.data.dirSelector.action = action
       }
     },
     // 移动文件
-    moveResult (record) {
+    operationResult (record) {
       const { action, id } = record
       if (action === 'cancel' || action === 'close') {
-        this.data.move.visible = false
+        this.data.dirSelector.visible = false
         return
       }
-      http.req(http.url.file.batchMove, http.methods.post, {
+      const url = this.data.dirSelector.action === 'move' ? http.url.file.batchMove : http.url.file.batchCopy
+      http.req(url, http.methods.post, {
         sources: this.data.selectedFiles,
         target: id
       }).then(response => {
         if (response !== undefined) {
-          this.data.move.visible = false
           const selectedFiles = this.clearSelected()
-          this.emit('action-change', { action: 'move', fileIds: [selectedFiles] })
+          this.emit('action-change', { action: this.data.dirSelector.action, fileIds: [selectedFiles] })
+          this.data.dirSelector.visible = false
+          this.data.dirSelector.action = ''
         }
       })
     },

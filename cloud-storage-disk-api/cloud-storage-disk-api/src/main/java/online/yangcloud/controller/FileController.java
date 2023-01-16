@@ -56,12 +56,27 @@ public class FileController {
     /**
      * 批量移动文件
      *
-     * @param moveRequest 待移动文件与目标文件夹
+     * @param operationRequest 待移动文件与目标文件夹
      * @return result
      */
     @PostMapping("/batch_move")
-    public ResultData batchMoveFiles(@RequestBody FileMoveRequest moveRequest) {
-        ResultBean<?> resultBean = fileMetadataService.batchMoveFiles(moveRequest.getSources(), moveRequest.getTarget());
+    public ResultData batchMoveFiles(@RequestBody FileBatchOperationRequest operationRequest) {
+        ResultBean<?> resultBean = fileMetadataService.batchMoveFiles(operationRequest.getSources(), operationRequest.getTarget());
+        if (resultBean.isSuccess()) {
+            return ResultData.success(resultBean.getResultCode());
+        }
+        return ResultData.errorMessage(resultBean.getResultCode());
+    }
+
+    /**
+     * 批量复制文件
+     *
+     * @param operationRequest 待复制文件与目标文件夹
+     * @return result
+     */
+    @PostMapping("/batch_copy")
+    public ResultData batchCopyFiles(@RequestBody FileBatchOperationRequest operationRequest) {
+        ResultBean<?> resultBean = fileMetadataService.batchCopyFiles(operationRequest.getSources(), operationRequest.getTarget());
         if (resultBean.isSuccess()) {
             return ResultData.success(resultBean.getResultCode());
         }

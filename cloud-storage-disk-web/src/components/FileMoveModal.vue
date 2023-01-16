@@ -97,15 +97,14 @@ export default {
   },
   watch: {
     visible (newVal) {
-      if (!newVal) {
+      if (newVal) {
+        this.queryBreads()
+        this.queryDirs()
+      } else {
         this.data.pager.list = []
         this.data.pager.dirId = ''
       }
     }
-  },
-  created () {
-    this.queryBreads()
-    this.queryDirs()
   },
   methods: {
     // 进入文件夹
