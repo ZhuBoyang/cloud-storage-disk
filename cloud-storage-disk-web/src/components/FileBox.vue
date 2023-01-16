@@ -66,7 +66,7 @@
         </template>
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
-        <div class="actions-item row-col-center" @click="data.dirSelector.visible = true">
+        <div class="actions-item row-col-center" @click="displayBatchCopy">
           <img src="../assets/icons/full/Arrow%20-%20Right%202.svg" alt="复制"/>
         </div>
         <template #content>
@@ -74,7 +74,7 @@
         </template>
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
-        <div class="actions-item row-col-center" @click="data.dirSelector.visible = true">
+        <div class="actions-item row-col-center" @click="displayBatchMove">
           <img src="../assets/icons/half/Arrow%20-%20Right%202.png" alt="移动"/>
         </div>
         <template #content>
@@ -82,7 +82,7 @@
         </template>
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
-        <div class="actions-item row-col-center" @click="data.remove.visible = true">
+        <div class="actions-item row-col-center" @click="data.batchRemove.visible = true">
           <img src="../assets/icons/full/Delete.svg" alt="删除"/>
         </div>
         <template #content>
@@ -108,27 +108,30 @@
       <div>文件{{ data.remove.fileName }}删除将不可恢复，是否确定删除？</div>
     </a-modal>
     <!-- 批量删除文件的警告框 -->
-    <a-modal :visible="data.remove.visible"
+    <a-modal :visible="data.batchRemove.visible"
              @ok="batchRemoveFiles"
-             @cancel="data.remove.visible = false"
+             @cancel="data.batchRemove.visible = false"
              @close="clearRemoveInfo"
     >
       <template #title>批量删除文件</template>
       <div>文件删除将不可恢复，是否确定删除？</div>
     </a-modal>
-    <file-move-modal :visible="data.dirSelector.visible" @on-change="operationResult"/>
+    <file-operator-modal :visible="data.dirSelector.visible"
+                         :operation-name="data.dirSelector.action"
+                         @on-change="operationResult"
+    />
   </div>
 </template>
 
 <script>
 import { getCurrentInstance, reactive } from 'vue'
 import http from '../api/http.js'
-import FileMoveModal from './FileMoveModal.vue'
+import FileOperatorModal from './FileOperatorModal.vue'
 
 export default {
   name: 'FileBox',
   components: {
-    FileMoveModal
+    FileOperatorModal
   },
   props: {
     fileList: {
@@ -156,6 +159,9 @@ export default {
         fileId: 0, // 待删除文件 id
         fileName: '', // 待删除文件名称
         index: -1 // 待删除文件在列表中的位置
+      },
+      batchRemove: {
+        visible: false // 是否显示删除文件的警告框
       }
     })
     return {
@@ -201,7 +207,6 @@ export default {
     },
     // 文件的操作
     fileChangeEvent (action, record, recordIndex) {
-      console.log(action, record, recordIndex)
       // 删除单个文件
       if (action === 'delete') {
         const { id, name } = record
@@ -219,6 +224,16 @@ export default {
         this.data.dirSelector.visible = true
         this.data.dirSelector.action = action
       }
+    },
+    // 弹出批量复制的弹窗
+    displayBatchCopy () {
+      this.data.dirSelector.visible = true
+      this.data.dirSelector.action = 'copy'
+    },
+    // 弹出批量移动的弹窗
+    displayBatchMove () {
+      this.data.dirSelector.visible = true
+      this.data.dirSelector.action = 'move'
     },
     // 移动文件
     operationResult (record) {
@@ -264,7 +279,7 @@ export default {
       }).then(response => {
         if (response !== undefined) {
           const selectedFiles = this.clearSelected()
-          this.data.remove.visible = false
+          this.data.batchRemove.visible = false
           this.emit('action-change', { action: 'delete', fileIds: selectedFiles })
         }
       })

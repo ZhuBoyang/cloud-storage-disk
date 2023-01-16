@@ -1,12 +1,12 @@
 <template>
-  <transition name="file-move-bg">
-    <div class="file-move-list" v-show="visible && !data.hideModalVisible"></div>
+  <transition name="file-operator-bg">
+    <div class="file-operator-list" v-show="visible && !data.hideModalVisible"></div>
   </transition>
-  <div class="file-move-modal"
+  <div class="file-operator-modal"
        :class="[{'is-close': !visible}]"
   >
     <div class="box-header">
-      <div class="box-header--theme">文件移动</div>
+      <div class="box-header--theme">文件{{ identifyOperationName(operationName) }}</div>
       <div class="box-header--close" @click="closeModal">
         <img src="../assets/icons/full/Close%20Square.svg" alt="关闭"/>
       </div>
@@ -32,7 +32,7 @@
       <a-empty img-src="/src/assets/icons/full/empty-data.svg"/>
     </div>
     <div class="box-footer">
-      <a-button type="primary" shape="round" @click="moveToCurrentFolder">移动至此</a-button>
+      <a-button type="primary" shape="round" @click="moveToCurrentFolder">{{ identifyOperationName(operationName) }}至此</a-button>
       <a-button type="dashed" shape="round" @click="cancelMove">取消</a-button>
     </div>
   </div>
@@ -43,12 +43,16 @@ import { reactive } from 'vue'
 import http from '../api/http.js'
 
 export default {
-  name: 'FileMoveModal',
+  name: 'FileOperatorModal',
   props: {
     // 是否显示上传文件的窗口
     visible: {
       type: Boolean,
       default: false
+    },
+    operationName: {
+      type: String,
+      default: ''
     }
   },
   emits: ['on-change'],
@@ -137,13 +141,22 @@ export default {
     // 官博弹窗
     closeModal () {
       this.emit('on-change', { action: 'close' })
+    },
+    // 识别操作名称
+    identifyOperationName (action) {
+      if (action === 'move') {
+        return '移动'
+      }
+      if (action === 'copy') {
+        return '复制'
+      }
     }
   }
 }
 </script>
 
 <style scoped lang="scss">
-.file-move-list {
+.file-operator-list {
   position: fixed;
   top: 0;
   left: 0;
@@ -152,7 +165,7 @@ export default {
   background-color: rgba(0, 0, 0, .5);
   z-index: 10;
 }
-.file-move-modal {
+.file-operator-modal {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -227,13 +240,13 @@ export default {
   }
 }
 
-.file-move-bg-enter-active {
-  animation: file-move-bg-animation .5s;
+.file-operator-bg-enter-active {
+  animation: file-operator-bg-animation .5s;
 }
-.file-move-bg-leave-active {
-  animation: file-move-bg-animation .5s reverse;
+.file-operator-bg-leave-active {
+  animation: file-operator-bg-animation .5s reverse;
 }
-@keyframes file-move-bg-animation {
+@keyframes file-operator-bg-animation {
   0% {
     opacity: 0;
   }

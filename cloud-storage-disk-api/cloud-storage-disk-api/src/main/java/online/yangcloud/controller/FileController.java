@@ -4,6 +4,7 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.StrUtil;
 import online.yangcloud.common.ResultBean;
 import online.yangcloud.common.ResultData;
+import online.yangcloud.common.resultcode.AppResultCode;
 import online.yangcloud.model.ao.file.*;
 import online.yangcloud.model.po.FileMetadata;
 import online.yangcloud.model.vo.file.FileBreadView;
@@ -48,7 +49,7 @@ public class FileController {
         List<String> fileIds = CharSequenceUtil.split(deleteRequest.getFileString(), StrUtil.COMMA);
         ResultBean<?> resultBean = fileMetadataService.batchDeleteFile(fileIds);
         if (resultBean.isSuccess()) {
-            return ResultData.success();
+            return ResultData.success(AppResultCode.SUCCESS);
         }
         return ResultData.errorMessage(resultBean.getResultCode());
     }

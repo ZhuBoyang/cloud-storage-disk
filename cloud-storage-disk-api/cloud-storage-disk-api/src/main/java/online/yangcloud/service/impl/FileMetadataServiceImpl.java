@@ -408,7 +408,9 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
         // 查询祖级目录
         List<String> parentIds = CharSequenceUtil.split(parent.getAncestors(), StrUtil.COMMA);
-        List<FileMetadata> parentsList = fileMetadataMapper.listByIds(parentIds);
+        List<FileMetadata> parentsList = fileMetadataMapper.listEntity(fileMetadataMapper.query()
+                .where.id().in(parentIds)
+                .and.isDelete().eq(YesOrNoEnum.NO.getCode()).end());
 
         // 合并父级目录本身与祖级目录
         parentsList.add(parent);
@@ -426,7 +428,8 @@ public class FileMetadataServiceImpl implements FileMetadataService {
         // 构建查询语句
         FileMetadataQuery query = fileMetadataMapper.query()
                 .where.type().eq(YesOrNoEnum.YES.getCode())
-                .and.pid().eq(pid).end()
+                .and.pid().eq(pid)
+                .and.isDelete().eq(YesOrNoEnum.NO.getCode()).end()
                 .orderBy.uploadTime().asc().end()
                 .limit(0, size);
 
