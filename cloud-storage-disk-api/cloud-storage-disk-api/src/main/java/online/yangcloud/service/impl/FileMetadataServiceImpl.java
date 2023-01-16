@@ -99,11 +99,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
     public ResultBean<?> batchDeleteFile(List<String> fileIds) {
         // 检测存在的文件
         List<FileMetadata> files = fileMetadataMapper.listByIds(fileIds);
-
-        // 查询文件对应的，文件与文件块的关联记录
         fileIds = files.stream().map(FileMetadata::getId).collect(Collectors.toList());
-        List<FileBlock> fileBlocks = fileBlockMapper.listEntity(fileBlockMapper.query().where.fileId().in(fileIds).end());
-        List<String> fileBlocksIds = fileBlocks.stream().map(FileBlock::getId).collect(Collectors.toList());
 
         // 删除文件
         int updateResult = fileMetadataMapper.updateBy(fileMetadataMapper.updater()
@@ -114,14 +110,52 @@ public class FileMetadataServiceImpl implements FileMetadataService {
             throw new BusinessException("文件删除失败，请重试");
         }
 
+        // 查询文件对应的，文件与文件块的关联记录
+        List<FileBlock> fileBlocks = fileBlockMapper.listEntity(fileBlockMapper.query().where.fileId().in(fileIds).end());
+        List<String> fileBlocksIds = fileBlocks.stream().map(FileBlock::getId).collect(Collectors.toList());
+
         // 删除文件与文件块的关联关系
         if (fileBlocksIds.size() > 0) {
             updateResult = fileBlockMapper.updateBy(fileBlockMapper.updater()
                     .set.isDelete().is(YesOrNoEnum.YES.getCode()).end()
                     .where.id().in(fileBlocksIds).end());
             if (updateResult != fileBlocksIds.size()) {
-                logger.error("文件块删除失败，导致文件删除失败，请重试");
-                throw new BusinessException("文件删除失败，请重新尝试");
+                logger.error("文件删除失败，请重试.");
+                throw new BusinessException("文件删除失败，请重试.");
+            }
+        }
+
+        // 查询子级的所有文件与文件夹
+        List<FileMetadata> childList = new ArrayList<>();
+        for (String fileId : fileIds) {
+            childList.addAll(fileMetadataMapper.listEntity(fileMetadataMapper.query()
+                    .where.ancestors().like(AppConstants.PERCENT + fileId + AppConstants.PERCENT).end()));
+        }
+        if (childList.size() == 0) {
+            return ResultBean.success();
+        }
+        List<String> childIds = childList.stream().map(FileMetadata::getId).collect(Collectors.toList());
+
+        // 删除所有子级文件与文件夹
+        updateResult =
+                fileMetadataMapper.updateBy(fileMetadataMapper.updater().set.isDelete().is(YesOrNoEnum.YES.getCode()).end().where.id().in(childIds).end());
+        if (updateResult != childIds.size()) {
+            logger.error("文件删除失败，请重新尝试");
+            throw new BusinessException("文件删除失败，请重新尝试");
+        }
+
+        // 查询子级文件与文件块的关联
+        fileBlocks = fileBlockMapper.listEntity(fileBlockMapper.query().where.fileId().in(childIds).end());
+        fileBlocksIds = fileBlocks.stream().map(FileBlock::getId).collect(Collectors.toList());
+
+        // 删除文件与文件块的关联关系
+        if (fileBlocksIds.size() > 0) {
+            updateResult = fileBlockMapper.updateBy(fileBlockMapper.updater()
+                    .set.isDelete().is(YesOrNoEnum.YES.getCode()).end()
+                    .where.id().in(fileBlocksIds).end());
+            if (updateResult != fileBlocksIds.size()) {
+                logger.error("文件删除失败，请重新尝试.");
+                throw new BusinessException("文件删除失败，请重新尝试.");
             }
         }
         return ResultBean.success();
@@ -165,7 +199,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
         String ancestor = targetFile.getId();
         if (CharSequenceUtil.isNotBlank(targetFile.getAncestors())) {
             ancestor += StrUtil.COMMA + targetFile.getAncestors();
-        } 
+        }
         int updateResult = fileMetadataMapper.updateBy(fileMetadataMapper.updater()
                 .set.pid().is(target).ancestors().is(ancestor).end()
                 .where.id().in(sources).end());
