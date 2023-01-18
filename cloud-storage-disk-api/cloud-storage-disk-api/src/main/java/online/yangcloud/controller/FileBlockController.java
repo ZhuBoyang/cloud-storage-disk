@@ -3,7 +3,7 @@ package online.yangcloud.controller;
 import cn.hutool.core.text.CharSequenceUtil;
 import online.yangcloud.common.ResultData;
 import online.yangcloud.exception.ParamErrorException;
-import online.yangcloud.model.ao.BlockUpload;
+import online.yangcloud.model.ao.file.BlockUpload;
 import online.yangcloud.model.ao.file.BlockCheckExistRequest;
 import online.yangcloud.model.ao.file.FileMergeRequest;
 import online.yangcloud.model.vo.file.FileMetadataView;

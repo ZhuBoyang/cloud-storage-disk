@@ -6,7 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.exception.BusinessException;
-import online.yangcloud.model.ao.BlockUpload;
+import online.yangcloud.model.ao.file.BlockUpload;
 import online.yangcloud.model.ao.file.BlockCheckExistRequest;
 import online.yangcloud.model.mapper.BlockMetadataMapper;
 import online.yangcloud.model.po.BlockMetadata;

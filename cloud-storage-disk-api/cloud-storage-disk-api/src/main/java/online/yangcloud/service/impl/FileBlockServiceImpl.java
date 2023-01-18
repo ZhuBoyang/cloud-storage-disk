@@ -13,7 +13,7 @@ import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.enumration.FileTypeEnum;
 import online.yangcloud.enumration.YesOrNoEnum;
 import online.yangcloud.exception.BusinessException;
-import online.yangcloud.model.ao.BlockUpload;
+import online.yangcloud.model.ao.file.BlockUpload;
 import online.yangcloud.model.mapper.FileBlockMapper;
 import online.yangcloud.model.po.BlockMetadata;
 import online.yangcloud.model.po.FileBlock;

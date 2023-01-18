@@ -1,4 +1,4 @@
-package online.yangcloud.model.ao;
+package online.yangcloud.model.ao.file;
 
 import org.springframework.web.multipart.MultipartFile;
 

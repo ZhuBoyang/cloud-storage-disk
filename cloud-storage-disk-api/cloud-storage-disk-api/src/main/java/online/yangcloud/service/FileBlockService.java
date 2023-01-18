@@ -1,6 +1,6 @@
 package online.yangcloud.service;
 
-import online.yangcloud.model.ao.BlockUpload;
+import online.yangcloud.model.ao.file.BlockUpload;
 import online.yangcloud.model.vo.file.FileMetadataView;
 
 import java.io.IOException;

@@ -42,10 +42,15 @@ const formatNum = (size, n) => {
   }
   return sizeStr
 }
+// 页面跳转
+const jumpUrl = (url, router) => {
+  router.push(url)
+}
 
 const common = {
   identifyFileIcon,
-  formatSizeInPerson
+  formatSizeInPerson,
+  jumpUrl
 }
 
 export default common
