@@ -54,27 +54,6 @@ public class RedisUtil {
         return redisTemplate.opsForValue().increment(redisKey, 1L);
     }
 
-//    /**
-//     * 设置redis值
-//     *
-//     * @param redisKey   redisKey
-//     * @param redisValue redisValue
-//     */
-//    public void expire(String redisKey, String redisValue) {
-//        expire(redisKey, redisValue, UserConstants.LOGIN_SESSION_EXPIRE_TIME);
-//    }
-
-//    /**
-//     * 设置redis过期
-//     *
-//     * @param redisKey redisKey
-//     * @param seconds  过期时间
-//     */
-//    public void expire(String redisKey, Integer seconds) {
-//        logger.info("开始设置redis key[{}]，并添加过期时间[{}]", redisKey, seconds);
-//        expire(redisKey, StrUtil.EMPTY, seconds);
-//    }
-
     /**
      * 设置redis的同时设置过期时间
      *

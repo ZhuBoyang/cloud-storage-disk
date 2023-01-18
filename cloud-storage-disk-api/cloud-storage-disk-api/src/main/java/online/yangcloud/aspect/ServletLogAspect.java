@@ -1,16 +1,17 @@
 package online.yangcloud.aspect;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import online.yangcloud.annotation.SessionValid;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.common.constants.UserConstants;
 import online.yangcloud.exception.NoAuthException;
+import online.yangcloud.model.po.User;
 import online.yangcloud.utils.RedisUtil;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,22 +80,23 @@ public class ServletLogAspect {
     }
 
     /**
-     * 对请求进行拦截，判断接口是否需要登录校验
+     * 拦截携带 SessionValid 注解的请求，判断请求是否需要对登录状态进行校验，同时对快过期的状态进行续期
+     * 并检测接口请求参数，如果请求参数中有"user"，那么将从redis中获取用户信息并回写到请求参数中
      *
      * @param joinPoint 断点
-     * @throws NoSuchMethodException .
+     * @return .
+     * @throws Throwable .
      */
-    @Before("@annotation(online.yangcloud.annotation.SessionValid)")
-    public void aspectControllerPermission(JoinPoint joinPoint) throws NoSuchMethodException {
-        logger.info("==================== 开始执行 {}.{} ====================", joinPoint.getTarget().getClass(), joinPoint.getSignature().getName());
+    @Around(value = "@annotation(online.yangcloud.annotation.SessionValid)")
+    public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
         ServletRequestAttributes servletRequestAttributes
                 = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = Objects.requireNonNull(servletRequestAttributes).getRequest();
-        logger.info("current request info : {}?{}", request.getRequestURL(), request.getQueryString());
+
         if (needMethodValid(joinPoint)) {
             String sessionId = request.getParameter(UserConstants.AUTHORIZATION);
             if (StrUtil.isNotBlank(sessionId)) {
-                logger.info("sessionId [{}]", sessionId);
+                logger.info("session id [{}]", sessionId);
                 String userInfoJson = redisUtil.get(UserConstants.LOGIN_SESSION + sessionId);
                 if (StrUtil.isNotBlank(userInfoJson)) {
                     long expireTime = redisUtil.getExpireTime(UserConstants.LOGIN_SESSION + sessionId);
@@ -102,20 +104,46 @@ public class ServletLogAspect {
                     if (expireTime < AppConstants.ACCOUNT_RENEWAL_TIME
                             && expireTime != AppConstants.ACCOUNT_EXPIRED_STATUS
                             && expireTime != AppConstants.ACCOUNT_NOT_EXIST_STATUS) {
-                        logger.info("登录账户[{}]登录状态即将过期，现在开始续期，续期时间为[{}]",
+                        logger.info("The login status of account [{}] is about to expire. Now it starts to renew. The renewal period is [{}]s",
                                 userInfoJson, UserConstants.LOGIN_SESSION_EXPIRE_TIME);
                         redisUtil.expire(UserConstants.LOGIN_SESSION + sessionId, userInfoJson, UserConstants.LOGIN_SESSION_EXPIRE_TIME);
                     }
                 } else {
-                    logger.info("==================== 方法执行出现异常 ====================");
-                    throw new NoAuthException("登录已过期，请前往登录");
+                    logger.info("==================== Method execution is abnormal ====================");
+                    throw new NoAuthException("Login has expired, please go to login");
                 }
             } else {
-                logger.info("==================== 方法执行出现异常 ====================");
-                throw new NoAuthException("登录已过期，请前往登录");
+                logger.info("==================== Method execution is abnormal ====================");
+                throw new NoAuthException("Login has expired, please go to login");
             }
         }
-        logger.info("==================== 方法执行结束 ====================");
+
+        // 从 redis 中获取用户登录状态，并回写到请求参数中
+        Object[] args = joinPoint.getArgs();
+        User user = new User();
+        int index = -1;
+        if (args != null && args.length > 0) {
+            for (int i = 0; i < args.length; i++) {
+                if (args[i] instanceof User) {
+                    String sessionId = request.getParameter(UserConstants.AUTHORIZATION);
+                    if (StrUtil.isBlank(sessionId)) {
+                        user = new User();
+                    } else {
+                        String userInfoJson = redisUtil.get(UserConstants.LOGIN_SESSION + sessionId);
+                        if (StrUtil.isBlank(userInfoJson)) {
+                            user = new User();
+                        } else {
+                            user = JSONUtil.toBean(userInfoJson, User.class);
+                        }
+                    }
+                    index = i;
+                }
+            }
+        }
+        if (index != -1) {
+            args[index] = user;
+        }
+        return joinPoint.proceed(args);
     }
 
     /**
@@ -141,44 +169,5 @@ public class ServletLogAspect {
         }
         return false;
     }
-
-//    /**
-//     * 拦截所有请求，如果请求参数中有"TransUser"，那么将从redis中获取用户信息并回写到请求参数中
-//     *
-//     * @param joinPoint 断点
-//     * @return .
-//     * @throws Throwable .
-//     */
-//    @Around(value = "@annotation(online.yangcloud.annotation.SessionValid)")
-//    public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
-//        ServletRequestAttributes servletRequestAttributes
-//                = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-//        HttpServletRequest request = Objects.requireNonNull(servletRequestAttributes).getRequest();
-//        Object[] args = joinPoint.getArgs();
-//        TransUser transUser = new TransUser();
-//        int index = -1;
-//        if (args != null && args.length > 0) {
-//            for (int i = 0; i < args.length; i++) {
-//                if (args[i] instanceof TransUser) {
-//                    String sessionId = request.getParameter(UserConstants.AUTHORIZATION);
-//                    if (StrUtil.isBlank(sessionId)) {
-//                        transUser = new TransUser();
-//                    } else {
-//                        String userInfoJson = redisUtil.get(UserConstants.LOGIN_SESSION + sessionId);
-//                        if (StrUtil.isBlank(userInfoJson)) {
-//                            transUser = new TransUser();
-//                        } else {
-//                            transUser = JSONUtil.toBean(userInfoJson, TransUser.class);
-//                        }
-//                    }
-//                    index = i;
-//                }
-//            }
-//        }
-//        if (index != -1) {
-//            args[index] = transUser;
-//        }
-//        return joinPoint.proceed(args);
-//    }
 
 }

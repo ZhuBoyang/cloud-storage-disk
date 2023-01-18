@@ -30,8 +30,9 @@ service.interceptors.response.use(config => {
 })
 
 const modules = {
-  file: 'file/',
-  fileBlock: 'file_block/'
+  file: 'file/', // 文件相关
+  fileBlock: 'file_block/', // 文件块相关
+  user: 'user/' // 用户相关
 }
 
 const url = {
@@ -49,6 +50,10 @@ const url = {
     checkExist: modules.fileBlock + 'check_exist', // 检查文件块是否已入库
     uploadBlocks: modules.fileBlock + 'upload', // 上传文件块
     mergeFile: modules.fileBlock + 'merge' // 文件合并
+  },
+  user: {
+    register: modules.user + 'register', // 用户注册
+    login: modules.user + 'login' // 用户登录
   }
 }
 

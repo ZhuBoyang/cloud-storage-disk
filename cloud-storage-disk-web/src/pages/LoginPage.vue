@@ -27,7 +27,7 @@
 <!--            </a-checkbox>-->
 <!--          </a-form-item>-->
           <a-form-item>
-            <a-button type="primary" long>登录</a-button>
+            <a-button type="primary" long @click="login">登录</a-button>
           </a-form-item>
         </a-form>
       </div>
@@ -38,6 +38,7 @@
 <script>
 import { getCurrentInstance, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import http from '../api/http.js'
 
 export default {
   name: 'LoginPage',
@@ -47,13 +48,41 @@ export default {
     const { globalProperties } = config
     const router = useRouter()
     const form = reactive({
-      email: '', // 邮箱
-      password: '' // 密码
+      email: 'zhuboyang1996@foxmail.com', // 邮箱
+      password: '@Jhxz951129Jhxz' // 密码
     })
     return {
       globalProperties,
       router,
       form
+    }
+  },
+  methods: {
+    // 登录
+    login () {
+      const { email, password } = this.form
+      if (email.trim() === '') {
+        Notification.warning({
+          title: '请输入邮箱',
+          content: ''
+        })
+        return
+      }
+      if (password.trim() === '') {
+        Notification.warning({
+          title: '请输入密码',
+          content: ''
+        })
+        return
+      }
+      http.req(http.url.user.login, http.methods.post, {
+        email,
+        password
+      }).then(response => {
+        if (response !== undefined) {
+          this.router.push('/index')
+        }
+      })
     }
   }
 }

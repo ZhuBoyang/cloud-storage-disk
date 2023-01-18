@@ -17,24 +17,14 @@ public interface UserConstants {
     String LOGIN_SESSION = "user_login_session:";
 
     /**
-     * 账号登录session会话过期时间：7 * 24小时
-     */
-    Integer LOGIN_SESSION_EXPIRE_TIME = 7 * 24 * 60 * 60;
-
-    /**
-     * 初始化的邮箱
-     */
-    String INIT_EMAIL = "zhuboyang1996@foxmail.com";
-
-    /**
-     * 默认密码
-     */
-    String DEFAULT_PASSWORD = "Jhxz951129Jhxz";
-
-    /**
      * 输入密码错误的锁
      */
     String ERROR_PASSWORD = "error_password:";
+
+    /**
+     * 账号登录 session 会话过期时间：7 * 24 小时
+     */
+    Integer LOGIN_SESSION_EXPIRE_TIME = 7 * 24 * 60 * 60;
 
     /**
      * 输入错误密码锁定的次数
@@ -42,7 +32,7 @@ public interface UserConstants {
     int ERROR_PASSWORD_LOCK_COUNT = 5;
 
     /**
-     * 密码输入错误后，账户锁定的时间（秒）
+     * 密码输入错误后，账户锁定的时间（分）
      */
     int ERROR_PASSWORD_LOCK_TIME = 5;
 

@@ -31,7 +31,7 @@
             <a-button type="text" shape="round" @click="globalProperties.$jumpUrl('/login', router)">登录</a-button>
           </a-form-item>
           <a-form-item>
-            <a-button type="primary" long>注册</a-button>
+            <a-button type="primary" long @click="register">注册</a-button>
           </a-form-item>
         </a-form>
       </div>
@@ -42,6 +42,7 @@
 <script>
 import { getCurrentInstance, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import http from '../api/http.js'
 
 export default {
   name: 'LoginPage',
@@ -51,15 +52,66 @@ export default {
     const { globalProperties } = config
     const router = useRouter()
     const form = reactive({
-      userName: '', // 用户名
-      email: '', // 邮箱
-      password: '', // 密码
-      repeat: '' // 再次输入密码
+      userName: '洋洋啊', // 用户名
+      email: 'zhuboyang1996@foxmail.com', // 邮箱
+      password: '@Jhxz951129Jhxz', // 密码
+      repeat: '@Jhxz951129Jhxz' // 再次输入密码
     })
     return {
       globalProperties,
       router,
       form
+    }
+  },
+  methods: {
+    // 用户注册
+    register () {
+      const { userName, email, password, repeat } = this.form
+      if (userName === undefined || userName.trim() === '') {
+        Notification.warning({
+          title: '请输入用户名',
+          content: ''
+        })
+        return
+      }
+      if (email === undefined || email.trim() === '') {
+        Notification.warning({
+          title: '请输入邮箱',
+          content: ''
+        })
+        return
+      }
+      if (password === undefined || password.trim() === '') {
+        Notification.warning({
+          title: '请输入密码',
+          content: ''
+        })
+      }
+      if (repeat === undefined || repeat.trim() === '') {
+        Notification.warning({
+          title: '请再次输入密码',
+          content: ''
+        })
+        return
+      }
+      if (password.trim() !== repeat.trim()) {
+        Notification.warning({
+          title: '两次输入的密码不一致',
+          content: ''
+        })
+        return
+      }
+      http.req(http.url.user.register, http.methods.post, {
+        userName,
+        email,
+        password
+      }).then(response => {
+        if (response !== undefined) {
+          setTimeout(() => {
+            this.router.push('/login')
+          }, 2000)
+        }
+      })
     }
   }
 }
