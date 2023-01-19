@@ -74,6 +74,11 @@ public class FileMetadata extends RichEntity {
      */
     private Integer isDelete;
 
+    /**
+     * 用户 id
+     */
+    private String userId;
+
     public String getId() {
         return id;
     }
@@ -182,6 +187,15 @@ public class FileMetadata extends RichEntity {
         return this;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
+    public FileMetadata setUserId(String userId) {
+        this.userId = userId;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "FileMetadata["
@@ -196,7 +210,8 @@ public class FileMetadata extends RichEntity {
                 + " uploadTime=" + uploadTime + ","
                 + " updateTime=" + updateTime + ","
                 + " ancestors=" + ancestors + ","
-                + " isDelete=" + isDelete
+                + " isDelete=" + isDelete + ","
+                + " userId=" + userId
                 + " ]"
                 + " "
                 + super.toString();

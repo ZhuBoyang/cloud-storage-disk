@@ -176,7 +176,7 @@ export default {
     transform: translate(-50%, -50%);
     .page-box {
       position: fixed;
-      top: 32vw;
+      top: 30%;
       left: 10vw;
       width: 30%;
       .form-title {

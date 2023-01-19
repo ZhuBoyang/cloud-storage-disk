@@ -7,6 +7,9 @@
         </div>
         <div class="pan-logo-label">云存储</div>
       </div>
+      <div class="pan-bg">
+        <img src="../assets/大白.png" alt="大白"/>
+      </div>
     </div>
     <div class="page-right">
       <div class="page-box">
@@ -120,6 +123,12 @@ export default {
         font-weight: bolder;
       }
     }
+    .pan-bg {
+      margin-left: 56px;
+      img {
+        width: 200%;
+      }
+    }
   }
   .page-right {
     position: fixed;
@@ -132,7 +141,7 @@ export default {
     transform: translate(-50%, -50%);
     .page-box {
       position: fixed;
-      top: 32vw;
+      top: 30%;
       left: 10vw;
       width: 30%;
       .form-title {
