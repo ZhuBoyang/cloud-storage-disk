@@ -68,7 +68,8 @@ const url = {
   user: {
     register: modules.user + 'register', // 用户注册
     login: modules.user + 'login', // 用户登录
-    logout: modules.user + 'logout' // 用户退出登录
+    logout: modules.user + 'logout', // 用户退出登录
+    reset: modules.user + 'reset' // 重置用户账户密码
   }
 }
 

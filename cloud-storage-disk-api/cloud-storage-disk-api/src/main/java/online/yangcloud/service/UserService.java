@@ -1,7 +1,9 @@
 package online.yangcloud.service;
 
 import online.yangcloud.common.ResultBean;
+import online.yangcloud.model.ao.user.UserUpdateRequest;
 import online.yangcloud.model.vo.user.LoginView;
+import online.yangcloud.model.vo.user.UserView;
 
 /**
  * @author zhuboyang
@@ -18,6 +20,14 @@ public interface UserService {
      * @return result
      */
     ResultBean<?> addUser(String userName, String email, String password);
+
+    /**
+     * 修改用户账户信息
+     *
+     * @param updateRequest 请求
+     * @return result
+     */
+    ResultBean<UserView> updateUser(UserUpdateRequest updateRequest);
 
     /**
      * 登录

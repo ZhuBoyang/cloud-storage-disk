@@ -4,9 +4,12 @@ import online.yangcloud.common.ResultBean;
 import online.yangcloud.common.ResultData;
 import online.yangcloud.common.constants.UserConstants;
 import online.yangcloud.common.resultcode.AppResultCode;
+import online.yangcloud.model.ao.user.ResetPwdRequest;
 import online.yangcloud.model.ao.user.UserLoginRequest;
 import online.yangcloud.model.ao.user.UserRegisterRequest;
+import online.yangcloud.model.ao.user.UserUpdateRequest;
 import online.yangcloud.model.vo.user.LoginView;
+import online.yangcloud.model.vo.user.UserView;
 import online.yangcloud.service.UserService;
 import online.yangcloud.utils.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +78,22 @@ public class UserController {
         String authorization = request.getHeader(UserConstants.AUTHORIZATION);
         redisUtil.delete(authorization);
         return ResultData.success();
+    }
+
+    /**
+     * 重置账户密码
+     *
+     * @param pwdRequest 请求
+     * @return result
+     */
+    @PostMapping("/reset")
+    public ResultData resetPwd(@RequestBody ResetPwdRequest pwdRequest) {
+        UserUpdateRequest updateRequest = new UserUpdateRequest().setEmail(pwdRequest.getEmail()).setPassword(pwdRequest.getPassword());
+        ResultBean<UserView> resultBean = userService.updateUser(updateRequest);
+        if (resultBean.isSuccess()) {
+            return ResultData.success(AppResultCode.SUCCESS.clone("账户密码重置成功，请前往登录"));
+        }
+        return ResultData.errorMessage(resultBean.getResultCode());
     }
 
 }

@@ -8,7 +8,7 @@
         <div class="pan-logo-label">云存储</div>
       </div>
       <div class="pan-bg">
-        <img src="../assets/大白.png" alt="大白"/>
+        <img src="../assets/login-bg.png" alt="登录背景"/>
       </div>
     </div>
     <div class="page-right">
@@ -24,11 +24,11 @@
           <a-form-item field="password" label="密码">
             <a-input-password v-model="form.password" placeholder="请输入密码" allow-clear/>
           </a-form-item>
-<!--          <a-form-item field="isRead">-->
-<!--            <a-checkbox v-model="form.isRead">-->
-<!--              I have read the manual-->
-<!--            </a-checkbox>-->
-<!--          </a-form-item>-->
+          <a-form-item>
+            <div class="account-fix">
+              <a-button type="text" shape="round" @click="globalProperties.$jumpUrl('/reset', router)">忘记密码？</a-button>
+            </div>
+          </a-form-item>
           <a-form-item>
             <a-button type="primary" long @click="login">登录</a-button>
           </a-form-item>
@@ -52,7 +52,7 @@ export default {
     const router = useRouter()
     const form = reactive({
       email: 'zhuboyang1996@foxmail.com', // 邮箱
-      password: '@Jhxz951129Jhxz' // 密码
+      password: '123456' // 密码
     })
     return {
       globalProperties,
@@ -100,6 +100,8 @@ export default {
   justify-content: space-between;
   background-color: #faf9fe;
   .page-left {
+    display: flex;
+    flex-direction: column;
     .pan-logo-box {
       margin: 56px;
       padding: 8px;
@@ -127,7 +129,7 @@ export default {
     .pan-bg {
       margin-left: 56px;
       img {
-        width: 200%;
+        width: 100%;
       }
     }
   }
@@ -156,6 +158,11 @@ export default {
         * {
           font-size: 20px;
         }
+      }
+      .account-fix {
+        width: 100%;
+        display: flex;
+        justify-content: end;
       }
     }
   }

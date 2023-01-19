@@ -1,5 +1,5 @@
 <template>
-  <div class="register-page">
+  <div class="reset-pwd">
     <div class="page-left">
       <div class="pan-logo-box">
         <div class="pan-logo-bg row-col-center">
@@ -7,17 +7,15 @@
         </div>
         <div class="pan-logo-label">云存储</div>
       </div>
-      <div class="pan-welcome">
-        <div class="welcome-title">注册一个新的账号</div>
-        <div class="welcome-description">云存储让您安全访问您的所有文件。通过任何设备与朋友、家人和同事协作。</div>
+      <div class="pan-bg">
+        <img src="../assets/login-bg.png" alt="登录背景"/>
       </div>
     </div>
     <div class="page-right">
       <div class="page-box">
+        <div class="form-title">重置你的密码</div>
+        <div class="form-account-register">请填写以下字段，使用邮箱重置您的账户密码</div>
         <a-form :model="form" layout="vertical">
-          <a-form-item field="userName" label="用户名">
-            <a-input v-model="form.userName" placeholder="请输入用户名"/>
-          </a-form-item>
           <a-form-item field="email" label="邮箱">
             <a-input v-model="form.email" placeholder="请输入邮箱"/>
           </a-form-item>
@@ -27,11 +25,12 @@
           <a-form-item field="repeat" label="确认密码">
             <a-input-password v-model="form.repeat" placeholder="请再次输入密码" allow-clear @focusout="identifyPwd"/>
           </a-form-item>
-          <a-form-item>已有账号？
+          <a-form-item>
+            我有账号。前往
             <a-button type="text" shape="round" @click="globalProperties.$jumpUrl('/login', router)">登录</a-button>
           </a-form-item>
           <a-form-item>
-            <a-button type="primary" long @click="register">注册</a-button>
+            <a-button type="primary" long @click="reset">重置</a-button>
           </a-form-item>
         </a-form>
       </div>
@@ -52,10 +51,10 @@ export default {
     const { globalProperties } = config
     const router = useRouter()
     const form = reactive({
-      userName: '洋洋啊', // 用户名
       email: 'zhuboyang1996@foxmail.com', // 邮箱
       password: '123456', // 密码
-      repeat: '123456' // 再次输入密码
+      repeat: '123456', // 再次输入密码
+      isAccept: false // 是否可以提交请求
     })
     return {
       globalProperties,
@@ -77,45 +76,27 @@ export default {
         this.form.isAccept = true
       }
     },
-    // 用户注册
-    register () {
-      const { userName, email, password, repeat } = this.form
-      if (userName === undefined || userName.trim() === '') {
-        Notification.warning({
-          title: '请输入用户名',
-          content: ''
-        })
+    // 重置密码
+    reset () {
+      const { email, password, isAccept } = this.form
+      if (!isAccept) {
         return
       }
-      if (email === undefined || email.trim() === '') {
+      if (email.trim() === '') {
         Notification.warning({
           title: '请输入邮箱',
           content: ''
         })
         return
       }
-      if (password === undefined || password.trim() === '') {
+      if (password.trim() === '') {
         Notification.warning({
           title: '请输入密码',
           content: ''
         })
-      }
-      if (repeat === undefined || repeat.trim() === '') {
-        Notification.warning({
-          title: '请再次输入密码',
-          content: ''
-        })
         return
       }
-      if (password.trim() !== repeat.trim()) {
-        Notification.warning({
-          title: '两次输入的密码不一致',
-          content: ''
-        })
-        return
-      }
-      http.req(http.url.user.register, http.methods.post, {
-        userName,
+      http.req(http.url.user.reset, http.methods.post, {
         email,
         password
       }).then(response => {
@@ -131,14 +112,15 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.register-page {
+.reset-pwd {
   width: 100%;
   height: 100vh;
   display: flex;
   justify-content: space-between;
   background-color: #faf9fe;
   .page-left {
-    width: 50%;
+    display: flex;
+    flex-direction: column;
     .pan-logo-box {
       margin: 56px;
       padding: 8px;
@@ -163,18 +145,10 @@ export default {
         font-weight: bolder;
       }
     }
-    .pan-welcome {
+    .pan-bg {
       margin-left: 56px;
-      margin-top: 197px;
-      .welcome-title {
-        font-size: 52px;
-        font-weight: bolder;
-      }
-      .welcome-description {
-        margin-top: 40px;
-        width: 70%;
-        font-size: 20px;
-        color: #92929d;
+      img {
+        width: 100%;
       }
     }
   }
@@ -203,6 +177,11 @@ export default {
         * {
           font-size: 20px;
         }
+      }
+      .account-fix {
+        width: 100%;
+        display: flex;
+        justify-content: end;
       }
     }
   }

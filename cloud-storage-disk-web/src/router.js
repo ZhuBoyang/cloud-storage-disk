@@ -15,6 +15,10 @@ const routes = [
     component: () => import('./pages/RegisterPage.vue')
   },
   {
+    path: '/reset',
+    component: () => import('./pages/ResetPwd.vue')
+  },
+  {
     path: '/index',
     component: () => import('./pages/HomePage.vue'),
     redirect: '/dashboard',

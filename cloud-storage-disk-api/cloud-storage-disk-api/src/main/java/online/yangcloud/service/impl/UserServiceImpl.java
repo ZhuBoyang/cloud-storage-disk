@@ -1,6 +1,9 @@
 package online.yangcloud.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.crypto.SecureUtil;
@@ -8,9 +11,12 @@ import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.ResultBean;
 import online.yangcloud.common.constants.UserConstants;
 import online.yangcloud.common.resultcode.AppResultCode;
+import online.yangcloud.exception.BusinessException;
+import online.yangcloud.model.ao.user.UserUpdateRequest;
 import online.yangcloud.model.mapper.UserMapper;
 import online.yangcloud.model.po.User;
 import online.yangcloud.model.vo.user.LoginView;
+import online.yangcloud.model.vo.user.UserView;
 import online.yangcloud.service.UserService;
 import online.yangcloud.utils.RedisUtil;
 import org.slf4j.Logger;
@@ -57,6 +63,70 @@ public class UserServiceImpl implements UserService {
             return ResultBean.error();
         }
         return ResultBean.success();
+    }
+
+    @Override
+    public ResultBean<UserView> updateUser(UserUpdateRequest updateRequest) {
+        User user = userMapper.findById(updateRequest.getId());
+        if (ObjUtil.isNull(user)) {
+            if (CharSequenceUtil.isBlank(updateRequest.getEmail())) {
+                logger.error("账户不存在，请查证");
+                return ResultBean.resultCode(AppResultCode.FAILURE.clone("账户不存在，请查证"));
+            } else {
+                user = userMapper.findOne(userMapper.query().where.email().eq(updateRequest.getEmail()).end());
+                if (ObjUtil.isNull(user)) {
+                    logger.error("账户不存在，请查证");
+                    return ResultBean.resultCode(AppResultCode.FAILURE.clone("账户不存在，请查证"));
+                }
+            }
+        }
+        boolean updateFlag = Boolean.FALSE;
+        if (CharSequenceUtil.isNotBlank(updateRequest.getUserName())) {
+            if (!updateRequest.getUserName().equals(user.getUserName())) {
+                user.setUserName(updateRequest.getUserName());
+                updateFlag = Boolean.TRUE;
+            }
+        }
+        if (CharSequenceUtil.isNotBlank(updateRequest.getPassword())) {
+            if (!updateRequest.getPassword().equals(user.getPassword())) {
+                user.setPassword(SecureUtil.md5(updateRequest.getPassword()));
+                updateFlag = Boolean.TRUE;
+            }
+        }
+        if (CharSequenceUtil.isNotBlank(updateRequest.getBirthday())) {
+            DateTime birthday = DateUtil.parse(updateRequest.getBirthday());
+            if (!birthday.equals(user.getBirthday())) {
+                user.setBirthday(birthday);
+                updateFlag = Boolean.TRUE;
+            }
+        }
+        if (ObjUtil.isNotNull(updateRequest.getAge())) {
+            if (!updateRequest.getAge().equals(user.getAge())) {
+                user.setAge(updateRequest.getAge());
+                updateFlag = Boolean.TRUE;
+            }
+        }
+        if (ObjUtil.isNotNull(updateRequest.getGender())) {
+            if (!updateRequest.getGender().equals(user.getGender())) {
+                user.setGender(updateRequest.getGender());
+                updateFlag = Boolean.TRUE;
+            }
+        }
+        if (CharSequenceUtil.isNotBlank(updateRequest.getPhone())) {
+            if (!updateRequest.getPhone().equals(user.getPhone())) {
+                user.setPhone(updateRequest.getPhone());
+                updateFlag = Boolean.TRUE;
+            }
+        }
+        if (!updateFlag) {
+            return ResultBean.success();
+        }
+        int updateResult = userMapper.updateById(user);
+        if (updateResult == 0) {
+            logger.error("用户信息修改失败，请重试");
+            throw new BusinessException("用户信息修改失败，请重试");
+        }
+        return ResultBean.success(BeanUtil.copyProperties(user, UserView.class));
     }
 
     @Override

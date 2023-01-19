@@ -80,19 +80,20 @@ public class ServletLogAspect {
     }
 
     /**
-     * 拦截携带 SessionValid 注解的请求，判断请求是否需要对登录状态进行校验，同时对快过期的状态进行续期
+     * 拦截所有请求，判断请求是否需要对登录状态进行校验，同时对快过期的状态进行续期
      * 并检测接口请求参数，如果请求参数中有"user"，那么将从redis中获取用户信息并回写到请求参数中
      *
      * @param joinPoint 断点
      * @return .
      * @throws Throwable .
      */
-    @Around(value = "@annotation(online.yangcloud.annotation.SessionValid)")
+    @Around("execution(* online.yangcloud.controller.*.*(..))")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
         ServletRequestAttributes servletRequestAttributes
                 = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = Objects.requireNonNull(servletRequestAttributes).getRequest();
 
+        // 检测接口是否需要校验登录状态，并对会话进行续期
         if (needMethodValid(joinPoint)) {
             String sessionId = request.getHeader(UserConstants.AUTHORIZATION);
             if (StrUtil.isNotBlank(sessionId)) {
