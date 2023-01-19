@@ -239,7 +239,7 @@ export default {
 
 <style scoped lang="scss">
 .dashboard-page {
-  width: calc(100% - 258px - 352px);
+  width: calc(100% - 258px - 450px);
   .dashboard-center--box {
     margin: 50px auto 0;
     width: 94%;

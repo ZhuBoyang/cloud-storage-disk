@@ -9,7 +9,7 @@ public interface UserConstants {
     /**
      * 会话标识
      */
-    String AUTHORIZATION = "s";
+    String AUTHORIZATION = "authorization";
 
     /**
      * 用户登录会话前缀

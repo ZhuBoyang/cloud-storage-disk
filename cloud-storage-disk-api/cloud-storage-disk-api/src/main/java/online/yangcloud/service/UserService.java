@@ -1,7 +1,7 @@
 package online.yangcloud.service;
 
 import online.yangcloud.common.ResultBean;
-import online.yangcloud.model.vo.user.UserView;
+import online.yangcloud.model.vo.user.LoginView;
 
 /**
  * @author zhuboyang
@@ -26,6 +26,6 @@ public interface UserService {
      * @param password 账户密码
      * @return result
      */
-    ResultBean<UserView> login(String email, String password);
+    ResultBean<LoginView> login(String email, String password);
 
 }

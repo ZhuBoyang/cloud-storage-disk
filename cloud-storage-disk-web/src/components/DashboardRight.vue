@@ -10,8 +10,8 @@
         </div>
         <div class="user-intro">
           <div class="user-info">
-            <div class="user-name">zhuboyang</div>
-            <div class="user-email">email@qq.com</div>
+            <div class="user-name">{{ data.user.userName }}</div>
+            <div class="user-email">{{ data.user.email }}</div>
           </div>
           <div class="user-more">
             <img src="../assets/icons/full/Arrow%20-%20Down%202.svg" alt="more"/>
@@ -22,7 +22,7 @@
            :class="[{'is-show': data.userInfoBox}]"
       >
         <div class="actions-item">设置</div>
-        <div class="actions-item">退出登录</div>
+        <div class="actions-item" @click="logout">退出登录</div>
       </div>
     </div>
     <div class="file-actions"
@@ -81,6 +81,7 @@ import CircularProgress from '../components/custom/CircularProgress.vue'
 import { reactive } from 'vue'
 import http from '../api/http.js'
 import emitter from '../utils/emitter.js'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'DashboardRight',
@@ -97,6 +98,7 @@ export default {
     }
   },
   setup () {
+    const router = useRouter()
     const data = reactive({
       userInfoBox: false, // 是否显示用户信息的下拉框
       showAddBox: false, // 是否显示添加文件的下拉框
@@ -106,13 +108,53 @@ export default {
         form: {
           fileName: '' // 新建文件夹的文件名
         }
-      }
+      },
+      user: {} // 用户信息
     })
     return {
+      router,
       data
     }
   },
+  created () {
+    this.identifyUserInfo()
+  },
   methods: {
+    // 退出登录
+    logout () {
+      http.req(http.url.user.logout, http.methods.post).then(response => {
+        if (response !== undefined) {
+          localStorage.removeItem('user')
+          this.router.push('/login')
+        }
+      })
+    },
+    // 获取当前登录的用户信息
+    identifyUserInfo () {
+      const userJson = localStorage.getItem('user')
+      this.data.user = JSON.parse(userJson)
+    },
+    // 提交新建文件夹的请求
+    submitMkdir () {
+      const fileName = this.data.mkdir.form.fileName
+      if (fileName.trim() === '') {
+        this.$notification.warning('请输入文件夹名称')
+        return
+      }
+      const pid = this.breads[this.breads.length - 1].id
+      const param = {
+        pid,
+        fileName
+      }
+      http.req(http.url.file.mkdir, http.methods.post, param).then(response => {
+        emitter.emit('mkdir-change', response)
+        this.data.mkdir.mkdirVisible = false
+      })
+    },
+    // 关闭新建文件夹的窗口后清空变量的值
+    closeMkdir () {
+      this.data.mkdir.form.fileName = ''
+    },
     // 显示用户账户操作的下拉框
     showUserInfoDropdown () {
       this.data.userInfoBox = true
@@ -137,27 +179,6 @@ export default {
     hideUploadModal (record) {
       const { visible } = record
       this.data.uploadVisible = visible
-    },
-    // 提交新建文件夹的请求
-    submitMkdir () {
-      const fileName = this.data.mkdir.form.fileName
-      if (fileName.trim() === '') {
-        this.$notification.warning('请输入文件夹名称')
-        return
-      }
-      const pid = this.breads[this.breads.length - 1].id
-      const param = {
-        pid,
-        fileName
-      }
-      http.req(http.url.file.mkdir, http.methods.post, param).then(response => {
-        emitter.emit('mkdir-change', response)
-        this.data.mkdir.mkdirVisible = false
-      })
-    },
-    // 关闭新建文件夹的窗口后清空变量的值
-    closeMkdir () {
-      this.data.mkdir.form.fileName = ''
     }
   }
 }
@@ -165,12 +186,12 @@ export default {
 
 <style scoped lang="scss">
 .dashboard-right {
-  width: 352px;
+  width: 450px;
   height: 100vh;
   .user-box {
     margin: 40px auto 0;
     position: relative;
-    width: 284px;
+    width: 80%;
     height: 80px;
     .user-info-btn {
       position: absolute;
@@ -248,7 +269,7 @@ export default {
   .file-actions {
     position: relative;
     margin: 25px auto 0;
-    width: 284px;
+    width: 80%;
     height: 60px;
     .add-file-btn {
       position: absolute;
@@ -304,7 +325,7 @@ export default {
   .disk-space-monitor {
     margin: 40px auto 0;
     padding-top: 30px;
-    width: 284px;
+    width: 80%;
     background-color: #f7f6ff;
     border-radius: 15px;
     .storage-progress {

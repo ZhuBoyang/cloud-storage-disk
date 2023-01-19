@@ -94,7 +94,7 @@ public class ServletLogAspect {
         HttpServletRequest request = Objects.requireNonNull(servletRequestAttributes).getRequest();
 
         if (needMethodValid(joinPoint)) {
-            String sessionId = request.getParameter(UserConstants.AUTHORIZATION);
+            String sessionId = request.getHeader(UserConstants.AUTHORIZATION);
             if (StrUtil.isNotBlank(sessionId)) {
                 logger.info("session id [{}]", sessionId);
                 String userInfoJson = redisUtil.get(UserConstants.LOGIN_SESSION + sessionId);

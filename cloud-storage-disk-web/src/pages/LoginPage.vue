@@ -83,6 +83,7 @@ export default {
         password
       }).then(response => {
         if (response !== undefined) {
+          localStorage.setItem('user', JSON.stringify(response))
           this.router.push('/index')
         }
       })

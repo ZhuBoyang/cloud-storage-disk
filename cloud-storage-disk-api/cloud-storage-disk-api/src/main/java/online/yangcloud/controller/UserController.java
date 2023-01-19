@@ -2,17 +2,20 @@ package online.yangcloud.controller;
 
 import online.yangcloud.common.ResultBean;
 import online.yangcloud.common.ResultData;
+import online.yangcloud.common.constants.UserConstants;
 import online.yangcloud.common.resultcode.AppResultCode;
 import online.yangcloud.model.ao.user.UserLoginRequest;
 import online.yangcloud.model.ao.user.UserRegisterRequest;
-import online.yangcloud.model.vo.user.UserView;
+import online.yangcloud.model.vo.user.LoginView;
 import online.yangcloud.service.UserService;
+import online.yangcloud.utils.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 /**
@@ -27,6 +30,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private RedisUtil redisUtil;
 
     /**
      * 用户注册
@@ -51,11 +57,24 @@ public class UserController {
      */
     @PostMapping("/login")
     public ResultData login(@RequestBody @Valid UserLoginRequest loginRequest) {
-        ResultBean<UserView> resultBean = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+        ResultBean<LoginView> resultBean = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
         if (resultBean.isSuccess()) {
-            return ResultData.success(resultBean.getBean());
+            return ResultData.success(resultBean.getResultCode(), resultBean.getBean());
         }
         return ResultData.errorMessage(resultBean.getResultCode());
+    }
+
+    /**
+     * 退出登录
+     *
+     * @param request 请求
+     * @return result
+     */
+    @PostMapping("/logout")
+    public ResultData logout(HttpServletRequest request) {
+        String authorization = request.getHeader(UserConstants.AUTHORIZATION);
+        redisUtil.delete(authorization);
+        return ResultData.success();
     }
 
 }

@@ -10,6 +10,7 @@ const service = axios.create({
   }
 })
 
+// 对响应进行解析
 service.interceptors.response.use(config => {
   const response = config.data
   if (response.code === 200) {
@@ -27,6 +28,19 @@ service.interceptors.response.use(config => {
     })
     return Promise.reject(response)
   }
+})
+
+// 对请求进行封装
+service.interceptors.request.use(config => {
+  const userJson = localStorage.getItem('user')
+  if (userJson !== undefined && userJson !== null && userJson !== '') {
+    const user = JSON.parse(userJson)
+    const { sessionId } = user
+    config.headers.authorization = sessionId
+  }
+  return config
+}, error => {
+  return Promise.reject(error)
 })
 
 const modules = {
@@ -53,7 +67,8 @@ const url = {
   },
   user: {
     register: modules.user + 'register', // 用户注册
-    login: modules.user + 'login' // 用户登录
+    login: modules.user + 'login', // 用户登录
+    logout: modules.user + 'logout' // 用户退出登录
   }
 }
 
@@ -68,6 +83,9 @@ const req = function (url, method, data, headers) {
   let config = {}
   if (headers === undefined || headers === null) {
     headers = { 'content-type': 'application/json;charset=utf-8' }
+  }
+  if (data === undefined) {
+    data = {}
   }
   config = { headers }
   if (methods.post === method) {
