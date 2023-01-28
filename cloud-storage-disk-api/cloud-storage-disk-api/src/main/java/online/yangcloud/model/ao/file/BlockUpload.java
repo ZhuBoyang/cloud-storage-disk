@@ -65,6 +65,11 @@ public class BlockUpload {
      */
     private Boolean shard;
 
+    /**
+     * 用户 id
+     */
+    private String userId;
+
     public MultipartFile getFile() {
         return file;
     }
@@ -164,20 +169,30 @@ public class BlockUpload {
         return this;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
+    public BlockUpload setUserId(String userId) {
+        this.userId = userId;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "BlockUpload["
                 + " file=" + file + ","
-                + " chunkIndex=" + blockIndex + ","
-                + " chunkSize=" + blockSize + ","
-                + " chunkCount=" + blockCount + ","
+                + " blockIndex=" + blockIndex + ","
+                + " blockSize=" + blockSize + ","
+                + " blockCount=" + blockCount + ","
                 + " shardingSize=" + shardingSize + ","
                 + " fileSize=" + fileSize + ","
                 + " hash=" + hash + ","
                 + " identifier=" + identifier + ","
-                + " filename=" + fileName + ","
+                + " fileName=" + fileName + ","
                 + " pid=" + pid + ","
-                + " shard=" + shard
+                + " shard=" + shard + ","
+                + " userId=" + userId
                 + " ]";
     }
 }

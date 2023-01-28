@@ -6,8 +6,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.exception.BusinessException;
-import online.yangcloud.model.ao.file.BlockUpload;
 import online.yangcloud.model.ao.file.BlockCheckExistRequest;
+import online.yangcloud.model.ao.file.BlockUpload;
 import online.yangcloud.model.mapper.BlockMetadataMapper;
 import online.yangcloud.model.po.BlockMetadata;
 import online.yangcloud.service.BlockMetadataService;
@@ -29,7 +29,7 @@ public class BlockMetadataServiceImpl implements BlockMetadataService {
 
     @Autowired
     private BlockMetadataMapper blockMetadataMapper;
-    
+
     @Autowired
     private RedisUtil redisUtil;
 
@@ -80,7 +80,7 @@ public class BlockMetadataServiceImpl implements BlockMetadataService {
                         .setShard(existRequest.getShard());
                 String redisValue = JSONUtil.toJsonStr(upload);
                 redisUtil.zSetAdd(AppConstants.FILE_BLOCK_UPLOAD_PREFIX + existRequest.getIdentifier(), redisValue, (double) i);
-                exists.add(exist);
+                exists.add(Boolean.TRUE);
             }
         }
         return exists;

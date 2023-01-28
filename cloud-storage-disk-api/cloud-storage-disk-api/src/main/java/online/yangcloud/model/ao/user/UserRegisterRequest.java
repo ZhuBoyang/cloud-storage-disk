@@ -4,6 +4,7 @@ import javax.validation.constraints.NotBlank;
 
 /**
  * 用户注册请求
+ *
  * @author zhuboyang
  * @since 2023年01月18 13:39:12
  */

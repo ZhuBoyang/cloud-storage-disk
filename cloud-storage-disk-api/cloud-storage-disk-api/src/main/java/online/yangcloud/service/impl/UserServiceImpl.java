@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
     private RedisUtil redisUtil;
 
     @Override
-    public ResultBean<?> addUser(String userName, String email, String password) {
+    public ResultBean<UserView> addUser(String userName, String email, String password) {
         // 校验邮箱是否已被使用
         User user = userMapper.findOne(userMapper.query().where.email().eq(email).end());
         if (ObjUtil.isNotNull(user)) {
@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
         if (updateResult == 0) {
             return ResultBean.error();
         }
-        return ResultBean.success();
+        return ResultBean.success(BeanUtil.copyProperties(user, UserView.class));
     }
 
     @Override

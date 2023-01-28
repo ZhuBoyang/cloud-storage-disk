@@ -1,6 +1,7 @@
 package online.yangcloud.service;
 
 import online.yangcloud.model.ao.file.BlockUpload;
+import online.yangcloud.model.po.User;
 import online.yangcloud.model.vo.file.FileMetadataView;
 
 import java.io.IOException;
@@ -29,7 +30,9 @@ public interface FileBlockService {
      * 合并文件
      *
      * @param identifier 文件块识别码
+     * @param hash       文件 hash
+     * @param user       当前登录的用户
      */
-    FileMetadataView mergeFile(String identifier, String hash);
+    FileMetadataView mergeFile(String identifier, String hash, User user);
 
 }

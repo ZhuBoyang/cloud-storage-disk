@@ -95,7 +95,7 @@ public class ServletLogAspect {
 
         // 检测接口是否需要校验登录状态，并对会话进行续期
         if (needMethodValid(joinPoint)) {
-            String sessionId = request.getHeader(UserConstants.AUTHORIZATION);
+            String sessionId = obtainSessionId(request);
             if (StrUtil.isNotBlank(sessionId)) {
                 logger.info("session id [{}]", sessionId);
                 String userInfoJson = redisUtil.get(UserConstants.LOGIN_SESSION + sessionId);
@@ -126,7 +126,7 @@ public class ServletLogAspect {
         if (args != null && args.length > 0) {
             for (int i = 0; i < args.length; i++) {
                 if (args[i] instanceof User) {
-                    String sessionId = request.getParameter(UserConstants.AUTHORIZATION);
+                    String sessionId = obtainSessionId(request);
                     if (StrUtil.isBlank(sessionId)) {
                         user = new User();
                     } else {
@@ -145,6 +145,15 @@ public class ServletLogAspect {
             args[index] = user;
         }
         return joinPoint.proceed(args);
+    }
+
+    /**
+     * 获取 session id
+     * @param request 请求
+     * @return result
+     */
+    private String obtainSessionId(HttpServletRequest request) {
+        return request.getHeader(UserConstants.AUTHORIZATION);
     }
 
     /**

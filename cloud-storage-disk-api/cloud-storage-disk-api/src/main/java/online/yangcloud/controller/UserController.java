@@ -10,6 +10,7 @@ import online.yangcloud.model.ao.user.UserRegisterRequest;
 import online.yangcloud.model.ao.user.UserUpdateRequest;
 import online.yangcloud.model.vo.user.LoginView;
 import online.yangcloud.model.vo.user.UserView;
+import online.yangcloud.service.FileMetadataService;
 import online.yangcloud.service.UserService;
 import online.yangcloud.utils.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private FileMetadataService fileMetadataService;
 
     @Autowired
     private RedisUtil redisUtil;
@@ -45,8 +49,10 @@ public class UserController {
      */
     @PostMapping("/register")
     public ResultData register(@RequestBody @Valid UserRegisterRequest registerRequest) {
-        ResultBean<?> resultBean = userService.addUser(registerRequest.getUserName(), registerRequest.getEmail(), registerRequest.getPassword());
+        ResultBean<UserView> resultBean = userService.addUser(registerRequest.getUserName(), registerRequest.getEmail(), registerRequest.getPassword());
         if (resultBean.isSuccess()) {
+            // 初始化用户根目录
+            fileMetadataService.initUserFile(resultBean.getBean().getId());
             return ResultData.success(AppResultCode.SUCCESS.clone("账户注册成功，请前往登录"));
         }
         return ResultData.errorMessage(resultBean.getResultCode());

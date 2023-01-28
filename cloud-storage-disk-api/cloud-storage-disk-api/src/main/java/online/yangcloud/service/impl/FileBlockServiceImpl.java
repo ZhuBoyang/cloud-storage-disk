@@ -18,6 +18,7 @@ import online.yangcloud.model.mapper.FileBlockMapper;
 import online.yangcloud.model.po.BlockMetadata;
 import online.yangcloud.model.po.FileBlock;
 import online.yangcloud.model.po.FileMetadata;
+import online.yangcloud.model.po.User;
 import online.yangcloud.model.vo.file.FileMetadataView;
 import online.yangcloud.service.BlockMetadataService;
 import online.yangcloud.service.FileBlockService;
@@ -111,7 +112,7 @@ public class FileBlockServiceImpl implements FileBlockService {
     }
 
     @Override
-    public FileMetadataView mergeFile(String identifier, String hash) {
+    public FileMetadataView mergeFile(String identifier, String hash, User user) {
         // 获取已经上传的文件块
         List<String> uploadedFileBlock = redisUtil.zSetRange(AppConstants.FILE_BLOCK_UPLOAD_PREFIX + identifier, 0D, Double.MAX_VALUE);
 
@@ -125,7 +126,7 @@ public class FileBlockServiceImpl implements FileBlockService {
 
         // 查询与文件夹名称有关的文件夹
         String fileName = blockUpload.getFileName().substring(0, blockUpload.getFileName().lastIndexOf(StrUtil.DOT));
-        List<FileMetadata> files = fileMetadataService.queryLikePrefix(blockUpload.getPid(), fileName, FileTypeEnum.FILE);
+        List<FileMetadata> files = fileMetadataService.queryLikePrefix(blockUpload.getPid(), fileName, FileTypeEnum.FILE, user);
 
         // 计算存储文件的文件名后的后缀数字
         int fileNumber = calculateFileNumber(files, fileName);
@@ -143,7 +144,8 @@ public class FileBlockServiceImpl implements FileBlockService {
                 .setSize(blockUpload.getFileSize())
                 .setAncestors(CharSequenceUtil.isBlank(parent.getAncestors()) ? parent.getId() : parent.getAncestors() + StrUtil.COMMA + parent.getId())
                 .setUploadTime(DateUtil.date())
-                .setUpdateTime(DateUtil.date());
+                .setUpdateTime(DateUtil.date())
+                .setUserId(user.getId());
         file = fileMetadataService.insertOne(file);
 
         // 查询文件块元数据

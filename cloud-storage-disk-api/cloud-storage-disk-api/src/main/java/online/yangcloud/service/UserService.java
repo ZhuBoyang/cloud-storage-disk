@@ -19,7 +19,7 @@ public interface UserService {
      * @param password 密码
      * @return result
      */
-    ResultBean<?> addUser(String userName, String email, String password);
+    ResultBean<UserView> addUser(String userName, String email, String password);
 
     /**
      * 修改用户账户信息

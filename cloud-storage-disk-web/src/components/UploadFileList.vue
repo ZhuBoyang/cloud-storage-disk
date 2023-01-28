@@ -132,15 +132,16 @@ export default {
       for (let i = 0; i < blockCount; i++) {
         fileBlockList.push(file.slice(i * blockSize, Math.min((i + 1) * blockSize, file.size)))
       }
-      fileBlockList.push(file.slice(0, file.size))
+      // fileBlockList.push(file.slice(0, file.size))
       const blockList = await this.generateUploadFormData(file, fileBlockList)
       // 设置上传的文件的文件块总数量
       const currentItem = this.data.upload.uploading[fileIndex]
       currentItem.blockCount = blockList.length
       this.data.upload.uploading[fileIndex] = currentItem
       // 计算文件 hash
-      const { fileHash } = await this.getFileHash(file)
-      this.sendRequest(blockList, fileIndex, fileHash)
+      const { hash } = await this.getFileHash(file)
+      // 发起上传文件块的请求
+      this.sendRequest(blockList, fileIndex, hash)
     },
     // 将文件分片生成form表单数据
     async generateUploadFormData (file, fileBlockList) {

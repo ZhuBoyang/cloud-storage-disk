@@ -170,7 +170,6 @@ export default {
     })
     // 监听上传文件
     emitter.on('upload-change', record => {
-      console.log(record)
       for (const key in record) {
         data.files.push(record[key])
       }

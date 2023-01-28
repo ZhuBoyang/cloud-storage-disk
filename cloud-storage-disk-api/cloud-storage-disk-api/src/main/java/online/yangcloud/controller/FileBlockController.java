@@ -3,13 +3,13 @@ package online.yangcloud.controller;
 import cn.hutool.core.text.CharSequenceUtil;
 import online.yangcloud.common.ResultData;
 import online.yangcloud.exception.ParamErrorException;
-import online.yangcloud.model.ao.file.BlockUpload;
 import online.yangcloud.model.ao.file.BlockCheckExistRequest;
+import online.yangcloud.model.ao.file.BlockUpload;
 import online.yangcloud.model.ao.file.FileMergeRequest;
+import online.yangcloud.model.po.User;
 import online.yangcloud.model.vo.file.FileMetadataView;
 import online.yangcloud.service.BlockMetadataService;
 import online.yangcloud.service.FileBlockService;
-import online.yangcloud.service.FileMetadataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +30,6 @@ import java.util.List;
 public class FileBlockController {
 
     private static final Logger logger = LoggerFactory.getLogger(FileBlockController.class);
-    
-    @Autowired
-    private FileMetadataService fileMetadataService;
 
     @Autowired
     private BlockMetadataService blockMetadataService;
@@ -73,11 +70,12 @@ public class FileBlockController {
      * 文件合并
      *
      * @param mergeRequest 请求参数
+     * @param user         当前登录的用户
      * @return result
      */
     @PostMapping("/merge")
-    public ResultData mergeFile(@RequestBody FileMergeRequest mergeRequest) {
-        FileMetadataView fileView = fileBlockService.mergeFile(mergeRequest.getIdentifier(), mergeRequest.getFileHash());
+    public ResultData mergeFile(@RequestBody FileMergeRequest mergeRequest, User user) {
+        FileMetadataView fileView = fileBlockService.mergeFile(mergeRequest.getIdentifier(), mergeRequest.getFileHash(), user);
         return ResultData.success(fileView);
     }
 

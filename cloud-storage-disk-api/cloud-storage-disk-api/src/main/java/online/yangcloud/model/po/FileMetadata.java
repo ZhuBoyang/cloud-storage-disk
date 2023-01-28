@@ -1,8 +1,13 @@
 package online.yangcloud.model.po;
 
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
 import cn.org.atool.fluent.mybatis.base.RichEntity;
+import online.yangcloud.enumration.FileTypeEnum;
+import online.yangcloud.enumration.YesOrNoEnum;
 
 import java.util.Date;
 
@@ -78,6 +83,28 @@ public class FileMetadata extends RichEntity {
      * 用户 id
      */
     private String userId;
+
+    /**
+     * 初始化用户根目录
+     *
+     * @param userId 用户 id
+     * @return result
+     */
+    public static FileMetadata initRoot(String userId) {
+        return new FileMetadata()
+                .setId(IdUtil.fastSimpleUUID())
+                .setPid(CharSequenceUtil.EMPTY)
+                .setName("全部")
+                .setPath(CharSequenceUtil.EMPTY)
+                .setHash(CharSequenceUtil.EMPTY)
+                .setType(FileTypeEnum.DIR.getCode())
+                .setExt(CharSequenceUtil.EMPTY)
+                .setSize(0L)
+                .setUploadTime(DateUtil.date())
+                .setUpdateTime(DateUtil.date())
+                .setIsDelete(YesOrNoEnum.NO.getCode())
+                .setUserId(userId);
+    }
 
     public String getId() {
         return id;
