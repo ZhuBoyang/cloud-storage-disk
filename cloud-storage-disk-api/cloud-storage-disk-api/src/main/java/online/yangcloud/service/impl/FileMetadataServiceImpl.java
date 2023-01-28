@@ -13,6 +13,7 @@ import online.yangcloud.common.resultcode.AppResultCode;
 import online.yangcloud.enumration.FileTypeEnum;
 import online.yangcloud.enumration.YesOrNoEnum;
 import online.yangcloud.exception.BusinessException;
+import online.yangcloud.model.ao.file.FileRenameRequest;
 import online.yangcloud.model.ao.file.FileSearchRequest;
 import online.yangcloud.model.bo.FileOperationValidate;
 import online.yangcloud.model.mapper.FileBlockMapper;
@@ -282,6 +283,43 @@ public class FileMetadataServiceImpl implements FileMetadataService {
             copyChildFiles(childList, file, user);
         }
         return ResultBean.success();
+    }
+
+    @Override
+    public FileMetadata rename(FileRenameRequest renameRequest, User user) {
+        // 检测文件是否存在
+        FileMetadata file = fileMetadataMapper.findById(renameRequest.getId());
+        if (ObjUtil.isNull(file) || YesOrNoEnum.YES.is(file.getId())) {
+            logger.error("文件不存在，请重试");
+            throw new BusinessException("文件不存在，请重试");
+        }
+
+        // 检测是否有权限操作此文件
+        if (!user.getId().equals(file.getUserId())) {
+            logger.error("您没有权限操作此文件");
+            throw new BusinessException("您没有权限操作此文件");
+        }
+
+        // 检测是否需要修改数据库中的文件名
+        boolean updateFlag = Boolean.FALSE;
+        if (CharSequenceUtil.isNotBlank(renameRequest.getName())) {
+            if (!file.getName().equals(renameRequest.getName())) {
+                file.setName(renameRequest.getName());
+                updateFlag = Boolean.TRUE;
+                file.setUpdateTime(DateUtil.date());
+            }
+        }
+        if (!updateFlag) {
+            return file;
+        }
+
+        // 重命名
+        int updateResult = fileMetadataMapper.updateById(file);
+        if (updateResult == 0) {
+            logger.error("文件重命名失败，请重试");
+            throw new BusinessException("文件重命名失败，请重试");
+        }
+        return file;
     }
 
     /**

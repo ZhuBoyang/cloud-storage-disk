@@ -4,7 +4,7 @@ import { Notification } from '@arco-design/web-vue'
 
 const service = axios.create({
   baseURL: config.apiBaseUrl,
-  timeout: 8000,
+  timeout: 20000,
   headers: {
     'content-type': 'application/json;charset=utf-8'
   }
@@ -55,6 +55,7 @@ const url = {
     batchDelete: modules.file + 'batch_delete', // 批量删除文件
     batchMove: modules.file + 'batch_move', // 批量移动文件及文件夹
     batchCopy: modules.file + 'batch_copy', // 批量复制文件及文件夹
+    rename: modules.file + 'rename', // 文件重命名
     breads: modules.file + 'breads', // 查询文件面包屑导航
     list: modules.file + 'list', // 文件列表
     dirBreads: modules.file + 'dir_breads', // 查询文件夹的面包屑导航数据

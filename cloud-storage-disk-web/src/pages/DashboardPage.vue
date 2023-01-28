@@ -226,13 +226,18 @@ export default {
     },
     // 文件操作的结果
     actionResult (record) {
-      const { action, fileIds } = record
+      const { action } = record
       // 删除文件，移动文件
       if (action === 'delete' || action === 'move') {
-        for (const key in fileIds) {
-          const fileIndex = this.data.files.findIndex(file => file.id === fileIds[key])
+        for (const key in record.fileIds) {
+          const fileIndex = this.data.files.findIndex(file => file.id === record.fileIds[key])
           this.data.files.splice(fileIndex, 1)
         }
+      }
+      // 文件重命名
+      if (action === 'rename') {
+        const fileIndex = this.data.files.findIndex(file => file.id === record.file.id)
+        this.data.files[fileIndex] = record.file
       }
     }
   }

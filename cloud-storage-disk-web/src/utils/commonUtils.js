@@ -18,6 +18,18 @@ const identifyFileIcon = (file) => {
   if (ext === 'zip') {
     return '/src/assets/file/category/zip.svg'
   }
+  if (ext === 'mp3') {
+    return '/src/assets/file/category/mp3.svg'
+  }
+  if (ext === 'mp4') {
+    return '/src/assets/file/category/mp4.svg'
+  }
+  if (ext === 'zip') {
+    return '/src/assets/file/category/zip.svg'
+  }
+  if (ext === 'jpg' || ext === 'jpeg' || ext === 'png') {
+    return '/src/assets/file/category/jpg.svg'
+  }
   return '/src/assets/file/category/document.svg'
 }
 // 格式化文件大小至人类可识别格式

@@ -2,6 +2,7 @@ package online.yangcloud.service;
 
 import online.yangcloud.common.ResultBean;
 import online.yangcloud.enumration.FileTypeEnum;
+import online.yangcloud.model.ao.file.FileRenameRequest;
 import online.yangcloud.model.ao.file.FileSearchRequest;
 import online.yangcloud.model.po.FileMetadata;
 import online.yangcloud.model.po.User;
@@ -69,6 +70,15 @@ public interface FileMetadataService {
      * @return result
      */
     ResultBean<?> batchCopyFiles(List<String> sources, String target, User user);
+
+    /**
+     * 重命名文件
+     *
+     * @param renameRequest 要重命名的文件
+     * @param user          当前登录的用户
+     * @return result
+     */
+    FileMetadata rename(FileRenameRequest renameRequest, User user);
 
     /**
      * 查询当前所在目录的文件面包屑导航

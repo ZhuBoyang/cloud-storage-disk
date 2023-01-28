@@ -80,8 +80,8 @@ public class BlockMetadataServiceImpl implements BlockMetadataService {
                         .setShard(existRequest.getShard());
                 String redisValue = JSONUtil.toJsonStr(upload);
                 redisUtil.zSetAdd(AppConstants.FILE_BLOCK_UPLOAD_PREFIX + existRequest.getIdentifier(), redisValue, (double) i);
-                exists.add(Boolean.TRUE);
             }
+            exists.add(exist);
         }
         return exists;
     }

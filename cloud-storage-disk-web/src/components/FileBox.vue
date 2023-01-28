@@ -30,7 +30,7 @@
         </div>
         <div class="body--name"
              @click="clickFile(item)"
-        >{{ item.name }}
+        >{{ item.name }}.{{ item.ext }}
         </div>
         <div class="body--category">{{ item.type === 1 ? '文件夹' : `${item.ext} 文件` }}</div>
         <div class="body--size">{{ globalProperties.$formatSizeInPerson(item.size) }}</div>
@@ -98,7 +98,7 @@
         </template>
       </a-trigger>
     </div>
-    <!-- 删除文件的警告框 -->
+    <!-- 删除文件 -->
     <a-modal :visible="data.remove.visible"
              @ok="confirmRemoveFile"
              @cancel="data.remove.visible = false"
@@ -107,7 +107,7 @@
       <template #title>删除文件</template>
       <div>文件{{ data.remove.fileName }}删除将不可恢复，是否确定删除？</div>
     </a-modal>
-    <!-- 批量删除文件的警告框 -->
+    <!-- 批量删除文件 -->
     <a-modal :visible="data.batchRemove.visible"
              @ok="batchRemoveFiles"
              @cancel="data.batchRemove.visible = false"
@@ -115,6 +115,19 @@
     >
       <template #title>批量删除文件</template>
       <div>文件删除将不可恢复，是否确定删除？</div>
+    </a-modal>
+    <!-- 重命名文件 -->
+    <a-modal :visible="data.rename.visible"
+             @ok="confirmRename"
+             @cancel="data.rename.visible = false"
+             @close="cancelRename"
+    >
+      <template #title>重命名文件</template>
+      <a-form :model="data.rename.form" layout="vertical">
+        <a-form-item field="rename" label="重命名">
+          <a-input v-model="data.rename.form.name" placeholder="请输入新的文件名"/>
+        </a-form-item>
+      </a-form>
     </a-modal>
     <file-operator-modal :visible="data.dirSelector.visible"
                          :operation-name="data.dirSelector.action"
@@ -162,6 +175,13 @@ export default {
       },
       batchRemove: {
         visible: false // 是否显示删除文件的警告框
+      },
+      rename: {
+        visible: false, // 是否显示重命名的模态框
+        form: {
+          id: '', // 文件 id
+          name: '' // 文件名
+        }
       }
     })
     return {
@@ -223,6 +243,14 @@ export default {
         this.data.selectedFiles.push(id)
         this.data.dirSelector.visible = true
         this.data.dirSelector.action = action
+        return
+      }
+      // 重命名文件
+      if (action === 'rename') {
+        const { id, name } = record
+        this.data.rename.visible = true
+        this.data.rename.form.id = id
+        this.data.rename.form.name = name
       }
     },
     // 弹出批量复制的弹窗
@@ -239,6 +267,8 @@ export default {
     operationResult (record) {
       const { action, id } = record
       if (action === 'cancel' || action === 'close') {
+        this.data.selected = []
+        this.data.selectedFiles = []
         this.data.dirSelector.visible = false
         return
       }
@@ -291,6 +321,24 @@ export default {
       this.data.selectedFiles = []
       this.data.selectAll = this.data.selectedFiles.length === this.fileList.length
       return selectedFiles
+    },
+    // 重命名文件
+    confirmRename () {
+      const { id, name } = this.data.rename.form
+      http.req(http.url.file.rename, http.methods.post, {
+        id,
+        name
+      }).then(response => {
+        if (response !== undefined) {
+          this.data.rename.visible = false
+          this.emit('action-change', { action: 'rename', file: response })
+        }
+      })
+    },
+    // 取消重命名
+    cancelRename () {
+      this.data.rename.form.id = ''
+      this.data.rename.form.name = ''
     }
   }
 }

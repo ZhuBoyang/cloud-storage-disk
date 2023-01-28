@@ -90,6 +90,19 @@ public class FileController {
     }
 
     /**
+     * 文件重命名
+     *
+     * @param renameRequest 请求参数
+     * @param user          当前登录的用户
+     * @return result
+     */
+    @PostMapping("/rename")
+    public ResultData renameFile(@RequestBody FileRenameRequest renameRequest, User user) {
+        FileMetadata file = fileMetadataService.rename(renameRequest, user);
+        return ResultData.success(file);
+    }
+
+    /**
      * 查询当前所在目录文件的面包屑导航数据
      *
      * @param id   当前所在目录的文件 id
