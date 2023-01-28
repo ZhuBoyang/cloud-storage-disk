@@ -129,6 +129,9 @@ export default {
       }
       const param = { id }
       http.req(http.url.file.breads, http.methods.get, param).then(response => {
+        if (response === undefined) {
+          return
+        }
         data.breads = []
         for (const key in response) {
           data.breads.push(response[key])

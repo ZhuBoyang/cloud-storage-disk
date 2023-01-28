@@ -103,7 +103,8 @@ public class FileMetadata extends RichEntity {
                 .setUploadTime(DateUtil.date())
                 .setUpdateTime(DateUtil.date())
                 .setIsDelete(YesOrNoEnum.NO.getCode())
-                .setUserId(userId);
+                .setUserId(userId)
+                .setAncestors(CharSequenceUtil.EMPTY);
     }
 
     public String getId() {
