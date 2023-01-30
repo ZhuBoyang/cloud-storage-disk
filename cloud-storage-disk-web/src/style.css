@@ -5,6 +5,10 @@
     font-size: 14px;
 }
 
+html, body, #app {
+    height: 100%;
+}
+
 /* 清除浮动 */
 .clear-both {
     clear: both;

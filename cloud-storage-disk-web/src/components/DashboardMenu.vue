@@ -42,7 +42,7 @@ export default {
 <style scoped lang="scss">
 .dashboard-left {
   width: 258px;
-  height: 100vh;
+  height: 100%;
   background-color: rgba(106, 75, 255, .05);
   .dashboard-avatar {
     margin: 50px auto 0;

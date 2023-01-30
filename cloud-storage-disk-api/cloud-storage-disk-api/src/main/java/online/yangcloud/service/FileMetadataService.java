@@ -81,6 +81,14 @@ public interface FileMetadataService {
     FileMetadata rename(FileRenameRequest renameRequest, User user);
 
     /**
+     * 查询文件的播放地址（媒体文件为播放地址，office 文件为预览地址）
+     *
+     * @param fileId 文件 id
+     * @return 播放地址
+     */
+    String findPlayUrl(String fileId);
+
+    /**
      * 查询当前所在目录的文件面包屑导航
      *
      * @param id   当前所在目录的文件 id

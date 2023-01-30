@@ -32,10 +32,10 @@
       >
         <div class="item-info">
           <div class="item-icon row-col-center">
-            <img :src="globalProperties.$identifyFileIcon(item)" alt="文档"/>
+            <img :src="globalProperties.$common.identifyFileIcon(item)" alt="文档"/>
           </div>
           <div class="item-name">{{ item.fileName }}</div>
-          <div class="item-size">{{ globalProperties.$formatSizeInPerson(item.fileSize) }}</div>
+          <div class="item-size">{{ globalProperties.$common.formatSizeInPerson(item.fileSize) }}</div>
           <div class="item-status">
             <img src="../assets/icons/full/success.svg" class="upload-success" alt="成功" v-if="item.status === 'success'"/>
             <img src="../assets/icons/full/error.svg" class="upload-error" alt="失败" v-if="item.status === 'error'"/>

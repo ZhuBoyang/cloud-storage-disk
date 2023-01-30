@@ -19,5 +19,6 @@ export default {
 <style scoped lang="scss">
 .home-page {
   display: flex;
+  height: 100%;
 }
 </style>

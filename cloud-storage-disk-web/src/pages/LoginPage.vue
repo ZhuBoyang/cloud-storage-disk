@@ -15,7 +15,7 @@
       <div class="page-box">
         <div class="form-title">登录你的账户</div>
         <div class="form-account-register">还没有账号？
-          <a-button type="text" shape="round" @click="globalProperties.$jumpUrl('/register', router)">注册</a-button>
+          <a-button type="text" shape="round" @click="globalProperties.$common.jumpUrl('/register', router)">注册</a-button>
         </div>
         <a-form :model="form" layout="vertical">
           <a-form-item field="email" label="邮箱">
@@ -26,7 +26,7 @@
           </a-form-item>
           <a-form-item>
             <div class="account-fix">
-              <a-button type="text" shape="round" @click="globalProperties.$jumpUrl('/reset', router)">忘记密码？</a-button>
+              <a-button type="text" shape="round" @click="globalProperties.$common.jumpUrl('/reset', router)">忘记密码？</a-button>
             </div>
           </a-form-item>
           <a-form-item>

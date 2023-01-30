@@ -75,7 +75,7 @@ public class FileBlockServiceImpl implements FileBlockService {
         BlockMetadata block = new BlockMetadata()
                 .setId(IdUtil.fastSimpleUUID())
                 .setHash(upload.getHash())
-                .setStoragePath(systemRecognition.generateBlockStoragePath() + File.separator + upload.getHash())
+                .setStoragePath(systemRecognition.generateBlockPath() + upload.getHash())
                 .setBlockSize(upload.getBlockSize());
         block = blockMetadataService.insertOne(block);
 
@@ -92,13 +92,14 @@ public class FileBlockServiceImpl implements FileBlockService {
         try {
             blockUploadLock.lock();
             BlockMetadata block = blockMetadataService.queryByHash(upload.getHash());
+
             if (ObjUtil.isNull(block)) {
-                upload.getFile().transferTo(new File(systemRecognition.generateBlockStoragePath() + File.separator + upload.getHash()));
+                upload.getFile().transferTo(new File(systemRecognition.generateSystemPath() + AppConstants.BLOCK_UPLOAD_PATH + upload.getHash()));
             }
             block = new BlockMetadata()
                     .setId(IdUtil.fastSimpleUUID())
                     .setHash(upload.getHash())
-                    .setStoragePath(systemRecognition.generateBlockStoragePath() + File.separator + upload.getHash())
+                    .setStoragePath(AppConstants.BLOCK_UPLOAD_PATH + upload.getHash())
                     .setBlockSize(upload.getBlockSize());
             block = blockMetadataService.insertOne(block);
 
@@ -139,7 +140,7 @@ public class FileBlockServiceImpl implements FileBlockService {
                 .setName(fileNumber == 0 ? fileName : fileName + AppConstants.LEFT_BRACKET + fileNumber + AppConstants.RIGHT_BRACKET)
                 .setHash(hash)
                 .setExt(fileExt)
-                .setPath(systemRecognition.generateFileStoragePath() + hash)
+                .setPath(AppConstants.FILE_UPLOAD_PATH + hash)
                 .setType(FileTypeEnum.FILE.getCode())
                 .setSize(blockUpload.getFileSize())
                 .setAncestors(CharSequenceUtil.isBlank(parent.getAncestors()) ? parent.getId() : parent.getAncestors() + StrUtil.COMMA + parent.getId())
@@ -162,6 +163,7 @@ public class FileBlockServiceImpl implements FileBlockService {
                     .setBlockId(blockHashIdMap.get(block.getHash()))
                     .setFileSize(block.getFileSize())
                     .setBlockCount(block.getBlockCount())
+                    .setBlockIndex(block.getBlockIndex())
                     .setShardingSize(block.getShardingSize())
                     .setShard(block.getShard() ? YesOrNoEnum.YES.getCode() : YesOrNoEnum.NO.getCode()));
         }
@@ -175,7 +177,7 @@ public class FileBlockServiceImpl implements FileBlockService {
 
 //        // 文件合并
 //        List<String> hashStoragePaths =
-//                blocks.stream().map(block -> systemRecognition.generateBlockStoragePath() + block.getStoragePath()).collect(Collectors.toList());
+//                blocks.stream().map(block -> systemRecognition.generateBlockPath() + block.getStoragePath()).collect(Collectors.toList());
 //        FileUtils.merge(file.getPath(), hashStoragePaths);
     }
 

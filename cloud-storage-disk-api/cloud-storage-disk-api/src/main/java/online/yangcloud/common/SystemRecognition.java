@@ -36,8 +36,7 @@ public class SystemRecognition {
             case "Win":
                 File[] root = File.listRoots();
                 rootPathBuilder.append(root[root.length - 1])
-                        .append(projectProperties.getPath())
-                        .append(File.separator);
+                        .append(projectProperties.getPath());
                 break;
             case "Mac":
                 String username = envMap.get("USER");
@@ -46,8 +45,7 @@ public class SystemRecognition {
                         .append(StrUtil.SLASH)
                         .append(username)
                         .append(StrUtil.SLASH)
-                        .append(projectProperties.getPath())
-                        .append(StrUtil.SLASH);
+                        .append(projectProperties.getPath());
                 break;
             case "Lin":
                 rootPathBuilder.append(StrUtil.SLASH)
@@ -55,12 +53,12 @@ public class SystemRecognition {
                         .append(StrUtil.SLASH)
                         .append("webapps")
                         .append(StrUtil.SLASH)
-                        .append(projectProperties.getPath())
-                        .append(StrUtil.SLASH);
+                        .append(projectProperties.getPath());
                 break;
             default:
                 break;
         }
+        rootPathBuilder.append(StrUtil.SLASH);
         String rootPath = rootPathBuilder.toString();
         File rootFile = new File(rootPath);
         if (!rootFile.exists()) {
@@ -94,7 +92,7 @@ public class SystemRecognition {
      *
      * @return 文件块存储路径
      */
-    public String generateBlockStoragePath() {
+    public String generateBlockPath() {
         String uploadPath = generateUploadPath();
         String blockPath = uploadPath + "block" + File.separator;
         if (!FileUtil.exist(blockPath)) {
@@ -109,7 +107,7 @@ public class SystemRecognition {
      *
      * @return 文件存储路径
      */
-    public String generateFileStoragePath() {
+    public String generateFilePath() {
         String uploadPath = generateUploadPath();
         String blockPath = uploadPath + "file" + File.separator;
         if (!FileUtil.exist(blockPath)) {
@@ -117,6 +115,21 @@ public class SystemRecognition {
             logger.info("file storage path is not exist, and has exist now");
         }
         return blockPath;
+    }
+
+    /**
+     * 生成临时文件存储路径
+     *
+     * @return 临时文件存储路径
+     */
+    public String generateTmpPath() {
+        String systemPath = generateSystemPath();
+        String tmpPath = systemPath + "tmp" + File.separator;
+        if (!FileUtil.exist(tmpPath)) {
+            FileUtil.mkdir(tmpPath);
+            logger.info("tmp file path is not exist, and has exist now");
+        }
+        return tmpPath;
     }
 
 }

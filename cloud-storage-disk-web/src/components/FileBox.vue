@@ -25,15 +25,21 @@
           <div class="body--icon-img row-col-center"
                @click="clickFile(item)"
           >
-            <img :src="globalProperties.$identifyFileIcon(item)" alt="文件"/>
+            <img :src="globalProperties.$common.identifyFileIcon(item)" alt="文件"/>
           </div>
         </div>
-        <div class="body--name"
-             @click="clickFile(item)"
-        >{{ item.name }}.{{ item.ext }}
+        <div class="body--name">
+          <div class="body--name-content"
+               @click="clickFile(item)"
+          >{{ item.name }}.{{ item.ext }}</div>
+          <div class="body--name-runner">
+            <a-tooltip :content="identifyOpenFileIcon(item.ext).content">
+              <img :src="identifyOpenFileIcon(item.ext).icon" alt="播放" @click="playVideo(item.id)"/>
+            </a-tooltip>
+          </div>
         </div>
         <div class="body--category">{{ item.type === 1 ? '文件夹' : `${item.ext} 文件` }}</div>
-        <div class="body--size">{{ globalProperties.$formatSizeInPerson(item.size) }}</div>
+        <div class="body--size">{{ globalProperties.$common.formatSizeInPerson(item.size) }}</div>
         <div class="body--actions row-col-center">
           <a-dropdown trigger="hover" @select="fileChangeEvent($event, item, index)">
             <div class="body--actions-btn row-col-center">
@@ -133,18 +139,25 @@
                          :operation-name="data.dirSelector.action"
                          @on-change="operationResult"
     />
+    <file-info-drawer :file="data.movie.file" @on-hide="hideDrawer" @on-play="playVideo"></file-info-drawer>
+    <player-modal :src="data.movie.src" @on-close="closePlayer"/>
   </div>
 </template>
 
 <script>
+import FileInfoDrawer from './FileInfoDrawer.vue'
+import FileOperatorModal from './FileOperatorModal.vue'
+import PlayerModal from './PlayerModal.vue'
 import { getCurrentInstance, reactive } from 'vue'
 import http from '../api/http.js'
-import FileOperatorModal from './FileOperatorModal.vue'
+import config from '../api/config.js'
 
 export default {
   name: 'FileBox',
   components: {
-    FileOperatorModal
+    FileInfoDrawer,
+    FileOperatorModal,
+    PlayerModal
   },
   props: {
     fileList: {
@@ -182,6 +195,10 @@ export default {
           id: '', // 文件 id
           name: '' // 文件名
         }
+      },
+      movie: {
+        file: {}, // 要在页面右侧显示信息的文件
+        src: '' // 视频播放地址
       }
     })
     return {
@@ -222,8 +239,23 @@ export default {
     },
     // 点击文件
     clickFile (record) {
-      const { id, name, type } = record
-      this.emit('select-change', { id, name, type })
+      this.data.movie.file = record
+    },
+    // 隐藏文件信息弹窗
+    hideDrawer (record) {
+      this.data.movie.file = record
+    },
+    // 播放视频
+    playVideo (fileId) {
+      http.req(http.url.file.playUrl, http.methods.post, {
+        fileId
+      }).then(response => {
+        this.data.movie.src = config.apiBaseUrl + response
+      })
+    },
+    // 关闭视频播放器
+    closePlayer () {
+      this.data.movie.src = ''
     },
     // 文件的操作
     fileChangeEvent (action, record, recordIndex) {
@@ -339,6 +371,13 @@ export default {
     cancelRename () {
       this.data.rename.form.id = ''
       this.data.rename.form.name = ''
+    },
+    // 识别文件打开的图标
+    identifyOpenFileIcon (ext) {
+      if (this.globalProperties.$type.isVideo(ext)) {
+        return { content: '播放', icon: '/src/assets/icons/full/Arrow%20-%20Right%202.svg' }
+      }
+      return { content: '', icon: '' }
     }
   }
 }
@@ -346,6 +385,7 @@ export default {
 
 <style scoped lang="scss">
 .file-box {
+  height: 100%;
   .file-box--header {
     height: 50px;
     display: flex;
@@ -389,10 +429,18 @@ export default {
       border-radius: 12px;
       cursor: pointer;
       transition: all .3s;
-      &.is-selected,
+      &.is-selected {
+        background-color: #f0edfe;
+        transition: all .3s;
+      }
       &:hover {
         background-color: #f0edfe;
         transition: all .3s;
+        .body--name {
+          .body--name-runner {
+            display: inline-block;
+          }
+        }
       }
       .body--multiselect {
         width: 30px;
@@ -415,6 +463,16 @@ export default {
         width: calc(100% - 380px);
         display: flex;
         align-items: center;
+        .body--name-runner {
+          margin-left: 10px;
+          display: none;
+          width: 28px;
+          height: 28px;
+          img {
+            width: 100%;
+            height: 100%;
+          }
+        }
       }
       .body--category {
         width: 100px;

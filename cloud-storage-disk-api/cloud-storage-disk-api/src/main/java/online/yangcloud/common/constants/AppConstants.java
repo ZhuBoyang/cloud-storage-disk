@@ -1,5 +1,7 @@
 package online.yangcloud.common.constants;
 
+import java.io.File;
+
 /**
  * @author zhuby
  * @since 2020/12/31 10:20 上午
@@ -57,5 +59,20 @@ public interface AppConstants {
      */
     String FILE_BLOCK_UPLOAD_PREFIX = "file_block_upload:";
     String FILE_BLOCK_UPLOAD_BUFFER_PREFIX = "file_block_buffer_upload:";
+
+    /**
+     * 文件上传目录
+     */
+    String FILE_UPLOAD_PATH = "upload" + File.separator + "file" + File.separator;
+
+    /**
+     * 文件块上传目录
+     */
+    String BLOCK_UPLOAD_PATH = "upload" + File.separator + "block" + File.separator;
+
+    /**
+     * 临时文件存放目录
+     */
+    String TMP_PATH = "tmp" + File.separator;
 
 }

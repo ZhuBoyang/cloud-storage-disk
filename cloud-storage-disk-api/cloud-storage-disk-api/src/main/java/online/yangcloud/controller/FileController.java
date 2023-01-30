@@ -103,6 +103,18 @@ public class FileController {
     }
 
     /**
+     * 获取文件播放地址
+     *
+     * @param playRequest 文件 id
+     * @return result
+     */
+    @PostMapping("/play_url")
+    public ResultData getFilePlayUrl(@RequestBody FilePlayRequest playRequest) {
+        String playUrl = fileMetadataService.findPlayUrl(playRequest.getFileId());
+        return ResultData.success(playUrl);
+    }
+
+    /**
      * 查询当前所在目录文件的面包屑导航数据
      *
      * @param id   当前所在目录的文件 id

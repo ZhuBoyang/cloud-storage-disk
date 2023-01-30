@@ -34,8 +34,8 @@ const identifyFileIcon = (file) => {
 }
 // 格式化文件大小至人类可识别格式
 const formatSizeInPerson = (size) => {
-  if (size === 0) {
-    return ''
+  if (size === undefined || size === null || size === 0) {
+    return '0KB'
   }
   const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
   const mod = 1024.0
@@ -58,11 +58,29 @@ const formatNum = (size, n) => {
 const jumpUrl = (url, router) => {
   router.push(url)
 }
+// 格式化时间 yyyy-MM-dd HH:mm::ss
+const formatTime = (timestamp) => {
+  if (timestamp === undefined || timestamp === null || timestamp === 0) {
+    return '未知'
+  }
+  const date = new Date(parseInt(timestamp))
+  const years = date.getFullYear()
+  const months = date.getMonth() + 1
+  const days = date.getDate()
+  const hours = date.getHours()
+  const minutes = date.getMinutes()
+  const seconds = date.getSeconds()
+  return `${years}-${months < 10 ? '0' + months : months}-${days < 10 ? '0' + days : days} ` +
+      `${hours < 10 ? '0' + hours : hours}:` +
+      `${minutes < 10 ? '0' + minutes : minutes}:` +
+      `${seconds < 10 ? '0' + seconds : seconds}`
+}
 
 const common = {
   identifyFileIcon,
   formatSizeInPerson,
-  jumpUrl
+  jumpUrl,
+  formatTime
 }
 
 export default common

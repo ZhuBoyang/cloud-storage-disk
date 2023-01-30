@@ -8,6 +8,7 @@ import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import online.yangcloud.common.ResultBean;
+import online.yangcloud.common.SystemRecognition;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.common.resultcode.AppResultCode;
 import online.yangcloud.enumration.FileTypeEnum;
@@ -16,8 +17,10 @@ import online.yangcloud.exception.BusinessException;
 import online.yangcloud.model.ao.file.FileRenameRequest;
 import online.yangcloud.model.ao.file.FileSearchRequest;
 import online.yangcloud.model.bo.FileOperationValidate;
+import online.yangcloud.model.mapper.BlockMetadataMapper;
 import online.yangcloud.model.mapper.FileBlockMapper;
 import online.yangcloud.model.mapper.FileMetadataMapper;
+import online.yangcloud.model.po.BlockMetadata;
 import online.yangcloud.model.po.FileBlock;
 import online.yangcloud.model.po.FileMetadata;
 import online.yangcloud.model.po.User;
@@ -25,16 +28,14 @@ import online.yangcloud.model.vo.file.FileBreadView;
 import online.yangcloud.model.vo.file.FileMetadataView;
 import online.yangcloud.model.wrapper.FileMetadataQuery;
 import online.yangcloud.service.FileMetadataService;
+import online.yangcloud.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -52,6 +53,12 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
     @Autowired
     private FileBlockMapper fileBlockMapper;
+
+    @Autowired
+    private BlockMetadataMapper blockMetadataMapper;
+
+    @Autowired
+    private SystemRecognition systemRecognition;
 
     @Override
     public void initUserFile(String userId) {
@@ -320,6 +327,31 @@ public class FileMetadataServiceImpl implements FileMetadataService {
             throw new BusinessException("文件重命名失败，请重试");
         }
         return file;
+    }
+
+    @Override
+    public String findPlayUrl(String fileId) {
+        // 校验文件是否存在
+        FileMetadata file = fileMetadataMapper.findById(fileId);
+        if (ObjUtil.isNull(file)) {
+            logger.error("文件不存在，请重试");
+            throw new BusinessException("文件不存在，请重试");
+        }
+
+        // 查询文件的所有文件块，以便于合并
+        List<FileBlock> fileBlocks = fileBlockMapper.listEntity(fileBlockMapper.query().where.fileId().eq(fileId).end().orderBy.blockIndex().asc().end());
+        List<String> blockIds = fileBlocks.stream().map(FileBlock::getBlockId).collect(Collectors.toList());
+        List<BlockMetadata> blocks = blockMetadataMapper.listByIds(blockIds);
+        Map<String, BlockMetadata> blockMap = blocks.stream().collect(Collectors.toMap(BlockMetadata::getId, block -> block));
+
+        // 合并文件
+        fileBlocks.sort(Comparator.comparingInt(FileBlock::getBlockIndex));
+        List<String> blockPaths = fileBlocks.stream()
+                .map(fileBlock -> systemRecognition.generateSystemPath() + blockMap.get(fileBlock.getBlockId()).getStoragePath())
+                .collect(Collectors.toList());
+        String targetPath = AppConstants.TMP_PATH + file.getName() + StrUtil.DOT + file.getExt();
+        FileUtils.combineFile(systemRecognition.generateSystemPath() + targetPath, blockPaths);
+        return targetPath;
     }
 
     /**

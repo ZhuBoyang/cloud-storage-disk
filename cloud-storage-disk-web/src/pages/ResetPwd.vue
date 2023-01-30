@@ -27,7 +27,7 @@
           </a-form-item>
           <a-form-item>
             我有账号。前往
-            <a-button type="text" shape="round" @click="globalProperties.$jumpUrl('/login', router)">登录</a-button>
+            <a-button type="text" shape="round" @click="globalProperties.$common.jumpUrl('/login', router)">登录</a-button>
           </a-form-item>
           <a-form-item>
             <a-button type="primary" long @click="reset">重置</a-button>

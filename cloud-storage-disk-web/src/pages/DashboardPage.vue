@@ -213,6 +213,14 @@ export default {
     selectChange (record) {
       const { id, name, type } = record
       if (type === 0) {
+        // if (commonType.isVideo(ext)) {
+        //   this.router.push({
+        //     path: 'player',
+        //     query: {
+        //       id
+        //     }
+        //   })
+        // }
         return
       }
       const current = this.router.currentRoute.value.path
@@ -247,6 +255,7 @@ export default {
 <style scoped lang="scss">
 .dashboard-page {
   width: calc(100% - 258px - 450px);
+  height: 100%;
   .dashboard-center--box {
     margin: 50px auto 0;
     width: 94%;

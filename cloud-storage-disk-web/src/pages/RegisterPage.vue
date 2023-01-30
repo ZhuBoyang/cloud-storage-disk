@@ -28,7 +28,7 @@
             <a-input-password v-model="form.repeat" placeholder="请再次输入密码" allow-clear @focusout="identifyPwd"/>
           </a-form-item>
           <a-form-item>已有账号？
-            <a-button type="text" shape="round" @click="globalProperties.$jumpUrl('/login', router)">登录</a-button>
+            <a-button type="text" shape="round" @click="globalProperties.$common.jumpUrl('/login', router)">登录</a-button>
           </a-form-item>
           <a-form-item>
             <a-button type="primary" long @click="register">注册</a-button>
