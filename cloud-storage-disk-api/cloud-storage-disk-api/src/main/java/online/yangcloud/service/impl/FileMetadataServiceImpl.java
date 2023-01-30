@@ -349,7 +349,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
         List<String> blockPaths = fileBlocks.stream()
                 .map(fileBlock -> systemRecognition.generateSystemPath() + blockMap.get(fileBlock.getBlockId()).getStoragePath())
                 .collect(Collectors.toList());
-        String targetPath = AppConstants.TMP_PATH + file.getName() + StrUtil.DOT + file.getExt();
+        String targetPath = AppConstants.TMP_PATH + file.getHash() + StrUtil.DOT + file.getExt();
         FileUtils.combineFile(systemRecognition.generateSystemPath() + targetPath, blockPaths);
         return targetPath;
     }
