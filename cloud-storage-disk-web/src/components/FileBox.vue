@@ -17,21 +17,18 @@
            v-for="(item, index) in fileList"
            :class="[{'is-selected': data.selected[index]}]"
            :key="index"
+           @click="clickFile(item)"
       >
         <div class="body--multiselect row-col-center">
           <a-checkbox v-model="data.selected[index]" @change="selectFile(item, index)"></a-checkbox>
         </div>
         <div class="body--icon row-col-center">
-          <div class="body--icon-img row-col-center"
-               @click="clickFile(item)"
-          >
+          <div class="body--icon-img row-col-center">
             <img :src="globalProperties.$common.identifyFileIcon(item)" alt="文件"/>
           </div>
         </div>
         <div class="body--name">
-          <div class="body--name-content"
-               @click="clickFile(item)"
-          >{{ item.name }}.{{ item.ext }}</div>
+          <div class="body--name-content">{{ item.name }}.{{ item.ext }}</div>
           <div class="body--name-runner">
             <a-tooltip :content="identifyOpenFileIcon(item.ext).content">
               <img :src="identifyOpenFileIcon(item.ext).icon" alt="播放" @click="playVideo(item.id)"/>
