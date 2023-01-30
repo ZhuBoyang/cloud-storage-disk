@@ -1,27 +1,38 @@
 <template>
   <div class="video-player" ref="playerBox">
     <div class="video-player--box">
-      <video ref="player" :controls="false" @canplay="getVideoTotalPlayTime" @timeupdate="updateVideoCurrentTime">
+      <video ref="player"
+             :controls="false"
+             @canplay="getVideoTotalPlayTime"
+             @timeupdate="updateVideoCurrentTime"
+      >
         <source :src="src"/>
       </video>
     </div>
     <div class="video-player--controls">
       <div class="video-player--controls-actions">
-        <div class="video-player--controls-actions-btn row-col-center" @click="playOrPause">
-          <img :src="'/src/assets/video/' + (data.player.isPaused ? 'play' : 'pause') + '.svg'" alt="播放"/>
+        <div class="video-player--controls-action">
+          <div class="video-player--controls-actions-btn row-col-center" @click="playOrPause">
+            <img :src="'/src/assets/video/' + (data.player.isPaused ? 'play' : 'pause') + '.svg'" alt="播放"/>
+          </div>
+          <div class="video-player--controls-actions-btn row-col-center" @click="stopPlay">
+            <img src="../../assets/video/stop.svg" alt="停止"/>
+          </div>
+          <div class="video-player--controls-actions-btn row-col-center">
+            {{ formatSecondTime(data.player.currentTime) }}/{{ formatSecondTime(data.player.totalTime) }}
+          </div>
         </div>
-        <div class="video-player--controls-actions-btn row-col-center" @click="stopPlay">
-          <img src="../../assets/video/stop.svg" alt="停止"/>
+        <div class="video-player--controls-action">
+          <div class="video-player--controls-actions-btn row-col-center" @click="mutedOrNot">
+            <img :src="'/src/assets/video/' + (data.player.isMuted ? 'mute' : 'volume') + '.svg'" alt="音量"/>
+          </div>
+          <div class="video-player--controls-actions-btn row-col-center" @click="fullScreenOrNot">
+            <img src="../../assets/video/full_screen.svg" alt="全屏"/>
+          </div>
         </div>
-        <div class="video-player--controls-actions-btn row-col-center">{{ data.player.currentTime }}/{{ data.player.totalTime }}</div>
       </div>
-      <div class="video-player--controls-actions">
-        <div class="video-player--controls-actions-btn row-col-center" @click="mutedOrNot">
-          <img :src="'/src/assets/video/' + (data.player.isMuted ? 'mute' : 'volume') + '.svg'" alt="音量"/>
-        </div>
-        <div class="video-player--controls-actions-btn row-col-center" @click="fullScreenOrNot">
-          <img src="../../assets/video/full_screen.svg" alt="全屏"/>
-        </div>
+      <div class="video-player--controls-process">
+        <a-slider :model-value="data.player.currentTime" :min="0" :max="data.player.totalTime" @change="changeProcess"/>
       </div>
     </div>
   </div>
@@ -48,9 +59,10 @@ export default {
     const data = reactive({
       player: {
         isPaused: true, // 当前视频播放的装填
-        currentTime: '00:00:00', // 当前播放时间
-        totalTime: '00:00:00', // 视频总时长
-        isMuted: false // 是否静音
+        currentTime: 0, // 当前播放时间
+        totalTime: 0, // 视频总时长
+        isMuted: false, // 是否静音
+        process: 0 // 播放的进度
       }
     })
     return {
@@ -69,12 +81,12 @@ export default {
   methods: {
     // 获取视频总时长
     getVideoTotalPlayTime () {
-      this.data.player.totalTime = this.formatSecondTime(this.player.duration)
+      this.data.player.totalTime = this.player.duration
     },
     // 后去视频当前播放到的时间位置
     updateVideoCurrentTime () {
       if (this.player !== null) {
-        this.data.player.currentTime = this.formatSecondTime(this.player.currentTime)
+        this.data.player.currentTime = this.player.currentTime
       }
     },
     // 播放与暂停
@@ -113,6 +125,11 @@ export default {
       } else if (element.msRequestFullscreen) {
         element.msRequestFullscreen()
       }
+    },
+    // 拖动修改视频播放进度
+    changeProcess (record) {
+      this.player.currentTime = record
+      this.data.player.currentTime = record
     },
     // 退出全屏
     exitFullScreen () {
@@ -161,27 +178,29 @@ export default {
     left: 50%;
     padding: 10px;
     width: 500px;
-    display: flex;
-    justify-content: space-between;
     background: rgba(0, 0, 0, .2);
     border-radius: 10px;
     transform: translateX(-50%);
     .video-player--controls-actions {
       display: flex;
-      .video-player--controls-actions-btn {
-        margin: 5px;
-        color: #ffffff;
-        font-weight: bolder;
-        cursor: pointer;
-        &:first-child {
-          margin-left: 0;
-        }
-        &:last-child {
-          margin-right: 0;
-        }
-        img {
-          width: 28px;
-          height: 28px;
+      justify-content: space-between;
+      .video-player--controls-action {
+        display: flex;
+        .video-player--controls-actions-btn {
+          margin: 5px;
+          color: #ffffff;
+          font-weight: bolder;
+          cursor: pointer;
+          &:first-child {
+            margin-left: 0;
+          }
+          &:last-child {
+            margin-right: 0;
+          }
+          img {
+            width: 28px;
+            height: 28px;
+          }
         }
       }
     }
