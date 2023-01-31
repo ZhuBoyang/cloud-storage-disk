@@ -506,7 +506,8 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
         // 构建查询条件
         FileMetadataQuery query = fileMetadataMapper.query()
-                .where.uploadTime().gt(beginFile.getUploadTime())
+                .where.id().ne(beginFile.getId())
+                .and.uploadTime().ge(beginFile.getUploadTime())
                 .and.userId().eq(user.getId())
                 .and.isDelete().eq(YesOrNoEnum.NO.getCode()).end()
                 .orderBy.uploadTime().asc().end()
