@@ -4,7 +4,7 @@ import { Notification } from '@arco-design/web-vue'
 
 const service = axios.create({
   baseURL: config.apiBaseUrl,
-  timeout: 20000,
+  // timeout: 20000,
   headers: {
     'content-type': 'application/json;charset=utf-8'
   }

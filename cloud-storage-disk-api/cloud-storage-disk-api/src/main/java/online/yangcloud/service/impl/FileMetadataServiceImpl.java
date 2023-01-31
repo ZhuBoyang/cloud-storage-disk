@@ -509,6 +509,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
                 .where.uploadTime().gt(beginFile.getUploadTime())
                 .and.userId().eq(user.getId())
                 .and.isDelete().eq(YesOrNoEnum.NO.getCode()).end()
+                .orderBy.uploadTime().asc().end()
                 .limit(0, searchRequest.getSize());
         if (CharSequenceUtil.isNotBlank(searchRequest.getPid())) {
             query.where.pid().eq(searchRequest.getPid());

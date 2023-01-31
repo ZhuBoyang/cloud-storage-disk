@@ -28,10 +28,14 @@
           </div>
         </div>
         <div class="body--name">
-          <div class="body--name-content">{{ item.name }}.{{ item.ext }}</div>
+          <div class="body--name-content">{{ item.type === 1 ? item.name : item.name + '.' + item.ext }}</div>
           <div class="body--name-runner">
             <a-tooltip :content="identifyOpenFileIcon(item.ext).content">
-              <img :src="identifyOpenFileIcon(item.ext).icon" alt="播放" @click="playVideo(item.id)"/>
+              <img v-if="Object.keys(identifyOpenFileIcon(item.ext)).length > 0"
+                   alt="播放"
+                   :src="identifyOpenFileIcon(item.ext).icon"
+                   @click="playVideo(item.id)"
+              />
             </a-tooltip>
           </div>
         </div>
@@ -238,6 +242,10 @@ export default {
     },
     // 点击文件
     clickFile (record) {
+      const { id, name, type } = record
+      if (type === 1) {
+        this.emit('select-change', { id, name, type })
+      }
       this.data.movie.file = record
     },
     // 隐藏文件信息弹窗
@@ -397,7 +405,7 @@ export default {
       if (this.globalProperties.$type.isVideo(ext)) {
         return { content: '播放', icon: '/src/assets/icons/full/Arrow%20-%20Right%202.svg' }
       }
-      return { content: '', icon: '' }
+      return {}
     }
   }
 }

@@ -15,12 +15,12 @@
       <div class="box-header--close">
         <img src="../assets/icons/full/Close%20Square.svg"
              alt="关闭"
-             v-if="visible && !data.hideModalVisible"
+             v-if="visible && !data.hideModalVisible && data.upload.uploading.findIndex(item => item.status === 'loading') === -1"
              @click="closeUploadModal"
         />
         <img src="../assets/icons/full/Arrow%20-%20Up%20Circle.svg"
              alt="显示"
-             v-else
+             v-if="visible && data.hideModalVisible"
              @click="data.hideModalVisible = false"
         />
       </div>
@@ -49,7 +49,7 @@
     </div>
     <div class="upload-actions">
       <input type="file" style="display: none" ref="file" @change="readUploadFiles"/>
-      <a-button type="outline" shape="round" @click="data.hideModalVisible = true">隐藏</a-button>
+      <a-button type="outline" shape="round" @click="hideUploadModal">隐藏</a-button>
       <a-button type="primary" shape="round" @click="triggerUpload">上传文件</a-button>
     </div>
   </div>
@@ -98,7 +98,36 @@ export default {
       this.data.upload.uploading = []
       this.data.hideModalVisible = false
       this.emit('on-change', { visible: false })
-      emitter.emit('upload-change', this.data.upload.uploaded)
+      // 筛出已上传完成，但是还未发送至文件列表的文件
+      const send = []
+      const uploaded = this.data.upload.uploaded
+      for (const key in uploaded) {
+        const file = uploaded[key]
+        if (file.sent === 0) {
+          send.push(file)
+        }
+      }
+      // 将文件发送至文件列表
+      emitter.emit('upload-change', send)
+    },
+    // 最小化上传文件的窗口
+    hideUploadModal () {
+      // 最小化弹窗
+      this.data.hideModalVisible = true
+      // 筛出已上传完成，但是还未发送至文件列表的文件
+      const send = []
+      for (const key in this.data.upload.uploading) {
+        const item = this.data.upload.uploading[key]
+        if (item.status === 'success' && item.sent === 0) {
+          const fileIndex = this.data.upload.uploaded.findIndex(v => v.fileIndex === parseInt(key))
+          console.log(fileIndex, key, this.data.upload.uploaded)
+          const file = this.data.upload.uploaded[fileIndex].file
+          this.data.upload.uploading[key].sent = 1
+          send.push(file)
+        }
+      }
+      // 将文件发送至文件列表
+      emitter.emit('upload-change', send)
     },
     // 触发上传文件的事件
     triggerUpload () {
@@ -119,7 +148,8 @@ export default {
           blockNumber: 0, // 已上传文件块数量
           blockCount: 0, // 文件块总数据量
           status: 'loading', // 上传状态
-          type: 0 // 文件类型
+          type: 0, // 文件类型
+          sent: 0 // 是否已通过 emitter 发送至文件列表
         }
         this.data.upload.uploading.push(file)
         await this.splitFileBlock(current, uploadedCount + i)
@@ -132,7 +162,6 @@ export default {
       for (let i = 0; i < blockCount; i++) {
         fileBlockList.push(file.slice(i * blockSize, Math.min((i + 1) * blockSize, file.size)))
       }
-      // fileBlockList.push(file.slice(0, file.size))
       const blockList = await this.generateUploadFormData(file, fileBlockList)
       // 设置上传的文件的文件块总数量
       const currentItem = this.data.upload.uploading[fileIndex]
@@ -234,8 +263,12 @@ export default {
         fileHash
       }
       http.req(http.url.fileBlock.mergeFile, http.methods.post, param).then(response => {
-        this.data.upload.uploaded.push(response)
+        this.data.upload.uploaded.push({ fileIndex, file: response })
         this.updateFileUploadProcess(fileIndex, true)
+        // 如果上传文件的弹窗已经最小化了，那么上传完成的文件就自动发送至文件列表
+        if (this.data.hideModalVisible) {
+          emitter.emit('upload-change', [response])
+        }
       })
     },
     // 计算文件 hash 值

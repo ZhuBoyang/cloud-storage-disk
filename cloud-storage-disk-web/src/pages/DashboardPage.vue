@@ -174,7 +174,14 @@ export default {
     // 监听上传文件
     emitter.on('upload-change', record => {
       for (const key in record) {
-        data.files.push(record[key])
+        const file = record[key]
+        if (data.breads.length > 0) {
+          const { id } = data.breads[data.breads.length - 1]
+          const { pid } = file
+          if (id === pid) {
+            data.files.push(file)
+          }
+        }
       }
     })
     return {
@@ -207,6 +214,8 @@ export default {
       const spliceLength = this.data.breads.length - recordIndex - 1
       this.data.breads.splice(recordIndex + 1, spliceLength)
       this.data.files = []
+      this.data.pager.hasMore = true
+      this.data.pager.fileId = ''
       this.queryFiles()
     },
     // 选择文件
