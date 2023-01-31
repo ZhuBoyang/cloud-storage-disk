@@ -48,6 +48,14 @@ export default {
       type: String,
       default: ''
     },
+    width: {
+      type: Number,
+      default: 0
+    },
+    height: {
+      type: Number,
+      default: 0
+    },
     autoplay: {
       type: Boolean,
       default: false

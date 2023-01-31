@@ -10,9 +10,11 @@ import online.yangcloud.model.po.FileMetadata;
 import online.yangcloud.model.po.User;
 import online.yangcloud.model.vo.file.FileBreadView;
 import online.yangcloud.model.vo.file.FileMetadataView;
+import online.yangcloud.model.vo.file.FilePlayView;
 import online.yangcloud.service.FileMetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ws.schild.jave.EncoderException;
 
 import java.util.List;
 
@@ -109,8 +111,8 @@ public class FileController {
      * @return result
      */
     @PostMapping("/play_url")
-    public ResultData getFilePlayUrl(@RequestBody FilePlayRequest playRequest) {
-        String playUrl = fileMetadataService.findPlayUrl(playRequest.getFileId());
+    public ResultData getFilePlayUrl(@RequestBody FilePlayRequest playRequest) throws EncoderException {
+        FilePlayView playUrl = fileMetadataService.findPlayUrl(playRequest.getFileId());
         return ResultData.success(playUrl);
     }
 

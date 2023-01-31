@@ -137,7 +137,7 @@
                          @on-change="operationResult"
     />
     <file-info-drawer :file="data.movie.file" @on-hide="hideDrawer" @on-play="playVideo"></file-info-drawer>
-    <player-modal :src="data.movie.src" @on-close="closePlayer"/>
+    <player-modal :src="data.movie.src" :width="data.movie.width" :height="data.movie.height" @on-close="closePlayer"/>
   </div>
 </template>
 
@@ -195,7 +195,9 @@ export default {
       },
       movie: {
         file: {}, // 要在页面右侧显示信息的文件
-        src: '' // 视频播放地址
+        src: '', // 视频播放地址
+        width: 0, // 视频的宽
+        height: 0 // 视频的高
       }
     })
     return {
@@ -247,8 +249,29 @@ export default {
       http.req(http.url.file.playUrl, http.methods.post, {
         fileId
       }).then(response => {
-        this.data.movie.src = config.apiBaseUrl + response
+        const { path, extend } = response
+        const { width, height } = this.calculatePlayerSize(extend)
+        this.data.movie.src = config.apiBaseUrl + path
+        this.data.movie.width = width
+        this.data.movie.height = height
       })
+    },
+    // 计算视频播放器显示的尺寸
+    calculatePlayerSize (size) {
+      let windowWidth = window.innerWidth
+      let windowHeight = window.innerHeight
+      const { width, height } = size
+      if (width > height) {
+        const scale = height / width
+        windowHeight = 800 * scale
+        return { width: 800, height: windowHeight }
+      }
+      if (width < height) {
+        const scale = width / height
+        windowWidth = 400 * scale
+        return { width: windowWidth, height: 400 }
+      }
+      return { width: 400, height: 400 }
     },
     // 关闭视频播放器
     closePlayer () {

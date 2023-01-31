@@ -2,15 +2,19 @@ package online.yangcloud.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.ResultBean;
 import online.yangcloud.common.SystemRecognition;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.common.resultcode.AppResultCode;
+import online.yangcloud.enumration.FileCategoryEnum;
 import online.yangcloud.enumration.FileTypeEnum;
 import online.yangcloud.enumration.YesOrNoEnum;
 import online.yangcloud.exception.BusinessException;
@@ -26,6 +30,7 @@ import online.yangcloud.model.po.FileMetadata;
 import online.yangcloud.model.po.User;
 import online.yangcloud.model.vo.file.FileBreadView;
 import online.yangcloud.model.vo.file.FileMetadataView;
+import online.yangcloud.model.vo.file.FilePlayView;
 import online.yangcloud.model.wrapper.FileMetadataQuery;
 import online.yangcloud.service.FileMetadataService;
 import online.yangcloud.utils.FileUtils;
@@ -34,6 +39,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ws.schild.jave.EncoderException;
+import ws.schild.jave.MultimediaObject;
+import ws.schild.jave.info.MultimediaInfo;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -330,7 +338,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
     }
 
     @Override
-    public String findPlayUrl(String fileId) {
+    public FilePlayView findPlayUrl(String fileId) throws EncoderException {
         // 校验文件是否存在
         FileMetadata file = fileMetadataMapper.findById(fileId);
         if (ObjUtil.isNull(file)) {
@@ -349,9 +357,20 @@ public class FileMetadataServiceImpl implements FileMetadataService {
         List<String> blockPaths = fileBlocks.stream()
                 .map(fileBlock -> systemRecognition.generateSystemPath() + blockMap.get(fileBlock.getBlockId()).getStoragePath())
                 .collect(Collectors.toList());
-        String targetPath = AppConstants.TMP_PATH + file.getHash() + StrUtil.DOT + file.getExt();
-        FileUtils.combineFile(systemRecognition.generateSystemPath() + targetPath, blockPaths);
-        return targetPath;
+        FilePlayView playView = FilePlayView.packageData(AppConstants.TMP_PATH + file.getHash() + StrUtil.DOT + file.getExt(), file.getExt());
+        FileUtils.combineFile(systemRecognition.generateSystemPath() + playView.getPath(), blockPaths);
+        
+        // 获取视频的数据
+        if (FileUtil.exist(systemRecognition.generateSystemPath() + playView.getPath())) {
+            if (FileUtils.determineFileType(FileCategoryEnum.VIDEO, file.getExt())) {
+                MultimediaInfo media = new MultimediaObject(FileUtil.file(systemRecognition.generateSystemPath() + playView.getPath())).getInfo();
+                JSONObject extendObj = JSONUtil.createObj()
+                        .set("width", media.getVideo().getSize().getWidth())
+                        .set("height", media.getVideo().getSize().getHeight());
+                playView.setExtend(extendObj);
+            }
+        }
+        return playView;
     }
 
     /**

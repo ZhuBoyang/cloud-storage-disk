@@ -1,11 +1,13 @@
 <template>
   <div class="player-modal" v-if="src !== ''">
     <div class="player--background">
-      <div class="player--box">
+      <div class="player--box"
+           :style="{width: width === 0 ? '800px' : width + 'px', height: height === 0 ? '400px' : height + 'px'}"
+      >
         <div class="player--box-close" @click="closePlayer">
           <img src="../assets/icons/full/Close%20Square.svg" alt="关闭"/>
         </div>
-        <video-player :src="src" autoplay/>
+        <video-player class="player-box" :src="src" autoplay/>
       </div>
     </div>
   </div>
@@ -19,6 +21,14 @@ export default {
     src: {
       type: String,
       default: ''
+    },
+    width: {
+      type: Number,
+      default: 0
+    },
+    height: {
+      type: Number,
+      default: 0
     }
   },
   components: {
@@ -53,8 +63,8 @@ export default {
       position: relative;
       top: 50%;
       left: 50%;
-      width: 800px;
-      height: 400px;
+      max-width: 800px;
+      max-height: 400px;
       background-color: #000000;
       transform: translate(-50%, -50%);
       .player--box-close {

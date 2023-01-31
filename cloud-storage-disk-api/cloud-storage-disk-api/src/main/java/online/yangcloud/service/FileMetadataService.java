@@ -8,6 +8,8 @@ import online.yangcloud.model.po.FileMetadata;
 import online.yangcloud.model.po.User;
 import online.yangcloud.model.vo.file.FileBreadView;
 import online.yangcloud.model.vo.file.FileMetadataView;
+import online.yangcloud.model.vo.file.FilePlayView;
+import ws.schild.jave.EncoderException;
 
 import java.util.List;
 
@@ -86,7 +88,7 @@ public interface FileMetadataService {
      * @param fileId 文件 id
      * @return 播放地址
      */
-    String findPlayUrl(String fileId);
+    FilePlayView findPlayUrl(String fileId) throws EncoderException;
 
     /**
      * 查询当前所在目录的文件面包屑导航

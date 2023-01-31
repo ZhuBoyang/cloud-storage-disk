@@ -31,15 +31,18 @@
 <script>
 import http from '../api/http.js'
 import { reactive } from 'vue'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'LoginUserAction',
   setup () {
+    const router = useRouter()
     const data = reactive({
       userInfoBox: false, // 是否显示用户信息的下拉框
       user: {} // 用户信息
     })
     return {
+      router,
       data
     }
   },

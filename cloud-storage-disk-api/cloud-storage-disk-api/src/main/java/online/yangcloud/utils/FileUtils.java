@@ -1,7 +1,10 @@
 package online.yangcloud.utils;
 
+import online.yangcloud.enumration.FileCategoryEnum;
+
 import java.io.*;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
@@ -42,6 +45,12 @@ public class FileUtils {
         }
     }
 
+    /**
+     * 文件合并
+     *
+     * @param target  合并后目标文件
+     * @param sources 文件块路径列表
+     */
     public static void combineFile(String target, List<String> sources) {
         try (FileOutputStream fos = new FileOutputStream(target)) {
             FileInputStream fis;
@@ -50,7 +59,6 @@ public class FileUtils {
             int len;
             for (String fileName : sources) {
                 fis = new FileInputStream(fileName);
-                len = 0;
                 while ((len = fis.read(buffer)) != -1) {
                     // buffer 从指定字节数组写入。buffer: 数据中的起始偏移量， len: 写入的字数。
                     fos.write(buffer, 0, len);
@@ -62,6 +70,21 @@ public class FileUtils {
         } finally {
             System.out.println("合并完成！");
         }
+    }
+
+    /**
+     * 判断文件类型是否为指定类型
+     *
+     * @param category 指定的文件类型
+     * @param ext      文件后缀
+     * @return result
+     */
+    public static boolean determineFileType(FileCategoryEnum category, String ext) {
+        if (FileCategoryEnum.VIDEO.equals(category)) {
+            List<String> categories = Arrays.asList("avi", "mov", "rmvb", "rm", "flv", "mp4", "3gp");
+            return categories.contains(ext);
+        }
+        return Boolean.FALSE;
     }
 
 }
