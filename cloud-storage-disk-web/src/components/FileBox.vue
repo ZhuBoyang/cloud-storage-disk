@@ -17,7 +17,6 @@
            v-for="(item, index) in fileList"
            :class="[{'is-selected': data.selected[index]}]"
            :key="index"
-           @click="clickFile(item)"
       >
         <div class="body--multiselect row-col-center">
           <a-checkbox v-model="data.selected[index]" @change="selectFile(item, index)"></a-checkbox>
@@ -28,7 +27,9 @@
           </div>
         </div>
         <div class="body--name">
-          <div class="body--name-content">{{ item.type === 1 ? item.name : item.name + '.' + item.ext }}</div>
+          <div class="body--name-content"
+               @click="clickFile(item)"
+          >{{ item.type === 1 ? item.name : item.name + '.' + item.ext }}</div>
           <div class="body--name-runner">
             <a-tooltip :content="identifyOpenFileIcon(item.ext).content">
               <img v-if="Object.keys(identifyOpenFileIcon(item.ext)).length > 0"
@@ -37,10 +38,16 @@
                    @click="playVideo(item.id)"
               />
             </a-tooltip>
+            <a-tooltip content="文件详情">
+              <img alt="详情"
+                   src="../assets/icons/half/Info%20Circle.png"
+                   @click="fileDetail(item)"
+              />
+            </a-tooltip>
           </div>
         </div>
         <div class="body--category">{{ item.type === 1 ? '文件夹' : `${item.ext} 文件` }}</div>
-        <div class="body--size">{{ globalProperties.$common.formatSizeInPerson(item.size) }}</div>
+        <div class="body--size">{{ item.type === 1 ? '' : globalProperties.$common.formatSizeInPerson(item.size) }}</div>
         <div class="body--actions row-col-center">
           <a-dropdown trigger="hover" @select="fileChangeEvent($event, item, index)">
             <div class="body--actions-btn row-col-center">
@@ -246,7 +253,6 @@ export default {
       if (type === 1) {
         this.emit('select-change', { id, name, type })
       }
-      this.data.movie.file = record
     },
     // 隐藏文件信息弹窗
     hideDrawer (record) {
@@ -263,6 +269,10 @@ export default {
         this.data.movie.width = width
         this.data.movie.height = height
       })
+    },
+    // 查询文件详情
+    fileDetail (record) {
+      this.data.movie.file = record
     },
     // 计算视频播放器显示的尺寸
     calculatePlayerSize (size) {
@@ -466,7 +476,7 @@ export default {
         transition: all .3s;
         .body--name {
           .body--name-runner {
-            display: inline-block;
+            display: flex;
           }
         }
       }

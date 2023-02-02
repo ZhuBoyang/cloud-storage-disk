@@ -175,6 +175,7 @@ export default {
     emitter.on('upload-change', record => {
       for (const key in record) {
         const file = record[key]
+        emitter.emit('disk-space-change', file)
         if (data.breads.length > 0) {
           const { id } = data.breads[data.breads.length - 1]
           const { pid } = file

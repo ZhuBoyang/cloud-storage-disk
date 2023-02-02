@@ -3,11 +3,10 @@
     <div class="video-player--box">
       <video ref="player"
              :controls="false"
+             :src="src"
              @canplay="getVideoTotalPlayTime"
              @timeupdate="updateVideoCurrentTime"
-      >
-        <source :src="src"/>
-      </video>
+      >您的浏览器不支持此播放模式，请升级浏览器后再试。</video>
     </div>
     <div class="video-player--controls">
       <div class="video-player--controls-actions">
@@ -25,6 +24,9 @@
         <div class="video-player--controls-action">
           <div class="video-player--controls-actions-btn row-col-center" @click="mutedOrNot">
             <img :src="'/src/assets/video/' + (data.player.isMuted ? 'mute' : 'volume') + '.svg'" alt="音量"/>
+          </div>
+          <div class="video-player--controls-actions-btn row-col-center volume-control">
+            <a-slider class="volume-control-btn" :default-value="data.player.volume" :model-value="data.player.volume" :min="0" :max="100" @change="changeVolume"/>
           </div>
           <div class="video-player--controls-actions-btn row-col-center" @click="fullScreenOrNot">
             <img src="../../assets/video/full_screen.svg" alt="全屏"/>
@@ -70,7 +72,8 @@ export default {
         currentTime: 0, // 当前播放时间
         totalTime: 0, // 视频总时长
         isMuted: false, // 是否静音
-        process: 0 // 播放的进度
+        process: 0, // 播放的进度
+        volume: 100 // 当前播放的音量
       }
     })
     return {
@@ -81,6 +84,7 @@ export default {
   },
   mounted () {
     this.player.controls = false
+    this.player.volume = this.data.player.volume / 100
     if (this.autoplay) {
       this.player.play()
       this.data.player.isPaused = false
@@ -138,6 +142,12 @@ export default {
     changeProcess (record) {
       this.player.currentTime = record
       this.data.player.currentTime = record
+    },
+    // 调节音量
+    changeVolume (record) {
+      this.player.volume = record / 100
+      this.data.player.volume = record
+      this.data.player.isMuted = record === 0
     },
     // 退出全屏
     exitFullScreen () {
@@ -204,6 +214,9 @@ export default {
           }
           &:last-child {
             margin-right: 0;
+          }
+          &.volume-control {
+            width: 70px;
           }
           img {
             width: 28px;

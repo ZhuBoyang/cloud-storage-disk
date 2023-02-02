@@ -17,17 +17,13 @@
       </div>
     </div>
     <div class="disk-space-monitor">
-      <circular-progress class="storage-progress" :percent="3"></circular-progress>
+      <circular-progress class="storage-progress"
+                         :percent="parseInt(((data.systemSpace.used / data.systemSpace.total) * 100).toString())"
+      ></circular-progress>
       <div class="disk-space-info">
-        <div class="disk-space-used">
-          500
-          <div class="disk-space-unit">GB</div>
-        </div>
-        <div class="disk-space-gap">/</div>
-        <div class="disk-space-total">
-          1
-          <div class="disk-space-unit">TB</div>
-        </div>
+        <div class="disk-space-info-item">{{ globalProperties.$common.formatSizeInPerson(data.systemSpace.used) }}</div>
+        <div class="disk-space-info-item">/</div>
+        <div class="disk-space-info-item">{{ globalProperties.$common.formatSizeInPerson(data.systemSpace.total) }}</div>
       </div>
     </div>
     <upload-file-list :visible="data.uploadVisible"
@@ -45,7 +41,7 @@
             layout="vertical"
     >
       <a-form-item field="fileName" label="文件夹名称">
-        <a-input v-model="data.mkdir.form.fileName" placeholder="请输入文件夹名称" />
+        <a-input v-model="data.mkdir.form.fileName" placeholder="请输入文件夹名称"/>
       </a-form-item>
     </a-form>
   </a-modal>
@@ -55,7 +51,7 @@
 import LoginUserAction from './LoginUserAction.vue'
 import UploadFileList from './UploadFileList.vue'
 import CircularProgress from '../components/custom/CircularProgress.vue'
-import { reactive } from 'vue'
+import { getCurrentInstance, reactive } from 'vue'
 import http from '../api/http.js'
 import emitter from '../utils/emitter.js'
 import { useRouter } from 'vue-router'
@@ -76,6 +72,9 @@ export default {
     }
   },
   setup () {
+    const { appContext } = getCurrentInstance()
+    const { config } = appContext
+    const { globalProperties } = config
     const router = useRouter()
     const data = reactive({
       showAddBox: false, // 是否显示添加文件的下拉框
@@ -85,12 +84,24 @@ export default {
         form: {
           fileName: '' // 新建文件夹的文件名
         }
+      },
+      systemSpace: {
+        total: 0, // 系统空间总量
+        used: 0 // 系统空间已使用量
       }
     })
+    emitter.on('disk-space-change', record => {
+      const { size } = record
+      data.systemSpace.used += size
+    })
     return {
+      globalProperties,
       router,
       data
     }
+  },
+  created () {
+    this.getDiskInfo()
   },
   methods: {
     // 提交新建文件夹的请求
@@ -108,6 +119,14 @@ export default {
       http.req(http.url.file.mkdir, http.methods.post, param).then(response => {
         emitter.emit('mkdir-change', response)
         this.data.mkdir.mkdirVisible = false
+      })
+    },
+    // 查询系统磁盘空间使用量
+    getDiskInfo () {
+      http.req(http.url.systemSpace.diskInfo, http.methods.get).then(response => {
+        const { total, used } = response
+        this.data.systemSpace.total = total
+        this.data.systemSpace.used = used
       })
     },
     // 关闭新建文件夹的窗口后清空变量的值
@@ -212,28 +231,16 @@ export default {
       width: 60%;
       display: flex;
       align-items: center;
-      .disk-space-used {
-        display: flex;
-        font-weight: bold;
-        font-size: 20px;
-        .disk-space-unit {
-          margin-left: 3px;
-          font-weight: normal;
-          font-size: 20px;
-        }
-      }
-      .disk-space-gap {
+      .disk-space-info-item {
         margin: 0 5px;
-        font-size: 20px;
-      }
-      .disk-space-total {
         display: flex;
         font-weight: bold;
         font-size: 20px;
-        .disk-space-unit {
-          margin-left: 3px;
-          font-weight: normal;
-          font-size: 20px;
+        &:first-child {
+          margin-left: 0;
+        }
+        &:last-child {
+          margin-right: 0;
         }
       }
     }

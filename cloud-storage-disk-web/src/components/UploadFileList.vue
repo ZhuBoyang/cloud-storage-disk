@@ -120,7 +120,6 @@ export default {
         const item = this.data.upload.uploading[key]
         if (item.status === 'success' && item.sent === 0) {
           const fileIndex = this.data.upload.uploaded.findIndex(v => v.fileIndex === parseInt(key))
-          console.log(fileIndex, key, this.data.upload.uploaded)
           const file = this.data.upload.uploaded[fileIndex].file
           this.data.upload.uploading[key].sent = 1
           send.push(file)

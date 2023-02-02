@@ -46,7 +46,8 @@ service.interceptors.request.use(config => {
 const modules = {
   file: 'file/', // 文件相关
   fileBlock: 'file_block/', // 文件块相关
-  user: 'user/' // 用户相关
+  user: 'user/', // 用户相关
+  systemSpace: 'space/' // 系统空间
 }
 
 const url = {
@@ -72,6 +73,9 @@ const url = {
     login: modules.user + 'login', // 用户登录
     logout: modules.user + 'logout', // 用户退出登录
     reset: modules.user + 'reset' // 重置用户账户密码
+  },
+  systemSpace: {
+    diskInfo: modules.systemSpace + 'disk' // 系统磁盘空间使用量
   }
 }
 

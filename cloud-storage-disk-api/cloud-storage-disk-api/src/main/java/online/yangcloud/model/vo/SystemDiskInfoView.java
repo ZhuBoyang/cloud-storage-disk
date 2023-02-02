@@ -9,51 +9,51 @@ public class SystemDiskInfoView {
     /**
      * 磁盘总容量
      */
-    private String diskTotal;
+    private Long total;
 
     /**
      * 磁盘已用容量
      */
-    private String diskUsed;
+    private Long used;
 
     /**
      * 磁盘剩余容量
      */
-    private String diskFree;
+    private Long free;
 
-    public String getDiskTotal() {
-        return diskTotal;
+    public Long getTotal() {
+        return total;
     }
 
-    public SystemDiskInfoView setDiskTotal(String diskTotal) {
-        this.diskTotal = diskTotal;
+    public SystemDiskInfoView setTotal(Long total) {
+        this.total = total;
         return this;
     }
 
-    public String getDiskUsed() {
-        return diskUsed;
+    public Long getUsed() {
+        return used;
     }
 
-    public SystemDiskInfoView setDiskUsed(String diskUsed) {
-        this.diskUsed = diskUsed;
+    public SystemDiskInfoView setUsed(Long used) {
+        this.used = used;
         return this;
     }
 
-    public String getDiskFree() {
-        return diskFree;
+    public Long getFree() {
+        return free;
     }
 
-    public SystemDiskInfoView setDiskFree(String diskFree) {
-        this.diskFree = diskFree;
+    public SystemDiskInfoView setFree(Long free) {
+        this.free = free;
         return this;
     }
 
     @Override
     public String toString() {
         return "SystemInfoView["
-                + " diskTotal=" + diskTotal + ","
-                + " diskUsed=" + diskUsed + ","
-                + " diskFree=" + diskFree
+                + " diskTotal=" + total + ","
+                + " diskUsed=" + used + ","
+                + " diskFree=" + free
                 + " ]";
     }
 }

@@ -11,7 +11,7 @@ import java.lang.management.ManagementFactory;
  * @author zhuboyang
  * @since 2022/12/31 11:31
  */
-public class RainSystemUtil {
+public class SystemUtils {
 
     /**
      * 获取系统各个硬盘的总容量、已经使用的容量、剩余容量和使用率
@@ -21,9 +21,9 @@ public class RainSystemUtil {
     public static SystemDiskInfoView findDiskInfo(String drive) {
         File diskFile = new File(drive);
         return new SystemDiskInfoView()
-                .setDiskTotal(RainByteUtil.convertFileSize(diskFile.getTotalSpace()))
-                .setDiskUsed(RainByteUtil.convertFileSize(diskFile.getTotalSpace() - diskFile.getUsableSpace()))
-                .setDiskFree(RainByteUtil.convertFileSize(diskFile.getUsableSpace()));
+                .setTotal(diskFile.getTotalSpace())
+                .setUsed(diskFile.getTotalSpace() - diskFile.getUsableSpace())
+                .setFree(diskFile.getUsableSpace());
     }
 
     /**
