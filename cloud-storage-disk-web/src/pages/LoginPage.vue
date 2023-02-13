@@ -51,8 +51,8 @@ export default {
     const { globalProperties } = config
     const router = useRouter()
     const form = reactive({
-      email: 'zhuboyang1996@foxmail.com', // 邮箱
-      password: '123456' // 密码
+      email: '', // 邮箱
+      password: '' // 密码
     })
     return {
       globalProperties,

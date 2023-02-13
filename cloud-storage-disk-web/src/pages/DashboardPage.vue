@@ -4,7 +4,7 @@
       <div class="file-search-box">
         <a-input class="file-search-input" placeholder="请输入关键词" size="large" allow-clear>
           <template #prefix>
-            <img src="../assets/icons/full/search%20icon.svg" alt="search" width="40">
+            <img src="../assets/icons/full/search_icon.svg" alt="search" width="40">
           </template>
         </a-input>
         <div class="file-search-filter-icon">

@@ -14,7 +14,7 @@
             <div class="user-email">{{ data.user.email }}</div>
           </div>
           <div class="user-more">
-            <img src="../assets/icons/full/Arrow%20-%20Down%202.svg" alt="more"/>
+            <img src="../assets/icons/full/Arrow-Down-2.svg" alt="more"/>
           </div>
         </div>
       </div>

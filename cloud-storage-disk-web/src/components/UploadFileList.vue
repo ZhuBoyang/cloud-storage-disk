@@ -13,12 +13,12 @@
         <div class="box-upload-title">上传文件</div>
       </div>
       <div class="box-header--close">
-        <img src="../assets/icons/full/Close%20Square.svg"
+        <img src="../assets/icons/full/Close_Square.svg"
              alt="关闭"
              v-if="visible && !data.hideModalVisible && data.upload.uploading.findIndex(item => item.status === 'loading') === -1"
              @click="closeUploadModal"
         />
-        <img src="../assets/icons/full/Arrow%20-%20Up%20Circle.svg"
+        <img src="../assets/icons/full/Arrow-Up-Circle.svg"
              alt="显示"
              v-if="visible && data.hideModalVisible"
              @click="data.hideModalVisible = false"

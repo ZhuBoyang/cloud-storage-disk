@@ -52,10 +52,10 @@ export default {
     const { globalProperties } = config
     const router = useRouter()
     const form = reactive({
-      userName: '洋洋啊', // 用户名
-      email: 'zhuboyang1996@foxmail.com', // 邮箱
-      password: '123456', // 密码
-      repeat: '123456' // 再次输入密码
+      userName: '', // 用户名
+      email: '', // 邮箱
+      password: '', // 密码
+      repeat: '' // 再次输入密码
     })
     return {
       globalProperties,

@@ -40,7 +40,7 @@
             </a-tooltip>
             <a-tooltip content="文件详情">
               <img alt="详情"
-                   src="../assets/icons/half/Info%20Circle.png"
+                   src="../assets/icons/half/Info_Circle.png"
                    @click="fileDetail(item)"
               />
             </a-tooltip>
@@ -81,7 +81,7 @@
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center" @click="displayBatchCopy">
-          <img src="../assets/icons/full/Arrow%20-%20Right%202.svg" alt="复制"/>
+          <img src="../assets/icons/full/Arrow-Right-2.svg" alt="复制"/>
         </div>
         <template #content>
           <div class="action-trigger">复制</div>
@@ -89,7 +89,7 @@
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center" @click="displayBatchMove">
-          <img src="../assets/icons/half/Arrow%20-%20Right%202.png" alt="移动"/>
+          <img src="../assets/icons/half/Arrow-Right-2.png" alt="移动"/>
         </div>
         <template #content>
           <div class="action-trigger">移动</div>
@@ -105,7 +105,7 @@
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center" @click="clearSelected">
-          <img src="../assets/icons/full/Close%20Square.svg" alt="取消"/>
+          <img src="../assets/icons/full/Close_Square.svg" alt="取消"/>
         </div>
         <template #content>
           <div class="action-trigger">取消</div>
