@@ -8,7 +8,7 @@
     <div class="box-header">
       <div class="box-header--theme">文件{{ identifyOperationName(operationName) }}</div>
       <div class="box-header--close" @click="closeModal">
-        <img src="../assets/icons/full/Close_Square.svg" alt="关闭"/>
+        <img :src="config.apiBaseUrl + 'icons/full/Close_Square.svg'" alt="关闭"/>
       </div>
     </div>
     <div class="box-bread">
@@ -29,7 +29,7 @@
       </div>
     </div>
     <div class="box-body-empty" v-else>
-      <a-empty img-src="/src/assets/icons/full/empty-data.svg"/>
+      <a-empty :img-src="config.apiBaseUrl + 'icons/full/empty-data.svg'"/>
     </div>
     <div class="box-footer">
       <a-button type="primary" shape="round" @click="moveToCurrentFolder">{{ identifyOperationName(operationName) }}至此</a-button>
@@ -41,6 +41,7 @@
 <script>
 import { reactive } from 'vue'
 import http from '../api/http.js'
+import config from '../api/config.js'
 
 export default {
   name: 'FileOperatorModal',
@@ -93,6 +94,7 @@ export default {
       })
     }
     return {
+      config,
       emit,
       data,
       queryBreads,

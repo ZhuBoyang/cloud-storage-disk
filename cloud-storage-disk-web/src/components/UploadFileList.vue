@@ -8,17 +8,17 @@
     <div class="box-header">
       <div class="box-header--info">
         <div class="box-upload-icon">
-          <img src="../assets/icons/full/Upload.svg" alt="文件上传"/>
+          <img :src="config.apiBaseUrl + 'icons/full/Upload.svg'" alt="文件上传"/>
         </div>
         <div class="box-upload-title">上传文件</div>
       </div>
       <div class="box-header--close">
-        <img src="../assets/icons/full/Close_Square.svg"
+        <img :src="config.apiBaseUrl + 'icons/full/Close_Square.svg'"
              alt="关闭"
              v-if="visible && !data.hideModalVisible && data.upload.uploading.findIndex(item => item.status === 'loading') === -1"
              @click="closeUploadModal"
         />
-        <img src="../assets/icons/full/Arrow-Up-Circle.svg"
+        <img :src="config.apiBaseUrl + 'icons/full/Arrow-Up-Circle.svg'"
              alt="显示"
              v-if="visible && data.hideModalVisible"
              @click="data.hideModalVisible = false"
@@ -37,9 +37,9 @@
           <div class="item-name">{{ item.fileName }}</div>
           <div class="item-size">{{ globalProperties.$common.formatSizeInPerson(item.fileSize) }}</div>
           <div class="item-status">
-            <img src="../assets/icons/full/success.svg" class="upload-success" alt="成功" v-if="item.status === 'success'"/>
-            <img src="../assets/icons/full/error.svg" class="upload-error" alt="失败" v-if="item.status === 'error'"/>
-            <img src="../assets/icons/full/loading.svg" class="upload-loading" alt="加载中" v-if="item.status === 'loading'"/>
+            <img :src="config.apiBaseUrl + 'icons/full/success.svg'" class="upload-success" alt="成功" v-if="item.status === 'success'"/>
+            <img :src="config.apiBaseUrl + 'icons/full/error.svg'" class="upload-error" alt="失败" v-if="item.status === 'error'"/>
+            <img :src="config.apiBaseUrl + 'icons/full/loading.svg'" class="upload-loading" alt="加载中" v-if="item.status === 'loading'"/>
           </div>
         </div>
         <div class="item-process">
@@ -61,6 +61,7 @@ import http from '../api/http.js'
 import SparkMD5 from 'spark-md5'
 import { useRouter } from 'vue-router'
 import emitter from '../utils/emitter.js'
+import config from '../api/config.js'
 
 export default {
   name: 'UploadFileList',
@@ -74,8 +75,7 @@ export default {
   emits: ['on-change'],
   setup (props, { emit }) {
     const { appContext } = getCurrentInstance()
-    const { config } = appContext
-    const { globalProperties } = config
+    const { globalProperties } = appContext.config
     const router = useRouter()
     const data = reactive({
       hideModalVisible: false, // 是否半隐藏上传文件的弹窗
@@ -86,6 +86,7 @@ export default {
       }
     })
     return {
+      config,
       globalProperties,
       router,
       emit,
@@ -102,9 +103,10 @@ export default {
       const send = []
       const uploaded = this.data.upload.uploaded
       for (const key in uploaded) {
-        const file = uploaded[key]
-        if (file.sent === 0) {
+        const file = uploaded[key].file
+        if (undefined === file.sent || file.sent === 0) {
           send.push(file)
+          this.data.upload.uploaded[key].file.sent = 1
         }
       }
       // 将文件发送至文件列表

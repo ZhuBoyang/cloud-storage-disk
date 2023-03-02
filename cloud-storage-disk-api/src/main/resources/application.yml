@@ -1,0 +1,62 @@
+# application name
+spring:
+  application:
+    name: cloud-storage-disk
+  # database driver
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # datasource name
+    name: defaultDataSource
+    # database url
+    url: "jdbc:mysql://tencent_cloud3:3306/cloud_storage_disk?useSSL=false&\
+      useUnicode=true&\
+      characterEncoding=UTF-8&\
+      allowMultiQueries=true&\
+      allowPublicKeyRetrieval=true&\
+      serverTimezone"
+    # username and password of database
+    username: root
+    password: Jhxz951129Jhxz
+    # database connection pool config
+    hikari:
+      connection-timeout: 30000
+      minimum-idle: 5
+      maximum-pool-size: 15
+      auto-commit: true
+      idle-timeout: 30000
+      pool-name: DateSourceHikariCP
+      max-lifetime: 120000
+  # unified time zone
+  jackson:
+    time-zone: GMT+8
+  # static resources location
+  web:
+    resources:
+      static-locations: classpath:/resources/,classpath:/static/,classpath:/templates/
+  # max size of upload file and request
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  # redis config
+  redis:
+    host: tencent_cloud3
+    port: 6379
+    database: 0
+    password: Jhxz951129Jhxz
+    timeout: 5000
+    lettuce:
+      shutdown-timeout: 5000
+      pool:
+        max-active: 8
+        max-idle: 8
+        max-wait: 30
+        min-idle: 0
+# application web connection port
+server:
+  port: 8100
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+project:
+  path: cloud_storage_disk

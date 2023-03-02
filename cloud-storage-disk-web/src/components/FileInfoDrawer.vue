@@ -6,11 +6,11 @@
     <div class="file-info-drawer--box">
       <div class="file-avatar" v-if="Object.keys(file).length > 0 && globalProperties.$type.isVideo(file.ext)">
         <div class="file-avatar--img">
-          <img src="../assets/Video.svg" alt=""/>
+          <img :src="config.apiBaseUrl + 'icons/Video.svg'" alt=""/>
         </div>
         <div class="file-avatar--play-icon-box row-col-center">
           <div class="file-avatar--play-icon row-col-center cursor-pointer" @click="playVideo(file.id)">
-            <img src="../assets/video/play.svg" alt=""/>
+            <img :src="config.apiBaseUrl + 'icons/video/play.svg'" alt=""/>
           </div>
         </div>
       </div>
@@ -25,6 +25,7 @@
 <script>
 import LoginUserAction from './LoginUserAction.vue'
 import { getCurrentInstance } from 'vue'
+import config from '../api/config.js'
 
 export default {
   name: 'FileInfoDrawer',
@@ -42,9 +43,9 @@ export default {
   emits: ['on-hide', 'on-play'],
   setup (props, { emit }) {
     const { appContext } = getCurrentInstance()
-    const { config } = appContext
-    const { globalProperties } = config
+    const { globalProperties } = appContext.config
     return {
+      config,
       globalProperties,
       emit
     }

@@ -61,7 +61,8 @@ const url = {
     breads: modules.file + 'breads', // 查询文件面包屑导航
     list: modules.file + 'list', // 文件列表
     dirBreads: modules.file + 'dir_breads', // 查询文件夹的面包屑导航数据
-    dirs: modules.file + 'dirs' // 查询目录下次一级的所有文件夹
+    dirs: modules.file + 'dirs', // 查询目录下次一级的所有文件夹
+    download: modules.file + 'download/' // 文件下载
   },
   fileBlock: {
     checkExist: modules.fileBlock + 'check_exist', // 检查文件块是否已入库

@@ -8,7 +8,7 @@
         <div class="pan-logo-label">云存储</div>
       </div>
       <div class="pan-bg">
-        <img src="../assets/login-bg.png" alt="登录背景"/>
+        <img :src="config.apiBaseUrl + 'icons/login-bg.png'" alt="登录背景"/>
       </div>
     </div>
     <div class="page-right">
@@ -42,13 +42,13 @@
 import { getCurrentInstance, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '../api/http.js'
+import config from '../api/config.js'
 
 export default {
   name: 'LoginPage',
   setup () {
     const { appContext } = getCurrentInstance()
-    const { config } = appContext
-    const { globalProperties } = config
+    const { globalProperties } = appContext.config
     const router = useRouter()
     const form = reactive({
       email: 'zhuboyang1996@foxmail.com', // 邮箱
@@ -57,6 +57,7 @@ export default {
       isAccept: false // 是否可以提交请求
     })
     return {
+      config,
       globalProperties,
       router,
       form

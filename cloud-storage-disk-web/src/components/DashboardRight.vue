@@ -7,7 +7,7 @@
     >
       <div class="add-file-btn">
         添加文件
-        <img src="../assets/icons/full/Plus.svg" alt="添加文件"/>
+        <img :src="config.apiBaseUrl + 'icons/full/Plus.svg'" alt="添加文件"/>
       </div>
       <div class="file-actions--list"
            :class="[{'is-show': data.showAddBox}]"
@@ -55,6 +55,7 @@ import { getCurrentInstance, reactive } from 'vue'
 import http from '../api/http.js'
 import emitter from '../utils/emitter.js'
 import { useRouter } from 'vue-router'
+import config from '../api/config.js'
 
 export default {
   name: 'DashboardRight',
@@ -73,8 +74,7 @@ export default {
   },
   setup () {
     const { appContext } = getCurrentInstance()
-    const { config } = appContext
-    const { globalProperties } = config
+    const { globalProperties } = appContext.config
     const router = useRouter()
     const data = reactive({
       showAddBox: false, // 是否显示添加文件的下拉框
@@ -95,6 +95,7 @@ export default {
       data.systemSpace.used += size
     })
     return {
+      config,
       globalProperties,
       router,
       data

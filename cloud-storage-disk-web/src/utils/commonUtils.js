@@ -1,36 +1,38 @@
+import config from '../api/config.js'
+
 const identifyFileIcon = (file) => {
   const { ext, type } = file
   if (type === 1) {
-    return '/src/assets/file/category/directory.svg'
+    return config.apiBaseUrl + 'icons/file/category/directory.svg'
   }
   if (ext === 'doc' || ext === 'docx') {
-    return '/src/assets/file/category/docx.svg'
+    return config.apiBaseUrl + 'icons/file/category/docx.svg'
   }
   if (ext === 'ppt' || ext === 'pptx') {
-    return '/src/assets/file/category/ppt.svg'
+    return config.apiBaseUrl + 'icons/file/category/ppt.svg'
   }
   if (ext === 'xls' || ext === 'xlsx') {
-    return '/src/assets/file/category/xls.svg'
+    return config.apiBaseUrl + 'icons/file/category/xls.svg'
   }
   if (ext === 'java') {
-    return '/src/assets/file/category/java.svg'
+    return config.apiBaseUrl + 'icons/file/category/java.svg'
   }
   if (ext === 'zip') {
-    return '/src/assets/file/category/zip.svg'
+    return config.apiBaseUrl + 'icons/file/category/zip.svg'
   }
   if (ext === 'mp3') {
-    return '/src/assets/file/category/mp3.svg'
+    return config.apiBaseUrl + 'icons/file/category/mp3.svg'
   }
   if (ext === 'mp4') {
-    return '/src/assets/file/category/mp4.svg'
+    return config.apiBaseUrl + 'icons/file/category/mp4.svg'
   }
   if (ext === 'zip') {
-    return '/src/assets/file/category/zip.svg'
+    return config.apiBaseUrl + 'icons/file/category/zip.svg'
   }
   if (ext === 'jpg' || ext === 'jpeg' || ext === 'png') {
-    return '/src/assets/file/category/jpg.svg'
+    return config.apiBaseUrl + 'icons/file/category/jpg.svg'
   }
-  return '/src/assets/file/category/document.svg'
+  return config.apiBaseUrl + 'icons/file/category/document.svg'
 }
 // 格式化文件大小至人类可识别格式
 const formatSizeInPerson = (size) => {

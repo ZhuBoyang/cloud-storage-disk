@@ -1,4 +1,4 @@
-const apiBaseUrl = 'http://127.0.0.1:8100/'
+const apiBaseUrl = 'http://panapi.yangcloud.online/'
 
 const config = {
   apiBaseUrl

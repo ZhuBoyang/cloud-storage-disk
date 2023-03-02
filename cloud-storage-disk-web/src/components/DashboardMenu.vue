@@ -7,25 +7,19 @@
     <div class="dashboard-menu">
       <div class="menu-item is-selected">
         <div class="menu-icon">
-          <img src="../assets/icons/full/Category.svg" alt="dashboard">
+          <img :src="config.apiBaseUrl + 'icons/full/Category.svg'" alt="dashboard">
         </div>
         <div class="menu-name">仪表盘</div>
       </div>
       <div class="menu-item">
         <div class="menu-icon">
-          <img src="../assets/icons/full/Heart.svg" alt="Stared">
+          <img :src="config.apiBaseUrl + 'icons/full/Heart.svg'" alt="Stared">
         </div>
         <div class="menu-name">关注的</div>
       </div>
-<!--      <div class="menu-item">-->
-<!--        <div class="menu-icon">-->
-<!--          <img src="../assets/icons/Swap.svg" alt="Stared">-->
-<!--        </div>-->
-<!--        <div class="menu-name">传输</div>-->
-<!--      </div>-->
       <div class="menu-item">
         <div class="menu-icon">
-          <img src="../assets/icons/full/Delete.svg" alt="Deleted">
+          <img :src="config.apiBaseUrl + 'icons/full/Delete.svg'" alt="Deleted">
         </div>
         <div class="menu-name">已删除的</div>
       </div>
@@ -34,8 +28,15 @@
 </template>
 
 <script>
+import config from '../api/config.js'
+
 export default {
-  name: 'DashboardMenu'
+  name: 'DashboardMenu',
+  setup () {
+    return {
+      config
+    }
+  }
 }
 </script>
 

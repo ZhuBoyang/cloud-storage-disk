@@ -4,11 +4,11 @@
       <div class="file-search-box">
         <a-input class="file-search-input" placeholder="请输入关键词" size="large" allow-clear>
           <template #prefix>
-            <img src="../assets/icons/full/search_icon.svg" alt="search" width="40">
+            <img :src="config.apiBaseUrl + 'icons/full/search_icon.svg'" alt="search" width="40">
           </template>
         </a-input>
         <div class="file-search-filter-icon">
-          <img src="../assets/icons/full/Filter.svg" alt="filter">
+          <img :src="config.apiBaseUrl + 'icons/full/Filter.svg'" alt="filter">
         </div>
       </div>
       <div class="file-breads-box">
@@ -79,7 +79,7 @@
       <!--      </div>-->
       <a-empty class="empty-box"
                v-if="data.files.length === 0"
-               img-src="/src/assets/icons/full/empty-data.svg"
+               :img-src="config.apiBaseUrl + 'icons/full/empty-data.svg'"
                description="暂无文件，请上传文件"
       />
       <file-box class="file-list-box"
@@ -101,6 +101,7 @@ import { reactive } from 'vue'
 import http from '../api/http.js'
 import emitter from '../utils/emitter.js'
 import { useRouter } from 'vue-router'
+import config from '../api/config.js'
 
 export default {
   name: 'DashboardPage',
@@ -186,6 +187,7 @@ export default {
       }
     })
     return {
+      config,
       router,
       data,
       queryBreads,
