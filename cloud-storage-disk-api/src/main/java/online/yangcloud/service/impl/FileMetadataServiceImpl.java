@@ -609,6 +609,9 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
         // 合并文件
         String target = systemRecognition.generateSystemPath() + AppConstants.TMP_PATH + fileMetadata.getHash();
+        if (!FileUtil.exist(systemRecognition.generateSystemPath() + AppConstants.TMP_PATH)) {
+            FileUtil.mkdir(systemRecognition.generateSystemPath() + AppConstants.TMP_PATH);
+        }
         FileUtils.combineFile(target, paths);
 
         // 下载文件

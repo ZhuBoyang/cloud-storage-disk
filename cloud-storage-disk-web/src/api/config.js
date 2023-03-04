@@ -1,7 +1,9 @@
-const apiBaseUrl = 'http://panapi.yangcloud.online/'
+const apiBaseUrl = 'http://localhost:8100/'
+const iconBaseUrl = 'http://panapi.yangcloud.online/'
 
 const config = {
-  apiBaseUrl
+  apiBaseUrl,
+  iconBaseUrl
 }
 
 export default config

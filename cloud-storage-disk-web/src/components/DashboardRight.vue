@@ -7,7 +7,7 @@
     >
       <div class="add-file-btn">
         添加文件
-        <img :src="config.apiBaseUrl + 'icons/full/Plus.svg'" alt="添加文件"/>
+        <img :src="config.iconBaseUrl + 'icons/full/Plus.svg'" alt="添加文件"/>
       </div>
       <div class="file-actions--list"
            :class="[{'is-show': data.showAddBox}]"

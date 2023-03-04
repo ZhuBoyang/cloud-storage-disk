@@ -6,7 +6,7 @@
     >
       <div class="user-info-btn">
         <div class="user-avatar">
-          <img :src="config.apiBaseUrl + 'icons/vue.svg'" alt="username"/>
+          <img :src="config.iconBaseUrl + 'icons/vue.svg'" alt="username"/>
         </div>
         <div class="user-intro">
           <div class="user-info">
@@ -14,7 +14,7 @@
             <div class="user-email">{{ data.user.email }}</div>
           </div>
           <div class="user-more">
-            <img :src="config.apiBaseUrl + 'icons/full/Arrow-Down-2.svg'" alt="more"/>
+            <img :src="config.iconBaseUrl + 'icons/full/Arrow-Down-2.svg'" alt="more"/>
           </div>
         </div>
       </div>

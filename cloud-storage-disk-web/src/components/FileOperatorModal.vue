@@ -8,7 +8,7 @@
     <div class="box-header">
       <div class="box-header--theme">文件{{ identifyOperationName(operationName) }}</div>
       <div class="box-header--close" @click="closeModal">
-        <img :src="config.apiBaseUrl + 'icons/full/Close_Square.svg'" alt="关闭"/>
+        <img :src="config.iconBaseUrl + 'icons/full/Close_Square.svg'" alt="关闭"/>
       </div>
     </div>
     <div class="box-bread">
@@ -29,7 +29,7 @@
       </div>
     </div>
     <div class="box-body-empty" v-else>
-      <a-empty :img-src="config.apiBaseUrl + 'icons/full/empty-data.svg'"/>
+      <a-empty :img-src="config.iconBaseUrl + 'icons/full/empty-data.svg'"/>
     </div>
     <div class="box-footer">
       <a-button type="primary" shape="round" @click="moveToCurrentFolder">{{ identifyOperationName(operationName) }}至此</a-button>

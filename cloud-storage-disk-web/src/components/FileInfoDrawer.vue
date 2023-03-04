@@ -6,11 +6,11 @@
     <div class="file-info-drawer--box">
       <div class="file-avatar" v-if="Object.keys(file).length > 0 && globalProperties.$type.isVideo(file.ext)">
         <div class="file-avatar--img">
-          <img :src="config.apiBaseUrl + 'icons/Video.svg'" alt=""/>
+          <img :src="config.iconBaseUrl + 'icons/Video.svg'" alt=""/>
         </div>
         <div class="file-avatar--play-icon-box row-col-center">
           <div class="file-avatar--play-icon row-col-center cursor-pointer" @click="playVideo(file.id)">
-            <img :src="config.apiBaseUrl + 'icons/video/play.svg'" alt=""/>
+            <img :src="config.iconBaseUrl + 'icons/video/play.svg'" alt=""/>
           </div>
         </div>
       </div>

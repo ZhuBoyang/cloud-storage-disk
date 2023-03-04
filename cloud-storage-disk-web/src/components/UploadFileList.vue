@@ -8,17 +8,17 @@
     <div class="box-header">
       <div class="box-header--info">
         <div class="box-upload-icon">
-          <img :src="config.apiBaseUrl + 'icons/full/Upload.svg'" alt="文件上传"/>
+          <img :src="config.iconBaseUrl + 'icons/full/Upload.svg'" alt="文件上传"/>
         </div>
         <div class="box-upload-title">上传文件</div>
       </div>
       <div class="box-header--close">
-        <img :src="config.apiBaseUrl + 'icons/full/Close_Square.svg'"
+        <img :src="config.iconBaseUrl + 'icons/full/Close_Square.svg'"
              alt="关闭"
              v-if="visible && !data.hideModalVisible && data.upload.uploading.findIndex(item => item.status === 'loading') === -1"
              @click="closeUploadModal"
         />
-        <img :src="config.apiBaseUrl + 'icons/full/Arrow-Up-Circle.svg'"
+        <img :src="config.iconBaseUrl + 'icons/full/Arrow-Up-Circle.svg'"
              alt="显示"
              v-if="visible && data.hideModalVisible"
              @click="data.hideModalVisible = false"
@@ -37,9 +37,9 @@
           <div class="item-name">{{ item.fileName }}</div>
           <div class="item-size">{{ globalProperties.$common.formatSizeInPerson(item.fileSize) }}</div>
           <div class="item-status">
-            <img :src="config.apiBaseUrl + 'icons/full/success.svg'" class="upload-success" alt="成功" v-if="item.status === 'success'"/>
-            <img :src="config.apiBaseUrl + 'icons/full/error.svg'" class="upload-error" alt="失败" v-if="item.status === 'error'"/>
-            <img :src="config.apiBaseUrl + 'icons/full/loading.svg'" class="upload-loading" alt="加载中" v-if="item.status === 'loading'"/>
+            <img :src="config.iconBaseUrl + 'icons/full/success.svg'" class="upload-success" alt="成功" v-if="item.status === 'success'"/>
+            <img :src="config.iconBaseUrl + 'icons/full/error.svg'" class="upload-error" alt="失败" v-if="item.status === 'error'"/>
+            <img :src="config.iconBaseUrl + 'icons/full/loading.svg'" class="upload-loading" alt="加载中" v-if="item.status === 'loading'"/>
           </div>
         </div>
         <div class="item-process">
@@ -221,6 +221,7 @@ export default {
       const blockParam = blocks[0].param
       blockParam.hashList = hashList.join(',')
       http.req(http.url.fileBlock.checkExist, http.methods.form, blockParam).then(response => {
+        console.log('check exist response', response)
         for (let i = 0; i < response.length; i++) {
           if (response[i]) {
             // 文件块已上传，无需再次上传。更新文件上传进度

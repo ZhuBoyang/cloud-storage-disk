@@ -8,7 +8,7 @@
         <div class="pan-logo-label">云存储</div>
       </div>
       <div class="pan-bg">
-        <img :src="config.apiBaseUrl + 'icons/login-bg.png'" alt="登录背景"/>
+        <img :src="config.iconBaseUrl + 'icons/login-bg.png'" alt="登录背景"/>
       </div>
     </div>
     <div class="page-right">

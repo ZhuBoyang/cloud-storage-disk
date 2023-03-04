@@ -40,7 +40,7 @@
             </a-tooltip>
             <a-tooltip content="文件详情">
               <img alt="详情"
-                   :src="config.apiBaseUrl + 'icons/half/Info_Circle.png'"
+                   :src="config.iconBaseUrl + 'icons/half/Info_Circle.png'"
                    @click="fileDetail(item)"
               />
             </a-tooltip>
@@ -51,7 +51,7 @@
         <div class="body--actions row-col-center">
           <a-dropdown trigger="hover" @select="fileChangeEvent($event, item, index)">
             <div class="body--actions-btn row-col-center">
-              <img :src="config.apiBaseUrl + 'icons/full/more.svg'" alt="更多">
+              <img :src="config.iconBaseUrl + 'icons/full/more.svg'" alt="更多">
             </div>
             <template #content>
               <a-doption value="rename">重命名</a-doption>
@@ -73,7 +73,7 @@
     >
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center">
-          <img :src="config.apiBaseUrl + 'icons/full/Download.svg'" alt="下载"/>
+          <img :src="config.iconBaseUrl + 'icons/full/Download.svg'" alt="下载"/>
         </div>
         <template #content>
           <div class="action-trigger">下载</div>
@@ -81,7 +81,7 @@
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center" @click="displayBatchCopy">
-          <img :src="config.apiBaseUrl + 'icons/full/Arrow-Right-2.svg'" alt="复制"/>
+          <img :src="config.iconBaseUrl + 'icons/full/Arrow-Right-2.svg'" alt="复制"/>
         </div>
         <template #content>
           <div class="action-trigger">复制</div>
@@ -89,7 +89,7 @@
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center" @click="displayBatchMove">
-          <img :src="config.apiBaseUrl + 'icons/half/Arrow-Right-2.png'" alt="移动"/>
+          <img :src="config.iconBaseUrl + 'icons/half/Arrow-Right-2.png'" alt="移动"/>
         </div>
         <template #content>
           <div class="action-trigger">移动</div>
@@ -97,7 +97,7 @@
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center" @click="data.batchRemove.visible = true">
-          <img :src="config.apiBaseUrl + 'icons/full/Delete.svg'" alt="删除"/>
+          <img :src="config.iconBaseUrl + 'icons/full/Delete.svg'" alt="删除"/>
         </div>
         <template #content>
           <div class="action-trigger">删除</div>
@@ -105,7 +105,7 @@
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center" @click="clearSelected">
-          <img :src="config.apiBaseUrl + 'icons/full/Close_Square.svg'" alt="取消"/>
+          <img :src="config.iconBaseUrl + 'icons/full/Close_Square.svg'" alt="取消"/>
         </div>
         <template #content>
           <div class="action-trigger">取消</div>
