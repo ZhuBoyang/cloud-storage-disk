@@ -2,6 +2,7 @@ package online.yangcloud.controller;
 
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.StrUtil;
+import online.yangcloud.annotation.SessionValid;
 import online.yangcloud.common.ResultBean;
 import online.yangcloud.common.ResultData;
 import online.yangcloud.common.resultcode.AppResultCode;
@@ -37,6 +38,7 @@ public class FileController {
      * @param user    当前登录的用户
      * @return result
      */
+    @SessionValid
     @PostMapping("/mkdir")
     public ResultData mkdir(@RequestBody MkdirRequest request, User user) {
         FileMetadataView fileView = fileMetadataService.mkdir(request.getPid(), request.getFileName(), user);
@@ -50,6 +52,7 @@ public class FileController {
      * @param user          当前登录的用户
      * @return result
      */
+    @SessionValid
     @PostMapping("/batch_delete")
     public ResultData batchDeleteFiles(@RequestBody BatchDeleteRequest deleteRequest, User user) {
         List<String> fileIds = CharSequenceUtil.split(deleteRequest.getFileString(), StrUtil.COMMA);
@@ -67,6 +70,7 @@ public class FileController {
      * @param user             当前登录的用户
      * @return result
      */
+    @SessionValid
     @PostMapping("/batch_move")
     public ResultData batchMoveFiles(@RequestBody FileBatchOperationRequest operationRequest, User user) {
         ResultBean<?> resultBean = fileMetadataService.batchMoveFiles(operationRequest.getSources(), operationRequest.getTarget(), user);
@@ -83,6 +87,7 @@ public class FileController {
      * @param user             当前登录的用户
      * @return result
      */
+    @SessionValid
     @PostMapping("/batch_copy")
     public ResultData batchCopyFiles(@RequestBody FileBatchOperationRequest operationRequest, User user) {
         ResultBean<?> resultBean = fileMetadataService.batchCopyFiles(operationRequest.getSources(), operationRequest.getTarget(), user);
@@ -99,6 +104,7 @@ public class FileController {
      * @param user          当前登录的用户
      * @return result
      */
+    @SessionValid
     @PostMapping("/rename")
     public ResultData renameFile(@RequestBody FileRenameRequest renameRequest, User user) {
         FileMetadata file = fileMetadataService.rename(renameRequest, user);
@@ -111,6 +117,7 @@ public class FileController {
      * @param playRequest 文件 id
      * @return result
      */
+    @SessionValid
     @PostMapping("/play_url")
     public ResultData getFilePlayUrl(@RequestBody FilePlayRequest playRequest) throws EncoderException {
         FilePlayView playUrl = fileMetadataService.findPlayUrl(playRequest.getFileId());
@@ -124,6 +131,7 @@ public class FileController {
      * @param user 当前登录的用户
      * @return result
      */
+    @SessionValid
     @GetMapping("/breads")
     public ResultData queryFileBreads(@RequestParam(defaultValue = "") String id, User user) {
         List<FileBreadView> breads = fileMetadataService.queryFileBreads(id, user);
@@ -137,6 +145,7 @@ public class FileController {
      * @param user          当前登录的用户
      * @return result
      */
+    @SessionValid
     @GetMapping("/list")
     public ResultData queryFiles(FileSearchRequest searchRequest, User user) {
         List<FileMetadataView> views = fileMetadataService.queryFiles(searchRequest, user);
@@ -149,6 +158,7 @@ public class FileController {
      * @param queryRequest 父级目录 id
      * @return result
      */
+    @SessionValid
     @GetMapping("/dir_breads")
     public ResultData queryDirBreads(DirBreadsQueryRequest queryRequest) {
         List<FileBreadView> breads = fileMetadataService.queryDirBreads(queryRequest.getParentId());
@@ -162,6 +172,7 @@ public class FileController {
      * @param user          当前登录的用户
      * @return result
      */
+    @SessionValid
     @GetMapping("/dirs")
     public ResultData queryDirs(DirsSearchRequest searchRequest, User user) {
         List<FileMetadata> dirs = fileMetadataService.queryDirs(searchRequest.getParentId(), searchRequest.getSize(), user);
@@ -174,6 +185,7 @@ public class FileController {
      * @param fileId   文件 id
      * @param response 响应
      */
+    @SessionValid
     @GetMapping("/download/{fileId}")
     public void download(@PathVariable String fileId, HttpServletResponse response) {
         fileMetadataService.download(fileId, response);

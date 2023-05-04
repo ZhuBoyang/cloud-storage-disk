@@ -1,5 +1,6 @@
 package online.yangcloud.controller;
 
+import online.yangcloud.annotation.SessionValid;
 import online.yangcloud.common.ResultBean;
 import online.yangcloud.common.ResultData;
 import online.yangcloud.common.constants.UserConstants;
@@ -79,6 +80,7 @@ public class UserController {
      * @param request 请求
      * @return result
      */
+    @SessionValid
     @PostMapping("/logout")
     public ResultData logout(HttpServletRequest request) {
         String authorization = request.getHeader(UserConstants.AUTHORIZATION);
@@ -92,6 +94,7 @@ public class UserController {
      * @param pwdRequest 请求
      * @return result
      */
+    @SessionValid
     @PostMapping("/reset")
     public ResultData resetPwd(@RequestBody ResetPwdRequest pwdRequest) {
         UserUpdateRequest updateRequest = new UserUpdateRequest().setEmail(pwdRequest.getEmail()).setPassword(pwdRequest.getPassword());

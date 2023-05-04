@@ -8,7 +8,7 @@ spring:
     # datasource name
     name: defaultDataSource
     # database url
-    url: "jdbc:mysql://tencent_cloud3:3306/cloud_storage_disk?useSSL=false&\
+    url: "jdbc:mysql://mysql:3306/cloud_storage_disk?useSSL=false&\
       useUnicode=true&\
       characterEncoding=UTF-8&\
       allowMultiQueries=true&\
@@ -40,7 +40,7 @@ spring:
       max-request-size: 100MB
   # redis config
   redis:
-    host: tencent_cloud3
+    host: redis
     port: 6379
     database: 0
     password: Jhxz951129Jhxz

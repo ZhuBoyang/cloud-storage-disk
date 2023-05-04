@@ -1,4 +1,4 @@
-const apiBaseUrl = 'http://localhost:8100/'
+const apiBaseUrl = 'http://panapi.yangcloud.online/'
 const iconBaseUrl = 'http://panapi.yangcloud.online/'
 
 const config = {

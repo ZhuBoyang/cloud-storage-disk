@@ -1,6 +1,7 @@
 package online.yangcloud.controller;
 
 import cn.hutool.core.text.CharSequenceUtil;
+import online.yangcloud.annotation.SessionValid;
 import online.yangcloud.common.ResultData;
 import online.yangcloud.exception.ParamErrorException;
 import online.yangcloud.model.ao.file.BlockCheckExistRequest;
@@ -43,6 +44,7 @@ public class FileBlockController {
      * @param existRequest 文件块参数
      * @return result
      */
+    @SessionValid
     @PostMapping("/check_exist")
     public ResultData checkBlockExist(@RequestBody BlockCheckExistRequest existRequest) {
         List<Boolean> checkResults = blockMetadataService.checkBlocksExist(existRequest);
@@ -55,6 +57,7 @@ public class FileBlockController {
      * @param upload 上传的文件参数
      * @return result
      */
+    @SessionValid
     @PostMapping("/upload")
     public ResultData uploadFile(BlockUpload upload) throws IOException {
         // 校验父级目录 id 是否正常
@@ -73,6 +76,7 @@ public class FileBlockController {
      * @param user         当前登录的用户
      * @return result
      */
+    @SessionValid
     @PostMapping("/merge")
     public ResultData mergeFile(@RequestBody FileMergeRequest mergeRequest, User user) {
         FileMetadataView fileView = fileBlockService.mergeFile(mergeRequest.getIdentifier(), mergeRequest.getFileHash(), user);

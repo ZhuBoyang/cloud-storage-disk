@@ -78,11 +78,23 @@ const formatTime = (timestamp) => {
       `${seconds < 10 ? '0' + seconds : seconds}`
 }
 
+// 读取本地文件函数
+const readLocalFile = (fileUrl) => {
+  // eslint-disable-next-line no-undef
+  const xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP')
+  const okStatus = document.location.protocol === 'file' ? 0 : 200
+  xhr.open('GET', fileUrl, false)
+  xhr.overrideMimeType('text/html;charset=utf-8')
+  xhr.send(null)
+  return xhr.status === okStatus ? xhr.responseText : null
+}
+
 const common = {
   identifyFileIcon,
   formatSizeInPerson,
   jumpUrl,
-  formatTime
+  formatTime,
+  readLocalFile
 }
 
 export default common

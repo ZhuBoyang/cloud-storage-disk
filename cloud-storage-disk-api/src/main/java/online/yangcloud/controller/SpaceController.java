@@ -1,6 +1,7 @@
 package online.yangcloud.controller;
 
 import cn.hutool.core.util.StrUtil;
+import online.yangcloud.annotation.SessionValid;
 import online.yangcloud.common.ResultData;
 import online.yangcloud.model.vo.SystemDiskInfoView;
 import online.yangcloud.utils.SystemUtils;
@@ -23,6 +24,7 @@ public class SpaceController {
      *
      * @return result
      */
+    @SessionValid
     @GetMapping("/disk")
     public ResultData getDiskSpaceInfo() {
         SystemDiskInfoView diskInfo = SystemUtils.findDiskInfo(StrUtil.SLASH);
