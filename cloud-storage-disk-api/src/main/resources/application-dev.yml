@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    # database url
+    url: "jdbc:mysql://localhost:3306/cloud-storage-disk?useSSL=false&\
+      useUnicode=true&\
+      characterEncoding=UTF-8&\
+      allowMultiQueries=true&\
+      allowPublicKeyRetrieval=true&\
+      serverTimezone"
+    # username and password of database
+    username: root
+    password: Jhxz951129Jhxz
+  # redis config
+  redis:
+    host: tencent_cloud3
+    password: Jhxz951129Jhxz

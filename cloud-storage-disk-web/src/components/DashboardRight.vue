@@ -7,41 +7,44 @@
     >
       <div class="add-file-btn">
         添加文件
-        <img :src="config.iconBaseUrl + 'icons/full/Plus.svg'" alt="添加文件"/>
+        <img :src="apiConfig().iconBaseUrl + 'icons/Plus.png'" alt="添加文件"/>
       </div>
       <div class="file-actions--list"
-           :class="[{'is-show': data.showAddBox}]"
+           :class="[{'is-show': showAddBox}]"
       >
         <div class="file-actions--list-item" @click="showUploadModal">上传文件</div>
-        <div class="file-actions--list-item" @click="data.mkdir.mkdirVisible = true">创建文件夹</div>
+        <div class="file-actions--list-item" @click="mkdir.mkdirVisible = true">创建文件夹</div>
       </div>
     </div>
     <div class="disk-space-monitor">
       <circular-progress class="storage-progress"
-                         :percent="parseInt(((data.systemSpace.used / data.systemSpace.total) * 100).toString())"
+                         :percent="parseInt(((systemSpace.used / systemSpace.total) * 100).toString())"
       ></circular-progress>
       <div class="disk-space-info">
-        <div class="disk-space-info-item">{{ globalProperties.$common.formatSizeInPerson(data.systemSpace.used) }}</div>
+        <div class="disk-space-info-item">{{ globalProperties.common.formatSizeInPerson(systemSpace.used) }}</div>
         <div class="disk-space-info-item">/</div>
-        <div class="disk-space-info-item">{{ globalProperties.$common.formatSizeInPerson(data.systemSpace.total) }}</div>
+        <div class="disk-space-info-item">{{ globalProperties.common.formatSizeInPerson(systemSpace.total) }}</div>
       </div>
     </div>
-    <upload-file-list :visible="data.uploadVisible"
+    <upload-file-list :visible="upload.visible"
+                      :check-block-exist-url="upload.checkExist"
+                      :upload-block-url="upload.blockUploadUrl"
+                      :merge-url="upload.mergeUrl"
                       @on-change="hideUploadModal"
     ></upload-file-list>
   </div>
   <!-- 新建文件夹 -->
-  <a-modal :visible="data.mkdir.mkdirVisible"
+  <a-modal :visible="mkdir.mkdirVisible"
            @ok="submitMkdir"
-           @cancel="data.mkdir.mkdirVisible = false"
+           @cancel="mkdir.mkdirVisible = false"
            @close="closeMkdir"
   >
     <template #title>新建文件夹</template>
-    <a-form :model="data.mkdir.form"
+    <a-form :model="mkdir.form"
             layout="vertical"
     >
       <a-form-item field="fileName" label="文件夹名称">
-        <a-input v-model="data.mkdir.form.fileName" placeholder="请输入文件夹名称"/>
+        <a-input v-model="mkdir.form.fileName" placeholder="请输入文件夹名称"/>
       </a-form-item>
     </a-form>
   </a-modal>
@@ -49,13 +52,13 @@
 
 <script>
 import LoginUserAction from './LoginUserAction.vue'
-import UploadFileList from './UploadFileList.vue'
+import UploadFileList from './UploadComponent.vue'
 import CircularProgress from '../components/custom/CircularProgress.vue'
-import { getCurrentInstance, reactive } from 'vue'
+import { getCurrentInstance, reactive, toRefs } from 'vue'
 import http from '../api/http.js'
 import emitter from '../utils/emitter.js'
 import { useRouter } from 'vue-router'
-import config from '../api/config.js'
+import apiConfig from '../api/apiConfig.js'
 
 export default {
   name: 'DashboardRight',
@@ -76,9 +79,14 @@ export default {
     const { appContext } = getCurrentInstance()
     const { globalProperties } = appContext.config
     const router = useRouter()
-    const data = reactive({
+    const dataList = reactive({
       showAddBox: false, // 是否显示添加文件的下拉框
-      uploadVisible: false, // 是否显示上传文件的弹窗
+      upload: {
+        visible: false, // 是否显示上传文件的弹窗
+        checkExist: http.url.file.checkExist, // 检测文件块是否已上传
+        blockUploadUrl: http.url.file.uploadBlocks, // 文件块上传地址
+        mergeUrl: http.url.file.mergeFile // 文件合并地址
+      },
       mkdir: {
         mkdirVisible: false, // 是否显示新建文件夹的弹窗
         form: {
@@ -92,22 +100,22 @@ export default {
     })
     emitter.on('disk-space-change', record => {
       const { size } = record
-      data.systemSpace.used += size
+      dataList.systemSpace.used += size
     })
     return {
-      config,
       globalProperties,
       router,
-      data
+      ...toRefs(dataList)
     }
   },
   created () {
     this.getDiskInfo()
   },
   methods: {
+    apiConfig,
     // 提交新建文件夹的请求
     submitMkdir () {
-      const fileName = this.data.mkdir.form.fileName
+      const fileName = this.mkdir.form.fileName
       if (fileName.trim() === '') {
         this.$notification.warning('请输入文件夹名称')
         return
@@ -119,37 +127,37 @@ export default {
       }
       http.req(http.url.file.mkdir, http.methods.post, param).then(response => {
         emitter.emit('mkdir-change', response)
-        this.data.mkdir.mkdirVisible = false
+        this.mkdir.mkdirVisible = false
       })
     },
     // 查询系统磁盘空间使用量
     getDiskInfo () {
       http.req(http.url.systemSpace.diskInfo, http.methods.get).then(response => {
         const { total, used } = response
-        this.data.systemSpace.total = total
-        this.data.systemSpace.used = used
+        this.systemSpace.total = total
+        this.systemSpace.used = used
       })
     },
     // 关闭新建文件夹的窗口后清空变量的值
     closeMkdir () {
-      this.data.mkdir.form.fileName = ''
+      this.mkdir.form.fileName = ''
     },
     // 显示添加文件的下拉框
     showMoreFileDropdown () {
-      this.data.showAddBox = true
+      this.showAddBox = true
     },
     // 隐藏添加文件的下拉框
     hideMoreFileDropdown () {
-      this.data.showAddBox = false
+      this.showAddBox = false
     },
     // 显示上传文件的窗口
     showUploadModal () {
-      this.data.uploadVisible = true
+      this.upload.visible = true
     },
     // 隐藏上传文件的窗口
     hideUploadModal (record) {
       const { visible } = record
-      this.data.uploadVisible = visible
+      this.upload.visible = visible
     }
   }
 }

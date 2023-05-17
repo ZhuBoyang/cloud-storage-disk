@@ -6,18 +6,22 @@ import online.yangcloud.annotation.SessionValid;
 import online.yangcloud.common.ResultBean;
 import online.yangcloud.common.ResultData;
 import online.yangcloud.common.resultcode.AppResultCode;
+import online.yangcloud.exception.ParamErrorException;
+import online.yangcloud.model.FileMetadata;
+import online.yangcloud.model.User;
 import online.yangcloud.model.ao.file.*;
-import online.yangcloud.model.po.FileMetadata;
-import online.yangcloud.model.po.User;
 import online.yangcloud.model.vo.file.FileBreadView;
 import online.yangcloud.model.vo.file.FileMetadataView;
 import online.yangcloud.model.vo.file.FilePlayView;
-import online.yangcloud.service.FileMetadataService;
-import org.springframework.beans.factory.annotation.Autowired;
+import online.yangcloud.service.FileService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import ws.schild.jave.EncoderException;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -27,9 +31,56 @@ import java.util.List;
 @RestController
 @RequestMapping("/file")
 public class FileController {
+    
+    private static final Logger logger = LoggerFactory.getLogger(FileController.class);
 
-    @Autowired
-    private FileMetadataService fileMetadataService;
+    @Resource
+    private FileService fileService;
+
+    /**
+     * 检测文件块是否已入库
+     *
+     * @param uploader 文件块参数
+     * @return result
+     */
+    @SessionValid
+    @PostMapping("/check_exist")
+    public ResultData checkBlockExist(@RequestBody BlockUploader uploader) {
+        Boolean isExist = fileService.checkBlocksExist(uploader);
+        return ResultData.success(isExist);
+    }
+
+    /**
+     * 上传文件
+     *
+     * @param uploader 上传的文件参数
+     * @return result
+     */
+    @SessionValid
+    @PostMapping("/upload")
+    public ResultData uploadFile(BlockUploader uploader) throws IOException {
+        // 校验父级目录 id 是否正常
+        if (CharSequenceUtil.isBlank(uploader.getPid())) {
+            logger.error("parent directory id not detected");
+            throw new ParamErrorException();
+        }
+        fileService.uploadFileBlock(uploader);
+        return ResultData.success(Boolean.TRUE);
+    }
+
+    /**
+     * 文件合并
+     *
+     * @param mergeRequest 请求参数
+     * @param user         当前登录的用户
+     * @return result
+     */
+    @SessionValid
+    @PostMapping("/merge")
+    public ResultData mergeFile(@RequestBody FileMergeRequest mergeRequest, User user) throws IOException {
+        FileMetadataView fileView = fileService.mergeFile(mergeRequest.getIdentifier(), mergeRequest.getFileHash(), user);
+        return ResultData.success(fileView);
+    }
 
     /**
      * 新建文件夹
@@ -41,7 +92,7 @@ public class FileController {
     @SessionValid
     @PostMapping("/mkdir")
     public ResultData mkdir(@RequestBody MkdirRequest request, User user) {
-        FileMetadataView fileView = fileMetadataService.mkdir(request.getPid(), request.getFileName(), user);
+        FileMetadataView fileView = fileService.mkdir(request.getPid(), request.getFileName(), user);
         return ResultData.success(fileView);
     }
 
@@ -56,7 +107,7 @@ public class FileController {
     @PostMapping("/batch_delete")
     public ResultData batchDeleteFiles(@RequestBody BatchDeleteRequest deleteRequest, User user) {
         List<String> fileIds = CharSequenceUtil.split(deleteRequest.getFileString(), StrUtil.COMMA);
-        ResultBean<?> resultBean = fileMetadataService.batchDeleteFile(fileIds, user);
+        ResultBean<?> resultBean = fileService.batchDeleteFile(fileIds, user);
         if (resultBean.isSuccess()) {
             return ResultData.success(AppResultCode.SUCCESS);
         }
@@ -73,7 +124,7 @@ public class FileController {
     @SessionValid
     @PostMapping("/batch_move")
     public ResultData batchMoveFiles(@RequestBody FileBatchOperationRequest operationRequest, User user) {
-        ResultBean<?> resultBean = fileMetadataService.batchMoveFiles(operationRequest.getSources(), operationRequest.getTarget(), user);
+        ResultBean<?> resultBean = fileService.batchMoveFiles(operationRequest.getSources(), operationRequest.getTarget(), user);
         if (resultBean.isSuccess()) {
             return ResultData.success(resultBean.getResultCode());
         }
@@ -90,7 +141,7 @@ public class FileController {
     @SessionValid
     @PostMapping("/batch_copy")
     public ResultData batchCopyFiles(@RequestBody FileBatchOperationRequest operationRequest, User user) {
-        ResultBean<?> resultBean = fileMetadataService.batchCopyFiles(operationRequest.getSources(), operationRequest.getTarget(), user);
+        ResultBean<?> resultBean = fileService.batchCopyFiles(operationRequest.getSources(), operationRequest.getTarget(), user);
         if (resultBean.isSuccess()) {
             return ResultData.success(resultBean.getResultCode());
         }
@@ -107,7 +158,7 @@ public class FileController {
     @SessionValid
     @PostMapping("/rename")
     public ResultData renameFile(@RequestBody FileRenameRequest renameRequest, User user) {
-        FileMetadata file = fileMetadataService.rename(renameRequest, user);
+        FileMetadata file = fileService.rename(renameRequest, user);
         return ResultData.success(file);
     }
 
@@ -120,7 +171,7 @@ public class FileController {
     @SessionValid
     @PostMapping("/play_url")
     public ResultData getFilePlayUrl(@RequestBody FilePlayRequest playRequest) throws EncoderException {
-        FilePlayView playUrl = fileMetadataService.findPlayUrl(playRequest.getFileId());
+        FilePlayView playUrl = fileService.findPlayUrl(playRequest.getFileId());
         return ResultData.success(playUrl);
     }
 
@@ -134,7 +185,7 @@ public class FileController {
     @SessionValid
     @GetMapping("/breads")
     public ResultData queryFileBreads(@RequestParam(defaultValue = "") String id, User user) {
-        List<FileBreadView> breads = fileMetadataService.queryFileBreads(id, user);
+        List<FileBreadView> breads = fileService.queryFileBreads(id, user);
         return ResultData.success(breads);
     }
 
@@ -148,7 +199,7 @@ public class FileController {
     @SessionValid
     @GetMapping("/list")
     public ResultData queryFiles(FileSearchRequest searchRequest, User user) {
-        List<FileMetadataView> views = fileMetadataService.queryFiles(searchRequest, user);
+        List<FileMetadataView> views = fileService.queryFiles(searchRequest, user);
         return ResultData.success(views);
     }
 
@@ -161,7 +212,7 @@ public class FileController {
     @SessionValid
     @GetMapping("/dir_breads")
     public ResultData queryDirBreads(DirBreadsQueryRequest queryRequest) {
-        List<FileBreadView> breads = fileMetadataService.queryDirBreads(queryRequest.getParentId());
+        List<FileBreadView> breads = fileService.queryDirBreads(queryRequest.getParentId());
         return ResultData.success(breads);
     }
 
@@ -175,7 +226,7 @@ public class FileController {
     @SessionValid
     @GetMapping("/dirs")
     public ResultData queryDirs(DirsSearchRequest searchRequest, User user) {
-        List<FileMetadata> dirs = fileMetadataService.queryDirs(searchRequest.getParentId(), searchRequest.getSize(), user);
+        List<FileMetadata> dirs = fileService.queryDirs(searchRequest.getParentId(), searchRequest.getSize(), user);
         return ResultData.success(dirs);
     }
 
@@ -185,10 +236,9 @@ public class FileController {
      * @param fileId   文件 id
      * @param response 响应
      */
-    @SessionValid
     @GetMapping("/download/{fileId}")
     public void download(@PathVariable String fileId, HttpServletResponse response) {
-        fileMetadataService.download(fileId, response);
+        fileService.download(fileId, response);
     }
 
 }

@@ -6,7 +6,7 @@
     >
       <div class="user-info-btn">
         <div class="user-avatar">
-          <img :src="config.iconBaseUrl + 'icons/vue.svg'" alt="username"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/ppt.png'" alt="username"/>
         </div>
         <div class="user-intro">
           <div class="user-info">
@@ -14,7 +14,7 @@
             <div class="user-email">{{ data.user.email }}</div>
           </div>
           <div class="user-more">
-            <img :src="config.iconBaseUrl + 'icons/full/Arrow-Down-2.svg'" alt="more"/>
+            <img :src="apiConfig().iconBaseUrl + 'icons//Arrow-Down2.png'" alt="more"/>
           </div>
         </div>
       </div>
@@ -32,7 +32,7 @@
 import http from '../api/http.js'
 import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import config from '../api/config.js'
+import apiConfig from '../api/apiConfig.js'
 
 export default {
   name: 'LoginUserAction',
@@ -43,7 +43,6 @@ export default {
       user: {} // 用户信息
     })
     return {
-      config,
       router,
       data
     }
@@ -52,6 +51,7 @@ export default {
     this.identifyUserInfo()
   },
   methods: {
+    apiConfig,
     // 获取当前登录的用户信息
     identifyUserInfo () {
       const userJson = localStorage.getItem('user')

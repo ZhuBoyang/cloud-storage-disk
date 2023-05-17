@@ -4,7 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import online.yangcloud.annotation.SessionValid;
 import online.yangcloud.common.ResultData;
 import online.yangcloud.model.vo.SystemDiskInfoView;
-import online.yangcloud.utils.SystemUtils;
+import online.yangcloud.utils.SystemTools;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,7 +27,7 @@ public class SpaceController {
     @SessionValid
     @GetMapping("/disk")
     public ResultData getDiskSpaceInfo() {
-        SystemDiskInfoView diskInfo = SystemUtils.findDiskInfo(StrUtil.SLASH);
+        SystemDiskInfoView diskInfo = SystemTools.findDiskInfo(StrUtil.SLASH);
         return ResultData.success(diskInfo);
     }
 

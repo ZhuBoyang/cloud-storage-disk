@@ -7,7 +7,8 @@ import { ArcoResolver } from 'unplugin-vue-components/resolvers'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue(),
+  plugins: [
+    vue(),
     // 添加下面这块
     eslintPlugin({
       include: ['src/**/*.js', 'src/**/*.vue', 'src/*.js', 'src/*.vue']
@@ -21,5 +22,9 @@ export default defineConfig({
           sideEffect: true
         })
       ]
-    })]
+    })
+  ],
+  define: {
+    'process.env': process.env
+  }
 })

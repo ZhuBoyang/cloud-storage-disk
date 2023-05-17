@@ -5,7 +5,7 @@
            :style="{width: width === 0 ? '800px' : width + 'px', height: height === 0 ? '400px' : height + 'px'}"
       >
         <div class="player--box-close" @click="closePlayer">
-          <img :src="config.iconBaseUrl + 'icons/full/Close_Square.svg'" alt="关闭"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/Close_Square.png'" alt="关闭"/>
         </div>
         <video-player class="player-box" :src="src" autoplay/>
       </div>
@@ -15,7 +15,7 @@
 
 <script>
 import VideoPlayer from './custom/VideoPlayer.vue'
-import config from '../api/config.js'
+import apiConfig from '../api/apiConfig.js'
 
 export default {
   name: 'PlayerModal',
@@ -39,11 +39,11 @@ export default {
   emits: ['on-close'],
   setup (props, { emit }) {
     return {
-      config,
       emit
     }
   },
   methods: {
+    apiConfig,
     // 关闭播放器
     closePlayer () {
       this.emit('on-close')

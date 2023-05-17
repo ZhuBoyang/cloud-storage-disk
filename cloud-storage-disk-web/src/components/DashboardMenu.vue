@@ -7,19 +7,19 @@
     <div class="dashboard-menu">
       <div class="menu-item is-selected">
         <div class="menu-icon">
-          <img :src="config.iconBaseUrl + 'icons/full/Category.svg'" alt="dashboard">
+          <img :src="apiConfig().iconBaseUrl + 'icons/Category.png'" alt="dashboard">
         </div>
         <div class="menu-name">仪表盘</div>
       </div>
       <div class="menu-item">
         <div class="menu-icon">
-          <img :src="config.iconBaseUrl + 'icons/full/Heart.svg'" alt="Stared">
+          <img :src="apiConfig().iconBaseUrl + 'icons/Heart.png'" alt="Stared">
         </div>
         <div class="menu-name">关注的</div>
       </div>
       <div class="menu-item">
         <div class="menu-icon">
-          <img :src="config.iconBaseUrl + 'icons/full/Delete.svg'" alt="Deleted">
+          <img :src="apiConfig().iconBaseUrl + 'icons/Delete.png'" alt="Deleted">
         </div>
         <div class="menu-name">已删除的</div>
       </div>
@@ -28,14 +28,12 @@
 </template>
 
 <script>
-import config from '../api/config.js'
+import apiConfig from '../api/apiConfig.js'
 
 export default {
   name: 'DashboardMenu',
-  setup () {
-    return {
-      config
-    }
+  methods: {
+    apiConfig
   }
 }
 </script>

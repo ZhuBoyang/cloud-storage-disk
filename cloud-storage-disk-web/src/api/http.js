@@ -1,10 +1,9 @@
 import axios from 'axios'
-import config from './config.js'
+import apiConfig from './apiConfig.js'
 import { Notification } from '@arco-design/web-vue'
 
 const service = axios.create({
-  baseURL: config.apiBaseUrl,
-  // timeout: 20000,
+  baseURL: apiConfig().apiBaseUrl,
   headers: {
     'content-type': 'application/json;charset=utf-8'
   }
@@ -45,13 +44,15 @@ service.interceptors.request.use(config => {
 
 const modules = {
   file: 'file/', // 文件相关
-  fileBlock: 'file_block/', // 文件块相关
   user: 'user/', // 用户相关
   systemSpace: 'space/' // 系统空间
 }
 
 const url = {
   file: {
+    checkExist: modules.file + 'check_exist', // 检查文件块是否已入库
+    uploadBlocks: modules.file + 'upload', // 上传文件块
+    mergeFile: modules.file + 'merge', // 文件合并
     mkdir: modules.file + 'mkdir', // 新建文件夹
     batchDelete: modules.file + 'batch_delete', // 批量删除文件
     batchMove: modules.file + 'batch_move', // 批量移动文件及文件夹
@@ -63,11 +64,6 @@ const url = {
     dirBreads: modules.file + 'dir_breads', // 查询文件夹的面包屑导航数据
     dirs: modules.file + 'dirs', // 查询目录下次一级的所有文件夹
     download: modules.file + 'download/' // 文件下载
-  },
-  fileBlock: {
-    checkExist: modules.fileBlock + 'check_exist', // 检查文件块是否已入库
-    uploadBlocks: modules.fileBlock + 'upload', // 上传文件块
-    mergeFile: modules.fileBlock + 'merge' // 文件合并
   },
   user: {
     register: modules.user + 'register', // 用户注册

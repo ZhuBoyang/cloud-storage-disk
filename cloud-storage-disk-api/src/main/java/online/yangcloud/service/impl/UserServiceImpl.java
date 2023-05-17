@@ -12,13 +12,13 @@ import online.yangcloud.common.ResultBean;
 import online.yangcloud.common.constants.UserConstants;
 import online.yangcloud.common.resultcode.AppResultCode;
 import online.yangcloud.exception.BusinessException;
+import online.yangcloud.mapper.UserMapper;
+import online.yangcloud.model.User;
 import online.yangcloud.model.ao.user.UserUpdateRequest;
-import online.yangcloud.model.mapper.UserMapper;
-import online.yangcloud.model.po.User;
 import online.yangcloud.model.vo.user.LoginView;
 import online.yangcloud.model.vo.user.UserView;
 import online.yangcloud.service.UserService;
-import online.yangcloud.utils.RedisUtil;
+import online.yangcloud.utils.RedisTools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
     private UserMapper userMapper;
 
     @Autowired
-    private RedisUtil redisUtil;
+    private RedisTools redisTools;
 
     @Override
     public ResultBean<UserView> addUser(String userName, String email, String password) {
@@ -142,7 +142,7 @@ public class UserServiceImpl implements UserService {
         // 将登录信息记录到 redis 中
         LoginView loginView = BeanUtil.copyProperties(user, LoginView.class);
         String sessionId = IdUtil.fastSimpleUUID();
-        redisUtil.expire(UserConstants.LOGIN_SESSION + sessionId, JSONUtil.toJsonStr(loginView), UserConstants.LOGIN_SESSION_EXPIRE_TIME, TimeUnit.SECONDS);
+        redisTools.expire(UserConstants.LOGIN_SESSION + sessionId, JSONUtil.toJsonStr(loginView), UserConstants.LOGIN_SESSION_EXPIRE_TIME, TimeUnit.SECONDS);
 
         // 封装视图数据，并返回
         return ResultBean.resultCode(AppResultCode.SUCCESS.clone("登录成功"), loginView.setSessionId(sessionId));

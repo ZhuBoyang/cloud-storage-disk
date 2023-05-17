@@ -23,13 +23,14 @@
         </div>
         <div class="body--icon row-col-center">
           <div class="body--icon-img row-col-center">
-            <img :src="globalProperties.$common.identifyFileIcon(item)" alt="文件"/>
+            <img :src="globalProperties.common.identifyFileIcon(item)" alt="文件"/>
           </div>
         </div>
         <div class="body--name">
           <div class="body--name-content"
                @click="clickFile(item)"
-          >{{ item.type === 1 ? item.name : item.name + '.' + item.ext }}</div>
+          >{{ item.type === 1 || item.ext === '' ? item.name : item.name + item.ext }}
+          </div>
           <div class="body--name-runner">
             <a-tooltip :content="identifyOpenFileIcon(item.ext).content">
               <img v-if="Object.keys(identifyOpenFileIcon(item.ext)).length > 0"
@@ -40,18 +41,18 @@
             </a-tooltip>
             <a-tooltip content="文件详情">
               <img alt="详情"
-                   :src="config.iconBaseUrl + 'icons/half/Info_Circle.png'"
+                   :src="apiConfig().iconBaseUrl + 'icons/Info_Circle.png'"
                    @click="fileDetail(item)"
               />
             </a-tooltip>
           </div>
         </div>
         <div class="body--category">{{ item.type === 1 ? '文件夹' : `${item.ext} 文件` }}</div>
-        <div class="body--size">{{ item.type === 1 ? '' : globalProperties.$common.formatSizeInPerson(item.size) }}</div>
+        <div class="body--size">{{ item.type === 1 ? '' : globalProperties.common.formatSizeInPerson(item.size) }}</div>
         <div class="body--actions row-col-center">
           <a-dropdown trigger="hover" @select="fileChangeEvent($event, item, index)">
             <div class="body--actions-btn row-col-center">
-              <img :src="config.iconBaseUrl + 'icons/full/more.svg'" alt="更多">
+              <img :src="apiConfig().iconBaseUrl + 'icons/more.png'" alt="更多">
             </div>
             <template #content>
               <a-doption value="rename">重命名</a-doption>
@@ -73,7 +74,7 @@
     >
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center">
-          <img :src="config.iconBaseUrl + 'icons/full/Download.svg'" alt="下载"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/Download.png'" alt="下载"/>
         </div>
         <template #content>
           <div class="action-trigger">下载</div>
@@ -81,7 +82,7 @@
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center" @click="displayBatchCopy">
-          <img :src="config.iconBaseUrl + 'icons/full/Arrow-Right-2.svg'" alt="复制"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/Arrow-Right-2.png'" alt="复制"/>
         </div>
         <template #content>
           <div class="action-trigger">复制</div>
@@ -89,7 +90,7 @@
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center" @click="displayBatchMove">
-          <img :src="config.iconBaseUrl + 'icons/half/Arrow-Right-2.png'" alt="移动"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/Arrow-Right-2.png'" alt="移动"/>
         </div>
         <template #content>
           <div class="action-trigger">移动</div>
@@ -97,7 +98,7 @@
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center" @click="data.batchRemove.visible = true">
-          <img :src="config.iconBaseUrl + 'icons/full/Delete.svg'" alt="删除"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/Delete.png'" alt="删除"/>
         </div>
         <template #content>
           <div class="action-trigger">删除</div>
@@ -105,7 +106,7 @@
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center" @click="clearSelected">
-          <img :src="config.iconBaseUrl + 'icons/full/Close_Square.svg'" alt="取消"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/Close_Square.png'" alt="取消"/>
         </div>
         <template #content>
           <div class="action-trigger">取消</div>
@@ -158,7 +159,7 @@ import FileOperatorModal from './FileOperatorModal.vue'
 import PlayerModal from './PlayerModal.vue'
 import { getCurrentInstance, reactive } from 'vue'
 import http from '../api/http.js'
-import config from '../api/config.js'
+import apiConfig from '../api/apiConfig.js'
 
 export default {
   name: 'FileBox',
@@ -212,12 +213,12 @@ export default {
     })
     return {
       globalProperties,
-      config,
       emit,
       data
     }
   },
   methods: {
+    apiConfig,
     // 元素滚动到底部
     scrollEvent (e) {
       if (e.srcElement.scrollTop + e.srcElement.clientHeight === e.srcElement.scrollHeight) {
@@ -265,7 +266,7 @@ export default {
       }).then(response => {
         const { path, extend } = response
         const { width, height } = this.calculatePlayerSize(extend)
-        this.data.movie.src = config.apiBaseUrl + path
+        this.data.movie.src = apiConfig.apiBaseUrl + path
         this.data.movie.width = width
         this.data.movie.height = height
       })
@@ -325,7 +326,7 @@ export default {
       // 下载文件
       if (action === 'download') {
         const { id } = record
-        window.open(`${this.config.apiBaseUrl}${http.url.file.download}${id}`)
+        window.open(`${apiConfig().apiBaseUrl}${http.url.file.download}${id}`)
       }
     },
     // 弹出批量复制的弹窗
@@ -417,8 +418,8 @@ export default {
     },
     // 识别文件打开的图标
     identifyOpenFileIcon (ext) {
-      if (this.globalProperties.$type.isVideo(ext)) {
-        return { content: '播放', icon: config.apiBaseUrl + 'icons/full/Arrow-Right-2.svg' }
+      if (this.globalProperties.type.isVideo(ext)) {
+        return { content: '播放', icon: apiConfig().iconBaseUrl + 'icons/Arrow-Right-2.png' }
       }
       return {}
     }

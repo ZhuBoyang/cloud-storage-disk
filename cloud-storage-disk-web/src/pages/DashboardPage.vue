@@ -4,11 +4,11 @@
       <div class="file-search-box">
         <a-input class="file-search-input" placeholder="请输入关键词" size="large" allow-clear>
           <template #prefix>
-            <img :src="config.iconBaseUrl + 'icons/full/search_icon.svg'" alt="search" width="40">
+            <img :src="apiConfig().iconBaseUrl + 'icons/search.png'" alt="search" width="40">
           </template>
         </a-input>
         <div class="file-search-filter-icon">
-          <img :src="config.iconBaseUrl + 'icons/full/Filter.svg'" alt="filter">
+          <img :src="apiConfig().iconBaseUrl + 'icons/Filter.png'" alt="filter">
         </div>
       </div>
       <div class="file-breads-box">
@@ -79,7 +79,7 @@
       <!--      </div>-->
       <a-empty class="empty-box"
                v-if="data.files.length === 0"
-               :img-src="config.iconBaseUrl + 'icons/full/empty-data.svg'"
+               :img-src="apiConfig().iconBaseUrl + 'icons/empty-data.png'"
                description="暂无文件，请上传文件"
       />
       <file-box class="file-list-box"
@@ -101,7 +101,7 @@ import { reactive } from 'vue'
 import http from '../api/http.js'
 import emitter from '../utils/emitter.js'
 import { useRouter } from 'vue-router'
-import config from '../api/config.js'
+import apiConfig from '../api/apiConfig.js'
 
 export default {
   name: 'DashboardPage',
@@ -163,6 +163,7 @@ export default {
           data.pager.hasMore = false
           return
         }
+        console.log('files', response)
         for (const key in response) {
           data.files.push(response[key])
         }
@@ -187,7 +188,6 @@ export default {
       }
     })
     return {
-      config,
       router,
       data,
       queryBreads,
@@ -198,6 +198,7 @@ export default {
     this.queryBreads()
   },
   methods: {
+    apiConfig,
     // 加载更多文件
     loadMoreFile () {
       if (!this.data.pager.hasMore) {

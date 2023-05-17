@@ -61,6 +61,11 @@ public interface AppConstants {
     String FILE_BLOCK_UPLOAD_BUFFER_PREFIX = "file_block_buffer_upload:";
 
     /**
+     * 文件块是否已上传检测
+     */
+    String BLOCK_METADATA_PREFIX = "block_metadata:";
+
+    /**
      * 文件上传目录
      */
     String FILE_UPLOAD_PATH = "upload" + File.separator + "file" + File.separator;

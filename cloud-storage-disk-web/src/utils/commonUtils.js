@@ -1,38 +1,38 @@
-import config from '../api/config.js'
+import apiConfig from '../api/apiConfig.js'
 
 const identifyFileIcon = (file) => {
   const { ext, type } = file
   if (type === 1) {
-    return config.iconBaseUrl + 'icons/file/category/directory.svg'
+    return apiConfig().iconBaseUrl + 'icons/directory.png'
   }
   if (ext === 'doc' || ext === 'docx') {
-    return config.iconBaseUrl + 'icons/file/category/docx.svg'
+    return apiConfig().iconBaseUrl + 'icons/docx.png'
   }
   if (ext === 'ppt' || ext === 'pptx') {
-    return config.iconBaseUrl + 'icons/file/category/ppt.svg'
+    return apiConfig().iconBaseUrl + 'icons/ppt.png'
   }
   if (ext === 'xls' || ext === 'xlsx') {
-    return config.iconBaseUrl + 'icons/file/category/xls.svg'
+    return apiConfig().iconBaseUrl + 'icons/xls.png'
   }
   if (ext === 'java') {
-    return config.iconBaseUrl + 'icons/file/category/java.svg'
+    return apiConfig().iconBaseUrl + 'icons/java.png'
   }
   if (ext === 'zip') {
-    return config.iconBaseUrl + 'icons/file/category/zip.svg'
+    return apiConfig().iconBaseUrl + 'icons/zip.png'
   }
   if (ext === 'mp3') {
-    return config.iconBaseUrl + 'icons/file/category/mp3.svg'
+    return apiConfig().iconBaseUrl + 'icons/mp3.png'
   }
   if (ext === 'mp4') {
-    return config.iconBaseUrl + 'icons/file/category/mp4.svg'
+    return apiConfig().iconBaseUrl + 'icons/mp4.png'
   }
   if (ext === 'zip') {
-    return config.iconBaseUrl + 'icons/file/category/zip.svg'
+    return apiConfig().iconBaseUrl + 'icons/zip.png'
   }
   if (ext === 'jpg' || ext === 'jpeg' || ext === 'png') {
-    return config.iconBaseUrl + 'icons/file/category/jpg.svg'
+    return apiConfig().iconBaseUrl + 'icons/jpg.png'
   }
-  return config.iconBaseUrl + 'icons/file/category/document.svg'
+  return apiConfig().iconBaseUrl + 'icons/document.png'
 }
 // 格式化文件大小至人类可识别格式
 const formatSizeInPerson = (size) => {

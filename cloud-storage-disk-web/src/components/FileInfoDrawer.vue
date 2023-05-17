@@ -6,17 +6,17 @@
     <div class="file-info-drawer--box">
       <div class="file-avatar" v-if="Object.keys(file).length > 0 && globalProperties.$type.isVideo(file.ext)">
         <div class="file-avatar--img">
-          <img :src="config.iconBaseUrl + 'icons/Video.svg'" alt=""/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/Video.png'" alt=""/>
         </div>
         <div class="file-avatar--play-icon-box row-col-center">
           <div class="file-avatar--play-icon row-col-center cursor-pointer" @click="playVideo(file.id)">
-            <img :src="config.iconBaseUrl + 'icons/video/play.svg'" alt=""/>
+            <img :src="apiConfig().iconBaseUrl + 'icons/video/play.png'" alt=""/>
           </div>
         </div>
       </div>
       <div class="file-info-item file-name">{{ Object.keys(file).length === 0 ? '' : file.name + '.' + file.ext }}</div>
-      <div class="file-info-item file-upload-time">文件上传时间：{{ globalProperties.$common.formatTime(file.uploadTime) }}</div>
-      <div class="file-info-item file-size">文件大小：{{ globalProperties.$common.formatSizeInPerson(file.size) }}</div>
+      <div class="file-info-item file-upload-time">文件上传时间：{{ globalProperties.common.formatTime(file.uploadTime) }}</div>
+      <div class="file-info-item file-size">文件大小：{{ globalProperties.common.formatSizeInPerson(file.size) }}</div>
       <a-button type="primary" shape="round" long @click="hideDrawer">隐藏</a-button>
     </div>
   </div>
@@ -25,7 +25,7 @@
 <script>
 import LoginUserAction from './LoginUserAction.vue'
 import { getCurrentInstance } from 'vue'
-import config from '../api/config.js'
+import apiConfig from '../api/apiConfig.js'
 
 export default {
   name: 'FileInfoDrawer',
@@ -45,12 +45,12 @@ export default {
     const { appContext } = getCurrentInstance()
     const { globalProperties } = appContext.config
     return {
-      config,
       globalProperties,
       emit
     }
   },
   methods: {
+    apiConfig,
     // 隐藏信息弹窗
     hideDrawer () {
       this.emit('on-hide', {})

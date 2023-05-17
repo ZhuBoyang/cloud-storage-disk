@@ -6,8 +6,8 @@ import online.yangcloud.annotation.SessionValid;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.common.constants.UserConstants;
 import online.yangcloud.exception.NoAuthException;
-import online.yangcloud.model.po.User;
-import online.yangcloud.utils.RedisUtil;
+import online.yangcloud.model.User;
+import online.yangcloud.utils.RedisTools;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -35,7 +35,7 @@ public class ServletLogAspect {
     public static final Logger logger = LoggerFactory.getLogger(ServletLogAspect.class);
 
     @Autowired
-    private RedisUtil redisUtil;
+    private RedisTools redisTools;
 
     /**
      * AOP 通知：
@@ -98,16 +98,16 @@ public class ServletLogAspect {
             String sessionId = obtainSessionId(request);
             if (StrUtil.isNotBlank(sessionId)) {
                 logger.info("session id [{}]", sessionId);
-                String userInfoJson = redisUtil.get(UserConstants.LOGIN_SESSION + sessionId);
+                String userInfoJson = redisTools.get(UserConstants.LOGIN_SESSION + sessionId);
                 if (StrUtil.isNotBlank(userInfoJson)) {
-                    long expireTime = redisUtil.getExpireTime(UserConstants.LOGIN_SESSION + sessionId);
+                    long expireTime = redisTools.getExpireTime(UserConstants.LOGIN_SESSION + sessionId);
                     // 当session还剩5分钟过期的时候，再次请求就会对session进行续期
                     if (expireTime < AppConstants.ACCOUNT_RENEWAL_TIME
                             && expireTime != AppConstants.ACCOUNT_EXPIRED_STATUS
                             && expireTime != AppConstants.ACCOUNT_NOT_EXIST_STATUS) {
                         logger.info("The login status of account [{}] is about to expire. Now it starts to renew. The renewal period is [{}]s",
                                 userInfoJson, UserConstants.LOGIN_SESSION_EXPIRE_TIME);
-                        redisUtil.expire(UserConstants.LOGIN_SESSION + sessionId, userInfoJson, UserConstants.LOGIN_SESSION_EXPIRE_TIME);
+                        redisTools.expire(UserConstants.LOGIN_SESSION + sessionId, userInfoJson, UserConstants.LOGIN_SESSION_EXPIRE_TIME);
                     }
                 } else {
                     logger.info("==================== Method execution is abnormal ====================");
@@ -130,7 +130,7 @@ public class ServletLogAspect {
                     if (StrUtil.isBlank(sessionId)) {
                         user = new User();
                     } else {
-                        String userInfoJson = redisUtil.get(UserConstants.LOGIN_SESSION + sessionId);
+                        String userInfoJson = redisTools.get(UserConstants.LOGIN_SESSION + sessionId);
                         if (StrUtil.isBlank(userInfoJson)) {
                             user = new User();
                         } else {

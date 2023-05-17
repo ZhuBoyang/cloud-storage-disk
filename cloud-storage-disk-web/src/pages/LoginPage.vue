@@ -8,14 +8,14 @@
         <div class="pan-logo-label">云存储</div>
       </div>
       <div class="pan-bg">
-        <img :src="config.iconBaseUrl + 'icons/login-bg.png'" alt="登录背景"/>
+        <img :src="apiConfig().iconBaseUrl + 'icons/login-bg.png'" alt="登录背景"/>
       </div>
     </div>
     <div class="page-right">
       <div class="page-box">
         <div class="form-title">登录你的账户</div>
         <div class="form-account-register">还没有账号？
-          <a-button type="text" shape="round" @click="globalProperties.$common.jumpUrl('/register', router)">注册</a-button>
+          <a-button type="text" shape="round" @click="globalProperties.common.jumpUrl('/register', router)">注册</a-button>
         </div>
         <a-form :model="form" layout="vertical">
           <a-form-item field="email" label="邮箱">
@@ -26,7 +26,7 @@
           </a-form-item>
           <a-form-item>
             <div class="account-fix">
-              <a-button type="text" shape="round" @click="globalProperties.$common.jumpUrl('/reset', router)">忘记密码？</a-button>
+              <a-button type="text" shape="round" @click="globalProperties.common.jumpUrl('/reset', router)">忘记密码？</a-button>
             </div>
           </a-form-item>
           <a-form-item>
@@ -42,7 +42,7 @@
 import { getCurrentInstance, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '../api/http.js'
-import config from '../api/config.js'
+import apiConfig from '../api/apiConfig.js'
 
 export default {
   name: 'LoginPage',
@@ -55,13 +55,13 @@ export default {
       password: '' // 密码
     })
     return {
-      config,
       globalProperties,
       router,
       form
     }
   },
   methods: {
+    apiConfig,
     // 登录
     login () {
       const { email, password } = this.form

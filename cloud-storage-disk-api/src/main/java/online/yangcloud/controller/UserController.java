@@ -11,9 +11,9 @@ import online.yangcloud.model.ao.user.UserRegisterRequest;
 import online.yangcloud.model.ao.user.UserUpdateRequest;
 import online.yangcloud.model.vo.user.LoginView;
 import online.yangcloud.model.vo.user.UserView;
-import online.yangcloud.service.FileMetadataService;
+import online.yangcloud.service.FileService;
 import online.yangcloud.service.UserService;
-import online.yangcloud.utils.RedisUtil;
+import online.yangcloud.utils.RedisTools;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,10 +37,10 @@ public class UserController {
     private UserService userService;
 
     @Autowired
-    private FileMetadataService fileMetadataService;
+    private FileService fileService;
 
     @Autowired
-    private RedisUtil redisUtil;
+    private RedisTools redisTools;
 
     /**
      * 用户注册
@@ -53,7 +53,7 @@ public class UserController {
         ResultBean<UserView> resultBean = userService.addUser(registerRequest.getUserName(), registerRequest.getEmail(), registerRequest.getPassword());
         if (resultBean.isSuccess()) {
             // 初始化用户根目录
-            fileMetadataService.initUserFile(resultBean.getBean().getId());
+            fileService.initUserFile(resultBean.getBean().getId());
             return ResultData.success(AppResultCode.SUCCESS.clone("账户注册成功，请前往登录"));
         }
         return ResultData.errorMessage(resultBean.getResultCode());
@@ -84,7 +84,7 @@ public class UserController {
     @PostMapping("/logout")
     public ResultData logout(HttpServletRequest request) {
         String authorization = request.getHeader(UserConstants.AUTHORIZATION);
-        redisUtil.delete(authorization);
+        redisTools.delete(authorization);
         return ResultData.success();
     }
 

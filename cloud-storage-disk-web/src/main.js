@@ -16,7 +16,7 @@ app.use(ArcoVue, {
   componentPrefix: 'arco'
 })
 // 格式化时间
-app.config.globalProperties.$common = common
+app.config.globalProperties.common = common
 // 检测文件是否是视频
-app.config.globalProperties.$type = commonType
+app.config.globalProperties.type = commonType
 app.mount('#app')

@@ -24,6 +24,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/**")
                 .addResourceLocations("file:" + systemRecognition.generateSystemPath());
+        registry.addResourceHandler("/icons/**")
+                .addResourceLocations("classpath:static/icons/");
     }
 
 }

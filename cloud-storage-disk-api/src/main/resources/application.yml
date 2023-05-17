@@ -2,21 +2,14 @@
 spring:
   application:
     name: cloud-storage-disk
+  # active profile
+  profiles:
+    active: prod
   # database driver
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     # datasource name
     name: defaultDataSource
-    # database url
-    url: "jdbc:mysql://mysql:3306/cloud_storage_disk?useSSL=false&\
-      useUnicode=true&\
-      characterEncoding=UTF-8&\
-      allowMultiQueries=true&\
-      allowPublicKeyRetrieval=true&\
-      serverTimezone"
-    # username and password of database
-    username: root
-    password: Jhxz951129Jhxz
     # database connection pool config
     hikari:
       connection-timeout: 30000
@@ -40,10 +33,8 @@ spring:
       max-request-size: 100MB
   # redis config
   redis:
-    host: redis
     port: 6379
     database: 0
-    password: Jhxz951129Jhxz
     timeout: 5000
     lettuce:
       shutdown-timeout: 5000

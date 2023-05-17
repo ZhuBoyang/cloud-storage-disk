@@ -8,7 +8,7 @@
         <div class="pan-logo-label">云存储</div>
       </div>
       <div class="pan-bg">
-        <img :src="config.iconBaseUrl + 'icons/login-bg.png'" alt="登录背景"/>
+        <img :src="apiConfig().iconBaseUrl + 'icons/login-bg.png'" alt="登录背景"/>
       </div>
     </div>
     <div class="page-right">
@@ -27,7 +27,7 @@
           </a-form-item>
           <a-form-item>
             我有账号。前往
-            <a-button type="text" shape="round" @click="globalProperties.$common.jumpUrl('/login', router)">登录</a-button>
+            <a-button type="text" shape="round" @click="globalProperties.common.jumpUrl('/login', router)">登录</a-button>
           </a-form-item>
           <a-form-item>
             <a-button type="primary" long @click="reset">重置</a-button>
@@ -42,7 +42,7 @@
 import { getCurrentInstance, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '../api/http.js'
-import config from '../api/config.js'
+import apiConfig from '../api/apiConfig.js'
 
 export default {
   name: 'LoginPage',
@@ -57,13 +57,13 @@ export default {
       isAccept: false // 是否可以提交请求
     })
     return {
-      config,
       globalProperties,
       router,
       form
     }
   },
   methods: {
+    apiConfig,
     // 校验两次输入密码是否一致
     identifyPwd () {
       const { password, repeat } = this.form

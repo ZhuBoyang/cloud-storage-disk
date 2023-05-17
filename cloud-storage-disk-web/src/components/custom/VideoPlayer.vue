@@ -12,10 +12,10 @@
       <div class="video-player--controls-actions">
         <div class="video-player--controls-action">
           <div class="video-player--controls-actions-btn row-col-center" @click="playOrPause">
-            <img :src="config.iconBaseUrl + 'icons/video/' + (data.player.isPaused ? 'play' : 'pause') + '.svg'" alt="播放"/>
+            <img :src="apiConfig().iconBaseUrl + 'icons/video/' + (data.player.isPaused ? 'play' : 'pause') + '.png'" alt="播放"/>
           </div>
           <div class="video-player--controls-actions-btn row-col-center" @click="stopPlay">
-            <img :src="config.iconBaseUrl + 'icons/video/stop.svg'" alt="停止"/>
+            <img :src="apiConfig().iconBaseUrl + 'icons/video/stop.png'" alt="停止"/>
           </div>
           <div class="video-player--controls-actions-btn row-col-center">
             {{ formatSecondTime(data.player.currentTime) }}/{{ formatSecondTime(data.player.totalTime) }}
@@ -23,13 +23,13 @@
         </div>
         <div class="video-player--controls-action">
           <div class="video-player--controls-actions-btn row-col-center" @click="mutedOrNot">
-            <img :src="config.iconBaseUrl + 'icons/video/' + (data.player.isMuted ? 'mute' : 'volume') + '.svg'" alt="音量"/>
+            <img :src="apiConfig().iconBaseUrl + 'icons/video/' + (data.player.isMuted ? 'mute' : 'volume') + '.png'" alt="音量"/>
           </div>
           <div class="video-player--controls-actions-btn row-col-center volume-control">
             <a-slider class="volume-control-btn" :default-value="data.player.volume" :model-value="data.player.volume" :min="0" :max="100" @change="changeVolume"/>
           </div>
           <div class="video-player--controls-actions-btn row-col-center" @click="fullScreenOrNot">
-            <img :src="config.iconBaseUrl + 'icons/video/full_screen.svg'" alt="全屏"/>
+            <img :src="apiConfig().iconBaseUrl + 'icons/video/full_screen.png'" alt="全屏"/>
           </div>
         </div>
       </div>
@@ -42,7 +42,7 @@
 
 <script>
 import { getCurrentInstance, reactive } from 'vue'
-import config from '../../api/config.js'
+import apiConfig from '../../api/apiConfig.js'
 
 export default {
   name: 'VideoPlayer',
@@ -78,7 +78,6 @@ export default {
       }
     })
     return {
-      config,
       player,
       playerBox,
       data
@@ -93,6 +92,7 @@ export default {
     }
   },
   methods: {
+    apiConfig,
     // 获取视频总时长
     getVideoTotalPlayTime () {
       this.data.player.totalTime = this.player.duration

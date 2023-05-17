@@ -1,6 +1,6 @@
 package online.yangcloud.model.bo;
 
-import online.yangcloud.model.po.FileMetadata;
+import online.yangcloud.model.FileMetadata;
 
 import java.util.List;
 
