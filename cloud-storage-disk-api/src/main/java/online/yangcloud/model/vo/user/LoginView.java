@@ -2,30 +2,47 @@ package online.yangcloud.model.vo.user;
 
 /**
  * @author zhuboyang
- * @since 2023年01月19 09:13:37
+ * @since 2023年06月14 09:47:24
  */
-public class LoginView extends UserView {
+public class LoginView {
 
     /**
-     * 会话 id
+     * token
      */
-    private String sessionId;
+    private String token;
 
-    public String getSessionId() {
-        return sessionId;
+    /**
+     * 根目录文件 id
+     */
+    private String id;
+
+    public static LoginView pack(String token, String id) {
+        return new LoginView().setToken(token).setId(id);
     }
 
-    public LoginView setSessionId(String sessionId) {
-        this.sessionId = sessionId;
+    public String getToken() {
+        return token;
+    }
+
+    public LoginView setToken(String token) {
+        this.token = token;
+        return this;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public LoginView setId(String id) {
+        this.id = id;
         return this;
     }
 
     @Override
     public String toString() {
         return "LoginView["
-                + " sessionId=" + sessionId
-                + " ]"
-                + " "
-                + super.toString();
+                + " token=" + token + ","
+                + " id=" + id
+                + " ]";
     }
 }

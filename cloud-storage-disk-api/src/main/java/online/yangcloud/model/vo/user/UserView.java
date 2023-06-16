@@ -1,12 +1,10 @@
 package online.yangcloud.model.vo.user;
 
-import java.util.Date;
+import online.yangcloud.model.User;
 
 /**
- * 用户视图数据模型
- *
  * @author zhuboyang
- * @since 2023年01月18 15:21:36
+ * @since 2023年06月03 18:22:47
  */
 public class UserView {
 
@@ -16,9 +14,9 @@ public class UserView {
     private String id;
 
     /**
-     * 用户名
+     * 昵称
      */
-    private String userName;
+    private String nickName;
 
     /**
      * 邮箱
@@ -26,9 +24,14 @@ public class UserView {
     private String email;
 
     /**
+     * 头像地址
+     */
+    private String avatar;
+
+    /**
      * 生日
      */
-    private Date birthday;
+    private Long birthday;
 
     /**
      * 年龄
@@ -46,14 +49,27 @@ public class UserView {
     private String phone;
 
     /**
-     * 账号创建时间
+     * 账户总容量
      */
-    private Date createTime;
+    private Long totalSpaceSize;
 
     /**
-     * 账号数据修改时间
+     * 账户已用容量
      */
-    private Date updateTime;
+    private Long usedSpaceSize;
+
+    public static UserView convert(User user) {
+        return new UserView()
+                .setId(user.getId())
+                .setNickName(user.getNickName())
+                .setEmail(user.getEmail())
+                .setAvatar(user.getAvatar())
+                .setBirthday(user.getBirthday())
+                .setAge(user.getAge())
+                .setPhone(user.getPhone())
+                .setTotalSpaceSize(user.getTotalSpaceSize())
+                .setUsedSpaceSize(user.getUsedSpaceSize());
+    }
 
     public String getId() {
         return id;
@@ -64,12 +80,12 @@ public class UserView {
         return this;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getNickName() {
+        return nickName;
     }
 
-    public UserView setUserName(String userName) {
-        this.userName = userName;
+    public UserView setNickName(String nickName) {
+        this.nickName = nickName;
         return this;
     }
 
@@ -82,11 +98,20 @@ public class UserView {
         return this;
     }
 
-    public Date getBirthday() {
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public UserView setAvatar(String avatar) {
+        this.avatar = avatar;
+        return this;
+    }
+
+    public Long getBirthday() {
         return birthday;
     }
 
-    public UserView setBirthday(Date birthday) {
+    public UserView setBirthday(Long birthday) {
         this.birthday = birthday;
         return this;
     }
@@ -118,21 +143,21 @@ public class UserView {
         return this;
     }
 
-    public Date getCreateTime() {
-        return createTime;
+    public Long getTotalSpaceSize() {
+        return totalSpaceSize;
     }
 
-    public UserView setCreateTime(Date createTime) {
-        this.createTime = createTime;
+    public UserView setTotalSpaceSize(Long totalSpaceSize) {
+        this.totalSpaceSize = totalSpaceSize;
         return this;
     }
 
-    public Date getUpdateTime() {
-        return updateTime;
+    public Long getUsedSpaceSize() {
+        return usedSpaceSize;
     }
 
-    public UserView setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
+    public UserView setUsedSpaceSize(Long usedSpaceSize) {
+        this.usedSpaceSize = usedSpaceSize;
         return this;
     }
 
@@ -140,14 +165,15 @@ public class UserView {
     public String toString() {
         return "UserView["
                 + " id=" + id + ","
-                + " userName=" + userName + ","
+                + " nickName=" + nickName + ","
                 + " email=" + email + ","
+                + " avatar=" + avatar + ","
                 + " birthday=" + birthday + ","
                 + " age=" + age + ","
                 + " gender=" + gender + ","
                 + " phone=" + phone + ","
-                + " createTime=" + createTime + ","
-                + " updateTime=" + updateTime
+                + " totalSpaceSize=" + totalSpaceSize + ","
+                + " usedSpaceSize=" + usedSpaceSize
                 + " ]";
     }
 }

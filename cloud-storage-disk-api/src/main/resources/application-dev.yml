@@ -1,7 +1,7 @@
 spring:
   datasource:
     # database url
-    url: "jdbc:mysql://localhost:3306/cloud-storage-disk?useSSL=false&\
+    url: "jdbc:mysql://localhost:3306/cloud_storage_disk?useSSL=false&\
       useUnicode=true&\
       characterEncoding=UTF-8&\
       allowMultiQueries=true&\
@@ -14,3 +14,6 @@ spring:
   redis:
     host: tencent_cloud3
     password: Jhxz951129Jhxz
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

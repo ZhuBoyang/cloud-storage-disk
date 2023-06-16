@@ -8,12 +8,12 @@
     <div class="box-header">
       <div class="box-header--info">
         <div class="box-upload-icon">
-          <img :src="apiConfig().iconBaseUrl + 'icons/Upload.png'" alt="文件上传"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/upload.png'" alt="文件上传"/>
         </div>
         <div class="box-upload-title">上传文件</div>
       </div>
       <div class="box-header--close">
-        <img :src="apiConfig().iconBaseUrl + 'icons/Close_Square.png'"
+        <img :src="apiConfig().iconBaseUrl + 'icons/close_square.png'"
              alt="关闭"
              v-if="visible && !hideModalVisible && upload.uploading.findIndex(item => item.status === 'loading') === -1"
              @click="closeUploadModal"
@@ -27,28 +27,26 @@
     </div>
     <div class="upload-list">
       <div class="upload-item"
-           v-for="(item, index) in upload.uploading"
-           :key="index"
+           v-for="(o, i) in upload.uploading"
+           :key="i"
       >
         <div class="item-info">
           <div class="item-icon row-col-center">
-            <img :src="globalProperties.common.identifyFileIcon(item)" alt="文档"/>
+            <img :src="globalProperties.common.identifyFileAvatar(o)" alt="文档"/>
           </div>
-          <div class="item-name">{{ item.fileName }}</div>
-          <div class="item-size">{{ globalProperties.common.formatSizeInPerson(item.fileSize) }}</div>
+          <div class="item-name">{{ o.fileName }}</div>
+          <div class="item-size">{{ globalProperties.common.formatSizeInPerson(o.fileSize) }}</div>
           <div class="item-status">
-            <img :src="apiConfig().iconBaseUrl + 'icons/success.png'" class="upload-success" alt="成功" v-if="item.status === 'success'"/>
-            <img :src="apiConfig().iconBaseUrl + 'icons/error.png'" class="upload-error" alt="失败" v-if="item.status === 'error'"/>
-            <img :src="apiConfig().iconBaseUrl + 'icons/loading.png'" class="upload-loading" alt="加载中" v-if="item.status === 'loading'"/>
+            <img :src="apiConfig().iconBaseUrl + 'icons/success.png'" class="upload-success" alt="成功" v-if="o.status === 'success'"/>
           </div>
         </div>
         <div class="item-process">
-          <a-progress :percent="item.process" :show-text="false"/>
+          <a-progress :percent="o.process" :show-text="false"/>
         </div>
       </div>
     </div>
     <div class="upload-actions">
-      <input type="file" style="display: none" ref="file" @change="readUploadFiles"/>
+      <input type="file" style="display: none" ref="file" multiple="multiple" @change="readUploadFiles"/>
       <a-button type="outline" shape="round" @click="hideUploadModal">隐藏</a-button>
       <a-button type="primary" shape="round" @click="triggerUpload">上传文件</a-button>
     </div>
@@ -62,6 +60,7 @@ import SparkMD5 from 'spark-md5'
 import { useRouter } from 'vue-router'
 import apiConfig from '../api/apiConfig.js'
 import { nanoid } from 'nanoid'
+import emitter from '../tools/emitter.js'
 
 export default {
   name: 'UploadComponent',
@@ -87,7 +86,7 @@ export default {
       default: ''
     }
   },
-  emits: ['on-change'],
+  emits: ['on-upload-change'],
   setup (props, { emit }) {
     const { appContext } = getCurrentInstance()
     const { globalProperties } = appContext.config
@@ -113,7 +112,8 @@ export default {
     closeUploadModal () {
       this.upload.uploading = []
       this.hideModalVisible = false
-      this.emit('on-change', { visible: false })
+      this.emit('on-upload-change')
+      emitter.emit('on-upload-change')
     },
     // 最小化上传文件的窗口
     hideUploadModal () {
@@ -135,16 +135,15 @@ export default {
           fileName: current.name, // 文件名
           fileSize: current.size, // 文件大小
           ext: current.name.substring(current.name.lastIndexOf('.') + 1), // 文件后缀
-          process: 0, // 上传进度
+          process: 0, // 校验进度或上传进度
           blockNumber: 0, // 已上传文件块数量
-          blockCount: 0, // 文件块总数据量
-          status: 'loading', // 上传状态
-          type: 0 // 文件类型
+          blockCount: 0 // 文件块总数据量
         }
         this.upload.uploading.push(file)
         this.splitFileBlock(current, uploadedCount + i)
       }
     },
+    // 切分文件块
     splitFileBlock (file, fileIndex) {
       const blocks = []
       const blockSize = this.upload.blockSize
@@ -156,12 +155,13 @@ export default {
       this.upload.uploading[fileIndex].blockCount = blocks.length
       this.generateUploadFormData(file, blocks, fileIndex)
     },
-    // 将文件分片生成form表单数据
+    // 将文件分片生成 form 表单数据
     generateUploadFormData (file, blocks, fileIndex) {
-      const { id } = this.router.currentRoute.value.query
-      const identifier = nanoid()
+      const { id } = this.router.currentRoute.value.params
+      const identifier = nanoid() + '_' + new Date().getTime()
       for (let index = 0; index < blocks.length; index++) {
         const item = blocks[index]
+        const { fileName, ext } = this.cutFileName(file.name)
         const param = {
           blockIndex: index + 1, // 当前文件块序号
           blockSize: item.size, // 当前文件块大小
@@ -169,13 +169,15 @@ export default {
           shardingSize: this.upload.blockSize, // 标准分片大小
           fileSize: file.size, // 文件大小
           identifier, // 文件唯一标识
-          fileName: file.name.substring(0, file.name.lastIndexOf('.')), // 文件名
-          ext: file.name.substring(file.name.lastIndexOf('.')), // 文件名后缀
-          pid: id, // 当前所在目录的文件 id
-          shard: true // 是否开启分片
+          fileName, // 文件名
+          ext, // 文件名后缀
+          id, // 当前所在目录的文件 id
+          shard: 1 // 是否开启分片
         }
+        // 计算文件块的 hash
         this.calculateFileHash(item).then(response => {
-          param.hash = response.hash
+          const { hash } = response
+          param.hash = hash
           const formData = new FormData()
           for (const key in param) {
             formData.append(key, param[key])
@@ -189,7 +191,7 @@ export default {
     sendRequest (blockParameter, blockData, fileIndex) {
       http.req(this.checkBlockExistUrl, http.methods.post, blockParameter).then(response => {
         if (response) {
-          // 文件块已上传，无需再次上传。更新文件上传进度
+          // 文件块已存在，无需再次上传。更新文件上传进度
           const currentItem = this.updateFileUploadProcess(fileIndex, false)
           if (currentItem.blockNumber === currentItem.blockCount) {
             // 所有文件块均已上传，需要进行文件合并
@@ -230,6 +232,12 @@ export default {
         this.upload.uploaded.push({ fileIndex, file: response })
         this.updateFileUploadProcess(fileIndex, true)
       })
+    },
+    // 切分文件名
+    cutFileName (name) {
+      const fileName = name.substring(0, name.lastIndexOf('.'))
+      const ext = name.substring(name.lastIndexOf('.'))
+      return { fileName, ext }
     },
     // 计算文件 hash 值
     calculateFileHash (file) {
@@ -340,6 +348,7 @@ export default {
         }
         .item-status {
           width: 28px;
+          height: 28px;
           img {
             width: 100%;
             &.upload-loading {

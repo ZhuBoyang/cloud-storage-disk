@@ -2,7 +2,8 @@ package online.yangcloud.model;
 
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
-import cn.org.atool.fluent.mybatis.base.RichEntity;
+import online.yangcloud.common.constants.AppConstants;
+import online.yangcloud.utils.IdTools;
 
 /**
  * 文件块元数据
@@ -11,7 +12,7 @@ import cn.org.atool.fluent.mybatis.base.RichEntity;
  * @since 2023年01月01 21:52:34
  */
 @FluentMybatis
-public class BlockMetadata extends RichEntity {
+public class BlockMetadata extends BaseParameter {
 
     /**
      * id
@@ -27,17 +28,27 @@ public class BlockMetadata extends RichEntity {
     /**
      * 文件块存储路径
      */
-    private String storagePath;
+    private String path;
 
     /**
      * 文件块大小
      */
-    private Long blockSize;
+    private Long size;
 
     /**
-     * 是否已删除
+     * 初始化文件块元数据
+     *
+     * @param hash      文件块 hash
+     * @param blockSize 文件块大小
+     * @return 文件块元数据实体
      */
-    private Integer isDelete;
+    public static BlockMetadata initial(String hash, Long blockSize) {
+        return new BlockMetadata()
+                .setId(IdTools.fastSimpleUuid())
+                .setHash(hash)
+                .setPath(AppConstants.Uploader.BLOCK_UPLOAD_PATH + hash)
+                .setSize(blockSize);
+    }
 
     public String getId() {
         return id;
@@ -57,30 +68,21 @@ public class BlockMetadata extends RichEntity {
         return this;
     }
 
-    public String getStoragePath() {
-        return storagePath;
+    public String getPath() {
+        return path;
     }
 
-    public BlockMetadata setStoragePath(String storagePath) {
-        this.storagePath = storagePath;
+    public BlockMetadata setPath(String path) {
+        this.path = path;
         return this;
     }
 
-    public Long getBlockSize() {
-        return blockSize;
+    public Long getSize() {
+        return size;
     }
 
-    public BlockMetadata setBlockSize(Long blockSize) {
-        this.blockSize = blockSize;
-        return this;
-    }
-
-    public Integer getIsDelete() {
-        return isDelete;
-    }
-
-    public BlockMetadata setIsDelete(Integer isDelete) {
-        this.isDelete = isDelete;
+    public BlockMetadata setSize(Long size) {
+        this.size = size;
         return this;
     }
 
@@ -89,9 +91,8 @@ public class BlockMetadata extends RichEntity {
         return "BlockMetadata["
                 + " id=" + id + ","
                 + " hash=" + hash + ","
-                + " storagePath=" + storagePath + ","
-                + " blockSize=" + blockSize + ","
-                + " isDelete=" + isDelete
+                + " path=" + path + ","
+                + " size=" + size + ","
                 + " ]"
                 + " "
                 + super.toString();

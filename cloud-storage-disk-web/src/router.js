@@ -8,24 +8,23 @@ const routes = [
   },
   {
     path: '/login',
-    component: () => import('./pages/LoginPage.vue')
+    component: () => import('./view/LoginView.vue')
   },
   {
     path: '/register',
-    component: () => import('./pages/RegisterPage.vue')
+    component: () => import('./view/RegisterView.vue')
   },
   {
     path: '/reset',
-    component: () => import('./pages/ResetPwd.vue')
+    component: () => import('./view/ResetPwdView.vue')
   },
   {
-    path: '/index',
-    component: () => import('./pages/HomePage.vue'),
-    redirect: '/dashboard',
+    path: '/index/:id',
+    component: () => import('./view/HomeView.vue'),
     children: [
       {
-        path: '/dashboard',
-        component: () => import('./pages/DashboardPage.vue')
+        path: '/dashboard/:id',
+        component: () => import('./view/DashboardView.vue')
       }
     ]
   }

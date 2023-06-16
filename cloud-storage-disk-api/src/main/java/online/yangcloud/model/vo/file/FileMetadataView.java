@@ -1,17 +1,15 @@
 package online.yangcloud.model.vo.file;
 
-import java.util.Date;
+import online.yangcloud.model.FileMetadata;
 
 /**
- * 文件元数据视图模型
- *
  * @author zhuboyang
- * @since 2023年01月03 11:14:53
+ * @since 2023年06月04 16:59:13
  */
 public class FileMetadataView {
 
     /**
-     * 文件 id
+     * id
      */
     private String id;
 
@@ -31,6 +29,11 @@ public class FileMetadataView {
     private String path;
 
     /**
+     * 文件 hash
+     */
+    private String hash;
+
+    /**
      * 文件类型：0.文件；1.文件夹
      */
     private Integer type;
@@ -48,12 +51,26 @@ public class FileMetadataView {
     /**
      * 上传时间
      */
-    private Date uploadTime;
+    private Long uploadTime;
 
     /**
-     * 更新时间
+     * 用户 id
      */
-    private Date updateTime;
+    private String userId;
+
+    public static FileMetadataView convert(FileMetadata file) {
+        return new FileMetadataView()
+                .setId(file.getId())
+                .setPid(file.getPid())
+                .setName(file.getName())
+                .setPath(file.getPath())
+                .setHash(file.getHash())
+                .setType(file.getType())
+                .setExt(file.getExt())
+                .setSize(file.getSize())
+                .setUploadTime(file.getUploadTime())
+                .setUserId(file.getUserId());
+    }
 
     public String getId() {
         return id;
@@ -91,6 +108,15 @@ public class FileMetadataView {
         return this;
     }
 
+    public String getHash() {
+        return hash;
+    }
+
+    public FileMetadataView setHash(String hash) {
+        this.hash = hash;
+        return this;
+    }
+
     public Integer getType() {
         return type;
     }
@@ -118,21 +144,21 @@ public class FileMetadataView {
         return this;
     }
 
-    public Date getUploadTime() {
+    public Long getUploadTime() {
         return uploadTime;
     }
 
-    public FileMetadataView setUploadTime(Date uploadTime) {
+    public FileMetadataView setUploadTime(Long uploadTime) {
         this.uploadTime = uploadTime;
         return this;
     }
 
-    public Date getUpdateTime() {
-        return updateTime;
+    public String getUserId() {
+        return userId;
     }
 
-    public FileMetadataView setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
+    public FileMetadataView setUserId(String userId) {
+        this.userId = userId;
         return this;
     }
 
@@ -143,11 +169,12 @@ public class FileMetadataView {
                 + " pid=" + pid + ","
                 + " name=" + name + ","
                 + " path=" + path + ","
+                + " hash=" + hash + ","
                 + " type=" + type + ","
                 + " ext=" + ext + ","
                 + " size=" + size + ","
                 + " uploadTime=" + uploadTime + ","
-                + " updateTime=" + updateTime
+                + " userId=" + userId
                 + " ]";
     }
 }

@@ -1,25 +1,24 @@
 package online.yangcloud.controller;
 
+import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.json.JSONUtil;
 import online.yangcloud.annotation.SessionValid;
-import online.yangcloud.common.ResultBean;
 import online.yangcloud.common.ResultData;
-import online.yangcloud.common.constants.UserConstants;
+import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.common.resultcode.AppResultCode;
-import online.yangcloud.model.ao.user.ResetPwdRequest;
-import online.yangcloud.model.ao.user.UserLoginRequest;
-import online.yangcloud.model.ao.user.UserRegisterRequest;
-import online.yangcloud.model.ao.user.UserUpdateRequest;
+import online.yangcloud.model.User;
+import online.yangcloud.model.ao.user.UserEnter;
+import online.yangcloud.model.ao.user.UserRegister;
+import online.yangcloud.model.vo.file.FileMetadataView;
 import online.yangcloud.model.vo.user.LoginView;
 import online.yangcloud.model.vo.user.UserView;
 import online.yangcloud.service.FileService;
 import online.yangcloud.service.UserService;
 import online.yangcloud.utils.RedisTools;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import online.yangcloud.utils.SessionTools;
+import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
@@ -33,45 +32,37 @@ import javax.validation.Valid;
 @RequestMapping("/user")
 public class UserController {
 
-    @Autowired
+    @Resource
     private UserService userService;
-
-    @Autowired
+    
+    @Resource
     private FileService fileService;
 
-    @Autowired
+    @Resource
     private RedisTools redisTools;
 
     /**
      * 用户注册
      *
-     * @param registerRequest 请求参数
      * @return result
      */
     @PostMapping("/register")
-    public ResultData register(@RequestBody @Valid UserRegisterRequest registerRequest) {
-        ResultBean<UserView> resultBean = userService.addUser(registerRequest.getUserName(), registerRequest.getEmail(), registerRequest.getPassword());
-        if (resultBean.isSuccess()) {
-            // 初始化用户根目录
-            fileService.initUserFile(resultBean.getBean().getId());
-            return ResultData.success(AppResultCode.SUCCESS.clone("账户注册成功，请前往登录"));
-        }
-        return ResultData.errorMessage(resultBean.getResultCode());
+    public ResultData register(@Valid @RequestBody UserRegister register) {
+        userService.register(register);
+        return ResultData.success(AppResultCode.SUCCESS.clone("注册成功，请前往登录"), Boolean.TRUE);
     }
 
     /**
      * 用户登录
      *
-     * @param loginRequest 请求参数
      * @return result
      */
     @PostMapping("/login")
-    public ResultData login(@RequestBody @Valid UserLoginRequest loginRequest) {
-        ResultBean<LoginView> resultBean = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
-        if (resultBean.isSuccess()) {
-            return ResultData.success(resultBean.getResultCode(), resultBean.getBean());
-        }
-        return ResultData.errorMessage(resultBean.getResultCode());
+    public ResultData login(@Valid @RequestBody UserEnter enter) {
+        String token = userService.enter(enter);
+        UserView view = JSONUtil.toBean(redisTools.get(AppConstants.User.LOGIN_TOKEN + token), UserView.class);
+        FileMetadataView file = fileService.queryById(CharSequenceUtil.EMPTY, view.getId());
+        return ResultData.success(LoginView.pack(token, file.getId()));
     }
 
     /**
@@ -83,26 +74,31 @@ public class UserController {
     @SessionValid
     @PostMapping("/logout")
     public ResultData logout(HttpServletRequest request) {
-        String authorization = request.getHeader(UserConstants.AUTHORIZATION);
-        redisTools.delete(authorization);
-        return ResultData.success();
+        redisTools.delete(AppConstants.User.LOGIN_TOKEN + SessionTools.getSessionId(request));
+        return ResultData.success(Boolean.TRUE);
     }
 
     /**
      * 重置账户密码
      *
-     * @param pwdRequest 请求
      * @return result
      */
     @SessionValid
     @PostMapping("/reset")
-    public ResultData resetPwd(@RequestBody ResetPwdRequest pwdRequest) {
-        UserUpdateRequest updateRequest = new UserUpdateRequest().setEmail(pwdRequest.getEmail()).setPassword(pwdRequest.getPassword());
-        ResultBean<UserView> resultBean = userService.updateUser(updateRequest);
-        if (resultBean.isSuccess()) {
-            return ResultData.success(AppResultCode.SUCCESS.clone("账户密码重置成功，请前往登录"));
-        }
-        return ResultData.errorMessage(resultBean.getResultCode());
+    public ResultData resetPwd() {
+        return ResultData.success();
+    }
+
+    /**
+     * 获取当前已登录的用户信息
+     *
+     * @param user 当前登录的用户的信息
+     * @return 用户信息
+     */
+    @SessionValid
+    @GetMapping("/info")
+    public ResultData enteredUserInfo(User user) {
+        return ResultData.success(UserView.convert(user));
     }
 
 }

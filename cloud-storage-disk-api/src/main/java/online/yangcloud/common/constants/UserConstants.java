@@ -7,24 +7,9 @@ package online.yangcloud.common.constants;
 public interface UserConstants {
 
     /**
-     * 会话标识
-     */
-    String AUTHORIZATION = "authorization";
-
-    /**
-     * 用户登录会话前缀
-     */
-    String LOGIN_SESSION = "user_login_session:";
-
-    /**
      * 输入密码错误的锁
      */
     String ERROR_PASSWORD = "error_password:";
-
-    /**
-     * 账号登录 session 会话过期时间：7 * 24 小时
-     */
-    Integer LOGIN_SESSION_EXPIRE_TIME = 7 * 24 * 60 * 60;
 
     /**
      * 输入错误密码锁定的次数

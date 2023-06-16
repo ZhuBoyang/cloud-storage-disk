@@ -1,7 +1,7 @@
 <template>
   <div class="circular-progress">
-    <div class="circular-progress--percent">
-      <div class="circular-progress--percent-number">{{ percent }}%</div>
+    <div class="circular-progress--percent" v-if="percentVisible">
+      <div class="circular-progress--percent-number">{{ percent }}</div>
       <div class="circular-progress--percent-label">已使用</div>
     </div>
     <svg viewBox="0 0 100 100" class="circular-progress--svg">
@@ -10,6 +10,7 @@
               cy="50"
               fill="transparent"
               class="circular-progress--background"
+              :style="{strokeWidth: `${strokeWidthNumber}px`}"
       ></circle>
       <circle cx="50"
               cy="50"
@@ -19,6 +20,7 @@
               :r="data.circle.r"
               :stroke-dasharray="data.dashArray"
               :stroke-dashoffset="dashOffset"
+              :style="{strokeWidth: `${strokeWidthNumber}px`}"
       ></circle>
     </svg>
   </div>
@@ -26,13 +28,22 @@
 
 <script>
 import { reactive } from 'vue'
+import typeUtil from '../../tools/type.js'
 
 export default {
   name: 'CircularProgress',
   props: {
-    percent: {
+    strokeWidthNumber: {
       type: Number,
-      default: 0
+      default: 10
+    },
+    percent: {
+      type: [Number, String],
+      default: ''
+    },
+    percentVisible: {
+      type: Boolean,
+      default: false
     }
   },
   setup () {
@@ -49,7 +60,18 @@ export default {
   },
   computed: {
     dashOffset () {
-      return (1 - this.percent / 100) * this.data.dashArray
+      if (!typeUtil.isNumber(this.percent)) {
+        if (this.percent.length === 0) {
+          return 0
+        }
+        let percent = this.percent.substring(0, this.percent.length - 1)
+        if (typeUtil.isNumber(percent)) {
+          return (1 - parseInt(this.percent) / 100) * this.data.dashArray
+        }
+        percent = percent.substring(0, percent.length - 1)
+        return (1 - parseInt(this.percent) / 100) * this.data.dashArray
+      }
+      return (1 - parseInt(this.percent) / 100) * this.data.dashArray
     }
   }
 }
@@ -76,7 +98,6 @@ export default {
   }
   .circular-progress--svg {
     circle {
-      stroke-width: 10px;
       stroke: rgb(66, 66, 66);
       transform-origin: center;
       transform: scale(.9);

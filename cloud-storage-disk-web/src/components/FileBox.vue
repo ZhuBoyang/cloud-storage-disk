@@ -10,9 +10,7 @@
       <div class="header--size">文件大小</div>
       <div class="header--actions"></div>
     </div>
-    <div class="file-box--body"
-         @scroll="scrollEvent"
-    >
+    <div class="file-box--body">
       <div class="file-box--body-item"
            v-for="(item, index) in fileList"
            :class="[{'is-selected': data.selected[index]}]"
@@ -23,7 +21,7 @@
         </div>
         <div class="body--icon row-col-center">
           <div class="body--icon-img row-col-center">
-            <img :src="globalProperties.common.identifyFileIcon(item)" alt="文件"/>
+            <img :src="globalProperties.common.identifyFileAvatar(item)" alt="文件"/>
           </div>
         </div>
         <div class="body--name">
@@ -41,7 +39,7 @@
             </a-tooltip>
             <a-tooltip content="文件详情">
               <img alt="详情"
-                   :src="apiConfig().iconBaseUrl + 'icons/Info_Circle.png'"
+                   :src="apiConfig().iconBaseUrl + 'icons/solid_circle.png'"
                    @click="fileDetail(item)"
               />
             </a-tooltip>
@@ -82,7 +80,7 @@
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center" @click="displayBatchCopy">
-          <img :src="apiConfig().iconBaseUrl + 'icons/Arrow-Right-2.png'" alt="复制"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/arrow_right.png'" alt="复制"/>
         </div>
         <template #content>
           <div class="action-trigger">复制</div>
@@ -90,7 +88,7 @@
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center" @click="displayBatchMove">
-          <img :src="apiConfig().iconBaseUrl + 'icons/Arrow-Right-2.png'" alt="移动"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/arrow_right.png'" alt="移动"/>
         </div>
         <template #content>
           <div class="action-trigger">移动</div>
@@ -176,7 +174,7 @@ export default {
       }
     }
   },
-  emits: ['load-more', 'select-change', 'action-change'],
+  emits: ['load-more', 'on-select', 'action-change'],
   setup (props, { emit }) {
     const { appContext } = getCurrentInstance()
     const { globalProperties } = appContext.config
@@ -219,12 +217,6 @@ export default {
   },
   methods: {
     apiConfig,
-    // 元素滚动到底部
-    scrollEvent (e) {
-      if (e.srcElement.scrollTop + e.srcElement.clientHeight === e.srcElement.scrollHeight) {
-        this.emit('load-more')
-      }
-    },
     // 选择所有文件
     selectAllFiles (record) {
       this.data.selected = []
@@ -252,7 +244,7 @@ export default {
     clickFile (record) {
       const { id, name, type } = record
       if (type === 1) {
-        this.emit('select-change', { id, name, type })
+        this.emit('on-select', { id, name, type })
       }
     },
     // 隐藏文件信息弹窗

@@ -24,6 +24,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-undertow</artifactId>
         </dependency>
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
@@ -82,48 +92,54 @@
             <artifactId>commons-pool2</artifactId>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/ws.schild/jave-all-deps -->
         <dependency>
-            <groupId>ws.schild</groupId>
-            <artifactId>jave-all-deps</artifactId>
-            <version>3.3.1</version>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4.7</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/ws.schild/jave-core -->
-        <dependency>
-            <groupId>ws.schild</groupId>
-            <artifactId>jave-core</artifactId>
-            <version>3.3.1</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/ws.schild/jave-native-osx64 -->
-        <dependency>
-            <groupId>ws.schild</groupId>
-            <artifactId>jave-native-osx64</artifactId>
-            <version>2.4.6</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/ws.schild/jave-native-win32 -->
-        <dependency>
-            <groupId>ws.schild</groupId>
-            <artifactId>jave-native-win32</artifactId>
-            <version>2.4.6</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/ws.schild/jave-native-win64 -->
-        <dependency>
-            <groupId>ws.schild</groupId>
-            <artifactId>jave-native-win64</artifactId>
-            <version>2.4.6</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/ws.schild/jave-native-linux32 -->
-        <dependency>
-            <groupId>ws.schild</groupId>
-            <artifactId>jave-native-linux32</artifactId>
-            <version>2.4.6</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/ws.schild/jave-native-linux64 -->
-        <dependency>
-            <groupId>ws.schild</groupId>
-            <artifactId>jave-native-linux64</artifactId>
-            <version>2.4.6</version>
-        </dependency>
+
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/ws.schild/jave-all-deps &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>ws.schild</groupId>-->
+<!--            <artifactId>jave-all-deps</artifactId>-->
+<!--            <version>3.3.1</version>-->
+<!--        </dependency>-->
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/ws.schild/jave-core &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>ws.schild</groupId>-->
+<!--            <artifactId>jave-core</artifactId>-->
+<!--            <version>3.3.1</version>-->
+<!--        </dependency>-->
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/ws.schild/jave-native-osx64 &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>ws.schild</groupId>-->
+<!--            <artifactId>jave-native-osx64</artifactId>-->
+<!--            <version>2.4.6</version>-->
+<!--        </dependency>-->
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/ws.schild/jave-native-win32 &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>ws.schild</groupId>-->
+<!--            <artifactId>jave-native-win32</artifactId>-->
+<!--            <version>2.4.6</version>-->
+<!--        </dependency>-->
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/ws.schild/jave-native-win64 &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>ws.schild</groupId>-->
+<!--            <artifactId>jave-native-win64</artifactId>-->
+<!--            <version>2.4.6</version>-->
+<!--        </dependency>-->
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/ws.schild/jave-native-linux32 &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>ws.schild</groupId>-->
+<!--            <artifactId>jave-native-linux32</artifactId>-->
+<!--            <version>2.4.6</version>-->
+<!--        </dependency>-->
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/ws.schild/jave-native-linux64 &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>ws.schild</groupId>-->
+<!--            <artifactId>jave-native-linux64</artifactId>-->
+<!--            <version>2.4.6</version>-->
+<!--        </dependency>-->
 
     </dependencies>
 

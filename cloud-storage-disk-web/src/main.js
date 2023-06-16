@@ -6,8 +6,8 @@ import router from './router'
 // arco design
 import ArcoVue from '@arco-design/web-vue'
 import '@arco-design/web-vue/dist/arco.css'
-import common from './utils/commonUtils.js'
-import commonType from './utils/typeUtil.js'
+import common from './tools/common.js'
+import commonType from './tools/type.js'
 
 const app = createApp(App)
 app.use(router)

@@ -43,11 +43,14 @@ spring:
         max-idle: 8
         max-wait: 30
         min-idle: 0
+  main:
+    lazy-initialization: true
 # application web connection port
 server:
   port: 8100
-mybatis:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-project:
-  path: cloud_storage_disk
+# email config
+email:
+  send-from: 903103398@qq.com
+  send-host: smtp.qq.com
+  email-port: 587
+  email-pass: thywdaldvdfqbeha

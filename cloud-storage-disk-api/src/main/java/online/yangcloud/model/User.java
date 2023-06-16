@@ -1,14 +1,11 @@
 package online.yangcloud.model;
 
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
-import cn.org.atool.fluent.mybatis.base.RichEntity;
-
-import java.util.Date;
+import online.yangcloud.common.constants.AppConstants;
+import online.yangcloud.utils.IdTools;
 
 /**
  * 用户模型
@@ -16,8 +13,8 @@ import java.util.Date;
  * @author zhuboyang
  * @since 2023年01月18 11:20:25
  */
-@FluentMybatis(table = "user")
-public class User extends RichEntity {
+@FluentMybatis
+public class User extends BaseParameter {
 
     /**
      * 主键
@@ -26,9 +23,9 @@ public class User extends RichEntity {
     private String id;
 
     /**
-     * 用户名
+     * 昵称
      */
-    private String userName;
+    private String nickName;
 
     /**
      * 邮箱
@@ -41,9 +38,14 @@ public class User extends RichEntity {
     private String password;
 
     /**
+     * 头像地址
+     */
+    private String avatar;
+
+    /**
      * 生日
      */
-    private Date birthday;
+    private Long birthday;
 
     /**
      * 年龄
@@ -61,35 +63,32 @@ public class User extends RichEntity {
     private String phone;
 
     /**
-     * 账号创建时间
+     * 账户总容量
      */
-    private Date createTime;
+    private Long totalSpaceSize;
 
     /**
-     * 账号数据修改时间
+     * 账户已用容量
      */
-    private Date updateTime;
+    private Long usedSpaceSize;
 
-    /**
-     * 封装用户账户数据
-     *
-     * @param userName 用户名
-     * @param email    邮箱
-     * @param password 密码
-     * @return result
-     */
-    public static User packageData(String userName, String email, String password) {
+    public static User initial() {
+        return new User();
+    }
+
+    public static User initial(String email, String password) {
         return new User()
-                .setId(IdUtil.fastSimpleUUID())
-                .setUserName(userName)
+                .setId(IdTools.fastSimpleUuid())
+                .setNickName(email)
                 .setEmail(email)
                 .setPassword(SecureUtil.md5(password))
-                .setBirthday(null)
-                .setAge(-1)
-                .setGender(-1)
+                .setAvatar(CharSequenceUtil.EMPTY)
+                .setBirthday(0L)
+                .setAge(0)
+                .setGender(0)
                 .setPhone(CharSequenceUtil.EMPTY)
-                .setCreateTime(DateUtil.date())
-                .setUpdateTime(DateUtil.date());
+                .setTotalSpaceSize(AppConstants.User.TOTAL_SPACE_SIZE)
+                .setUsedSpaceSize(0L);
     }
 
     public String getId() {
@@ -101,12 +100,12 @@ public class User extends RichEntity {
         return this;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getNickName() {
+        return nickName;
     }
 
-    public User setUserName(String userName) {
-        this.userName = userName;
+    public User setNickName(String nickName) {
+        this.nickName = nickName;
         return this;
     }
 
@@ -128,11 +127,20 @@ public class User extends RichEntity {
         return this;
     }
 
-    public Date getBirthday() {
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public User setAvatar(String avatar) {
+        this.avatar = avatar;
+        return this;
+    }
+
+    public Long getBirthday() {
         return birthday;
     }
 
-    public User setBirthday(Date birthday) {
+    public User setBirthday(Long birthday) {
         this.birthday = birthday;
         return this;
     }
@@ -164,21 +172,21 @@ public class User extends RichEntity {
         return this;
     }
 
-    public Date getCreateTime() {
-        return createTime;
+    public Long getTotalSpaceSize() {
+        return totalSpaceSize;
     }
 
-    public User setCreateTime(Date createTime) {
-        this.createTime = createTime;
+    public User setTotalSpaceSize(Long totalSpaceSize) {
+        this.totalSpaceSize = totalSpaceSize;
         return this;
     }
 
-    public Date getUpdateTime() {
-        return updateTime;
+    public Long getUsedSpaceSize() {
+        return usedSpaceSize;
     }
 
-    public User setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
+    public User setUsedSpaceSize(Long usedSpaceSize) {
+        this.usedSpaceSize = usedSpaceSize;
         return this;
     }
 
@@ -186,15 +194,16 @@ public class User extends RichEntity {
     public String toString() {
         return "User["
                 + " id=" + id + ","
-                + " userName=" + userName + ","
+                + " nickName=" + nickName + ","
                 + " email=" + email + ","
                 + " password=" + password + ","
+                + " avatar=" + avatar + ","
                 + " birthday=" + birthday + ","
                 + " age=" + age + ","
                 + " gender=" + gender + ","
                 + " phone=" + phone + ","
-                + " createTime=" + createTime + ","
-                + " updateTime=" + updateTime
+                + " totalSpaceSize=" + totalSpaceSize + ","
+                + " usedSpaceSize=" + usedSpaceSize
                 + " ]"
                 + " "
                 + super.toString();

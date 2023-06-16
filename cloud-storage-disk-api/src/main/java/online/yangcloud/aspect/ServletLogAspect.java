@@ -1,13 +1,14 @@
 package online.yangcloud.aspect;
 
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import online.yangcloud.annotation.SessionValid;
 import online.yangcloud.common.constants.AppConstants;
-import online.yangcloud.common.constants.UserConstants;
-import online.yangcloud.exception.NoAuthException;
 import online.yangcloud.model.User;
+import online.yangcloud.utils.ExceptionTools;
 import online.yangcloud.utils.RedisTools;
+import online.yangcloud.utils.SessionTools;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -52,11 +53,13 @@ public class ServletLogAspect {
      * 第四处 * 代表类名，* 代表所有类
      * 第五处 *(..) * 代表类中的方法名 ( 所有方法名 )，() 表示方法的参数，.. 表示可以接受任何参数
      */
-    @Around("execution(* online.yangcloud.service.impl..*.*(..))")
+    @Around("execution(* online.yangcloud.service..*.*(..))")
     public Object recordTimeLog(ProceedingJoinPoint joinPoint) throws Throwable {
+        Class<?> clazz = joinPoint.getTarget().getClass();
+        String methodName = joinPoint.getSignature().getName();
 
         // 获取执行的类名和方法名
-        logger.info("====== 开始执行 {}.{} ======", joinPoint.getTarget().getClass(), joinPoint.getSignature().getName());
+        logger.info("====== 开始执行 {}.{} ======", clazz, methodName);
 
         // 记录开始执行方法的时间
         long begin = System.currentTimeMillis();
@@ -69,11 +72,11 @@ public class ServletLogAspect {
         long takeTime = end - begin;
 
         if (takeTime >= 0 && takeTime < AppConstants.NORMAL_TIMING) {
-            logger.info("====== 执行结束，耗时：{} 毫秒 =======", takeTime);
+            logger.info("====== {}.{} 执行结束，耗时：{} 毫秒 =======", clazz, methodName, takeTime);
         } else if (takeTime >= AppConstants.NORMAL_TIMING && takeTime < AppConstants.WARN_TIMING) {
-            logger.warn("====== 执行结束，耗时：{} 毫秒 =======", takeTime);
+            logger.warn("====== {}.{} 执行结束，耗时：{} 毫秒 =======", clazz, methodName, takeTime);
         } else {
-            logger.error("====== 执行结束，耗时：{} 毫秒 =======", takeTime);
+            logger.error("====== {}.{} 执行结束，耗时：{} 毫秒 =======", clazz, methodName, takeTime);
         }
 
         return result;
@@ -95,27 +98,25 @@ public class ServletLogAspect {
 
         // 检测接口是否需要校验登录状态，并对会话进行续期
         if (needMethodValid(joinPoint)) {
-            String sessionId = obtainSessionId(request);
+            String sessionId = SessionTools.getSessionId(request);
             if (StrUtil.isNotBlank(sessionId)) {
                 logger.info("session id [{}]", sessionId);
-                String userInfoJson = redisTools.get(UserConstants.LOGIN_SESSION + sessionId);
+                String userInfoJson = redisTools.get(AppConstants.User.LOGIN_TOKEN + sessionId);
                 if (StrUtil.isNotBlank(userInfoJson)) {
-                    long expireTime = redisTools.getExpireTime(UserConstants.LOGIN_SESSION + sessionId);
+                    long expireTime = redisTools.getExpireTime(AppConstants.User.LOGIN_TOKEN + sessionId);
                     // 当session还剩5分钟过期的时候，再次请求就会对session进行续期
-                    if (expireTime < AppConstants.ACCOUNT_RENEWAL_TIME
-                            && expireTime != AppConstants.ACCOUNT_EXPIRED_STATUS
-                            && expireTime != AppConstants.ACCOUNT_NOT_EXIST_STATUS) {
+                    if (expireTime < AppConstants.User.LOGIN_SESSION_EXPIRE_TIME
+                            && expireTime != AppConstants.User.ACCOUNT_EXPIRED_STATUS
+                            && expireTime != AppConstants.User.ACCOUNT_NOT_EXIST_STATUS) {
                         logger.info("The login status of account [{}] is about to expire. Now it starts to renew. The renewal period is [{}]s",
-                                userInfoJson, UserConstants.LOGIN_SESSION_EXPIRE_TIME);
-                        redisTools.expire(UserConstants.LOGIN_SESSION + sessionId, userInfoJson, UserConstants.LOGIN_SESSION_EXPIRE_TIME);
+                                userInfoJson, AppConstants.User.LOGIN_SESSION_EXPIRE_TIME);
+                        redisTools.expire(AppConstants.User.LOGIN_TOKEN + sessionId, userInfoJson, AppConstants.User.LOGIN_SESSION_EXPIRE_TIME);
                     }
                 } else {
-                    logger.info("==================== Method execution is abnormal ====================");
-                    throw new NoAuthException("Login has expired, please go to login");
+                    ExceptionTools.noAuthExp("Login has expired, please go to login");
                 }
             } else {
-                logger.info("==================== Method execution is abnormal ====================");
-                throw new NoAuthException("Login has expired, please go to login");
+                ExceptionTools.noAuthExp("Login has expired, please go to login");
             }
         }
 
@@ -126,16 +127,12 @@ public class ServletLogAspect {
         if (args != null && args.length > 0) {
             for (int i = 0; i < args.length; i++) {
                 if (args[i] instanceof User) {
-                    String sessionId = obtainSessionId(request);
+                    String sessionId = SessionTools.getSessionId(request);
                     if (StrUtil.isBlank(sessionId)) {
                         user = new User();
                     } else {
-                        String userInfoJson = redisTools.get(UserConstants.LOGIN_SESSION + sessionId);
-                        if (StrUtil.isBlank(userInfoJson)) {
-                            user = new User();
-                        } else {
-                            user = JSONUtil.toBean(userInfoJson, User.class);
-                        }
+                        String userInfo = redisTools.get(AppConstants.User.LOGIN_TOKEN + sessionId);
+                        user = CharSequenceUtil.isBlank(userInfo) ? User.initial() : JSONUtil.toBean(userInfo, User.class);
                     }
                     index = i;
                 }
@@ -145,16 +142,6 @@ public class ServletLogAspect {
             args[index] = user;
         }
         return joinPoint.proceed(args);
-    }
-
-    /**
-     * 获取 session id
-     *
-     * @param request 请求
-     * @return result
-     */
-    private String obtainSessionId(HttpServletRequest request) {
-        return request.getHeader(UserConstants.AUTHORIZATION);
     }
 
     /**

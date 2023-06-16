@@ -28,12 +28,12 @@ public enum FileTypeEnum implements SuperEnum<Integer> {
     }
 
     @Override
-    public Integer getCode() {
+    public Integer code() {
         return code;
     }
 
     @Override
-    public String getValue() {
+    public String value() {
         return value;
     }
 

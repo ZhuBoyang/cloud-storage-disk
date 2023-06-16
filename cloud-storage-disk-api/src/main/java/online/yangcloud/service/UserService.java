@@ -1,9 +1,7 @@
 package online.yangcloud.service;
 
-import online.yangcloud.common.ResultBean;
-import online.yangcloud.model.ao.user.UserUpdateRequest;
-import online.yangcloud.model.vo.user.LoginView;
-import online.yangcloud.model.vo.user.UserView;
+import online.yangcloud.model.ao.user.UserEnter;
+import online.yangcloud.model.ao.user.UserRegister;
 
 /**
  * @author zhuboyang
@@ -12,30 +10,18 @@ import online.yangcloud.model.vo.user.UserView;
 public interface UserService {
 
     /**
-     * 添加用户
+     * 注册账户
      *
-     * @param userName 用户名
-     * @param email    邮箱
-     * @param password 密码
-     * @return result
+     * @param register 账户邮箱和密码（加密过的）
      */
-    ResultBean<UserView> addUser(String userName, String email, String password);
+    void register(UserRegister register);
 
     /**
-     * 修改用户账户信息
+     * 用户登录
      *
-     * @param updateRequest 请求
-     * @return result
+     * @param enter 邮箱地址与密码
+     * @return 会话 session id
      */
-    ResultBean<UserView> updateUser(UserUpdateRequest updateRequest);
-
-    /**
-     * 登录
-     *
-     * @param email    账户邮箱
-     * @param password 账户密码
-     * @return result
-     */
-    ResultBean<LoginView> login(String email, String password);
+    String enter(UserEnter enter);
 
 }

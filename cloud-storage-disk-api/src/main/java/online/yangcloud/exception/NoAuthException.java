@@ -51,7 +51,7 @@ public class NoAuthException extends RuntimeException implements SuperEnum<Integ
     }
 
     @Override
-    public Integer getCode() {
+    public Integer code() {
         return code;
     }
 
@@ -60,7 +60,7 @@ public class NoAuthException extends RuntimeException implements SuperEnum<Integ
     }
 
     @Override
-    public String getValue() {
+    public String value() {
         return msg;
     }
 

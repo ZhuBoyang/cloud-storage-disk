@@ -8,8 +8,22 @@
 
 <script>
 
+import { useRouter } from 'vue-router'
+
 export default {
-  name: 'App'
+  name: 'App',
+  setup () {
+    const router = useRouter()
+    return {
+      router
+    }
+  },
+  created () {
+    // const token = localStorage.getItem('t')
+    // if (token !== undefined && token !== null && token !== '') {
+    //   this.router.push('/index')
+    // }
+  }
 }
 </script>
 

@@ -30,21 +30,21 @@ public class IpTools {
      * @since 2020/11/13 11:17 上午
      */
     public static String getIpAddress(HttpServletRequest req) throws UnknownHostException {
-        String ipAddress = req.getHeader(AppConstants.X_FORWARDED_FOR);
+        String ipAddress = req.getHeader(AppConstants.Ip.X_FORWARDED_FOR);
         if (StrUtil.isBlank(ipAddress) || ipAddress.length() == 0 || UNKNOWN.equalsIgnoreCase(ipAddress)) {
-            ipAddress = req.getHeader(AppConstants.X_CLIENT_IP);
+            ipAddress = req.getHeader(AppConstants.Ip.X_CLIENT_IP);
         }
         if (StrUtil.isBlank(ipAddress) || ipAddress.length() == 0 || UNKNOWN.equalsIgnoreCase(ipAddress)) {
-            ipAddress = req.getHeader(AppConstants.CLIENT_IP);
+            ipAddress = req.getHeader(AppConstants.Ip.CLIENT_IP);
         }
         if (StrUtil.isBlank(ipAddress) || ipAddress.length() == 0 || UNKNOWN.equalsIgnoreCase(ipAddress)) {
-            ipAddress = req.getHeader(AppConstants.X_REAL_IP);
+            ipAddress = req.getHeader(AppConstants.Ip.X_REAL_IP);
         }
         if (StrUtil.isBlank(ipAddress) || ipAddress.length() == 0 || UNKNOWN.equalsIgnoreCase(ipAddress)) {
-            ipAddress = req.getHeader(AppConstants.PROXY_CLIENT_IP);
+            ipAddress = req.getHeader(AppConstants.Ip.PROXY_CLIENT_IP);
         }
         if (StrUtil.isBlank(ipAddress) || ipAddress.length() == 0 || UNKNOWN.equalsIgnoreCase(ipAddress)) {
-            ipAddress = req.getHeader(AppConstants.WL_PROXY_CLIENT_IP);
+            ipAddress = req.getHeader(AppConstants.Ip.WL_PROXY_CLIENT_IP);
         }
         if (StrUtil.isBlank(ipAddress) || ipAddress.length() == 0 || UNKNOWN.equalsIgnoreCase(ipAddress)) {
             ipAddress = req.getRemoteAddr();
@@ -70,8 +70,8 @@ public class IpTools {
                 ipAddress = ipAddress.substring(0, ipAddress.indexOf(StrUtil.COMMA));
             }
         }
-        if (AppConstants.LOCAL_IPV6_ADDRESS.equals(ipAddress)) {
-            ipAddress = AppConstants.LOCAL_IPV4_ADDRESS;
+        if (AppConstants.Ip.LOCAL_IPV6_ADDRESS.equals(ipAddress)) {
+            ipAddress = AppConstants.Ip.LOCAL_IPV4_ADDRESS;
         }
         return ipAddress;
     }

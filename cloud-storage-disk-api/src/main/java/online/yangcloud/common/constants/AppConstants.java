@@ -23,61 +23,113 @@ public interface AppConstants {
     long WARN_TIMING = 2 * NORMAL_TIMING;
 
     /**
-     * 登录状态续期
+     * 手机号正则
      */
-    long ACCOUNT_RENEWAL_TIME = 5 * 60L;
-    long ACCOUNT_EXPIRED_STATUS = -1L;
-    long ACCOUNT_NOT_EXIST_STATUS = -2;
+    String PHONE_REGULAR = "^(0|86|17951)?(13[0-9]|15[012356789]|16[6]|19[89]]|17[01345678]|18[0-9]|14[579])[0-9]{8}$";
 
     /**
-     * ip 相关
+     * 邮箱相关
      */
-    String X_FORWARDED_FOR = "x-forwarded-for";
-    String X_CLIENT_IP = "x-client-ip";
-    String CLIENT_IP = "client-ip";
-    String X_REAL_IP = "x-real-ip";
-    String PROXY_CLIENT_IP = "Proxy-Client-IP";
-    String WL_PROXY_CLIENT_IP = "WL-Proxy-Client-IP";
+    interface Email {
+        /**
+         * 邮箱验证码过期时间（时间单位：m）
+         */
+        Integer EMAIL_CODE_EXPIRED_TIME = 5;
+        /**
+         * 用于注册的邮箱验证码的 redis key
+         */
+        String REGISTER_EMAIL_REDIS_KEY = "register_email_code:";
+        /**
+         * 用于重置密码的邮箱验证码的 redis key
+         */
+        String RESET_PASSWORD_REDIS_KEY = "reset_password:";
+        /**
+         * 邮箱正则
+         */
+        String EMAIL_REGULAR = "^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$";
+    }
 
     /**
-     * 本地 ipv4 地址
+     * 用户账户相关
      */
-    String LOCAL_IPV4_ADDRESS = "127.0.0.1";
+    interface User {
+        String LOGIN_TOKEN = "token:";
+        /**
+         * 账号登录 session 会话过期时间：7 * 24 小时
+         */
+        Integer LOGIN_SESSION_EXPIRE_TIME = 7 * 24 * 60 * 60;
+        /**
+         * 会话标识
+         */
+        String AUTHORIZATION = "authorization";
+        /**
+         * 账户总容量
+         */
+        Long TOTAL_SPACE_SIZE = 5 * 1024 * 1024 * 1024L;
+        /**
+         * 登录状态续期
+         */
+        Long ACCOUNT_EXPIRED_STATUS = -1L;
+        Long ACCOUNT_NOT_EXIST_STATUS = -2L;
+    }
 
     /**
-     * 本地 ipv6 地址，如果后期不需要，可以不使用
+     * ip 地址相关
      */
-    String LOCAL_IPV6_ADDRESS = "0:0:0:0:0:0:0:1";
+    interface Ip {
+        String X_FORWARDED_FOR = "x-forwarded-for";
+        String X_CLIENT_IP = "x-client-ip";
+        String CLIENT_IP = "client-ip";
+        String X_REAL_IP = "x-real-ip";
+        String PROXY_CLIENT_IP = "Proxy-Client-IP";
+        String WL_PROXY_CLIENT_IP = "WL-Proxy-Client-IP";
+        /**
+         * 本地 ipv4 地址
+         */
+        String LOCAL_IPV4_ADDRESS = "127.0.0.1";
+        /**
+         * 本地 ipv6 地址，如果后期不需要，可以不使用
+         */
+        String LOCAL_IPV6_ADDRESS = "0:0:0:0:0:0:0:1";
+        /**
+         * 访问者 ip 地址前缀
+         */
+        String VISITOR_IP_PREFIX = "visit_ip:";
+    }
 
     /**
-     * 访问者 ip 地址前缀
+     * 上传文件相关
      */
-    String VISITOR_IP_PREFIX = "visit_ip:";
+    interface Uploader {
+        /**
+         * 文件块上传缓存
+         */
+        String FILE_BLOCK_UPLOAD_PREFIX = "file_block_upload:";
+        String FILE_BLOCK_UPLOAD_BUFFER_PREFIX = "file_block_buffer_upload:";
+        /**
+         * 文件块是否已上传检测
+         */
+        String BLOCK_METADATA_PREFIX = "block_metadata:";
+        /**
+         * 文件上传目录
+         */
+        String FILE_UPLOAD_PATH = "upload" + File.separator + "file" + File.separator;
+        /**
+         * 文件块上传目录
+         */
+        String BLOCK_UPLOAD_PATH = "upload" + File.separator + "block" + File.separator;
+        /**
+         * 临时文件存放目录
+         */
+        String TMP_PATH = "tmp" + File.separator;
+    }
 
     /**
-     * 文件块上传缓存
+     * 文件相关
      */
-    String FILE_BLOCK_UPLOAD_PREFIX = "file_block_upload:";
-    String FILE_BLOCK_UPLOAD_BUFFER_PREFIX = "file_block_buffer_upload:";
-
-    /**
-     * 文件块是否已上传检测
-     */
-    String BLOCK_METADATA_PREFIX = "block_metadata:";
-
-    /**
-     * 文件上传目录
-     */
-    String FILE_UPLOAD_PATH = "upload" + File.separator + "file" + File.separator;
-
-    /**
-     * 文件块上传目录
-     */
-    String BLOCK_UPLOAD_PATH = "upload" + File.separator + "block" + File.separator;
-
-    /**
-     * 临时文件存放目录
-     */
-    String TMP_PATH = "tmp" + File.separator;
+    interface FileMetadata {
+        // 单次最多插入数据量
+        Integer SINGLE_SAVE_MAX_COUNT = 200;
+    }
 
 }

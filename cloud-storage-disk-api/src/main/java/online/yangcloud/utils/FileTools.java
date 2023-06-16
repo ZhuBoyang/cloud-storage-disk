@@ -1,7 +1,6 @@
 package online.yangcloud.utils;
 
 import cn.hutool.core.io.FileUtil;
-import online.yangcloud.enumration.FileCategoryEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +9,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
@@ -26,7 +26,8 @@ public class FileTools {
 
     private final static int BUF_SIZE = 1024;
     private final static String PREFIX = "data:image/jpeg;base64,";
-    public final static String[] EXT = {".bmp", ".jpg", ".jpeg", ".png", ".gif"};
+    public final static List<String> PICTURE_EXT = new ArrayList<>(Arrays.asList(".bmp", ".jpg", ".jpeg", ".png", ".gif"));
+    public final static List<String> VIDEO_EXT = new ArrayList<>(Arrays.asList("avi", "mov", "rmvb", "rm", "flv", "mp4", "3gp"));
 
     /**
      * 文件合并
@@ -86,21 +87,6 @@ public class FileTools {
     }
 
     /**
-     * 判断文件类型是否为指定类型
-     *
-     * @param category 指定的文件类型
-     * @param ext      文件后缀
-     * @return result
-     */
-    public static boolean determineFileType(FileCategoryEnum category, String ext) {
-        if (FileCategoryEnum.VIDEO.equals(category)) {
-            List<String> categories = Arrays.asList("avi", "mov", "rmvb", "rm", "flv", "mp4", "3gp");
-            return categories.contains(ext);
-        }
-        return Boolean.FALSE;
-    }
-
-    /**
      * 下载文档
      *
      * @param sourceName   要下载的文件
@@ -109,18 +95,15 @@ public class FileTools {
      */
     public static void downloadResponse(String sourceName, String downloadName, HttpServletResponse response) {
         byte[] buff = new byte[1024];
-        OutputStream os = null;
-        BufferedInputStream bis = null;
-        try {
+        try (OutputStream os = response.getOutputStream();
+             BufferedInputStream bis = new BufferedInputStream(Files.newInputStream(Paths.get(sourceName)))) {
             // 取得输出流
-            os = response.getOutputStream();
             // 清空输出流
             response.reset();
             response.setContentType("application/x-download;charset=UTF-8");
             response.setHeader("Content-Disposition", "attachment;filename="
                     + new String(downloadName.getBytes(StandardCharsets.UTF_8), "ISO8859-1"));
 
-            bis = new BufferedInputStream(Files.newInputStream(Paths.get(sourceName)));
             int i = bis.read(buff);
             while (i != -1) {
                 os.write(buff, 0, buff.length);
@@ -129,22 +112,17 @@ public class FileTools {
             }
         } catch (IOException e) {
             logger.info("file read or write error {}", e.getMessage(), e);
-        } finally {
-            if (bis != null) {
-                try {
-                    bis.close();
-                } catch (IOException e) {
-                    logger.info("input stream close error {}", e.getMessage(), e);
-                }
-            }
-            if (os != null) {
-                try {
-                    os.close();
-                } catch (IOException e) {
-                    logger.info("output stream close error {}", e.getMessage(), e);
-                }
-            }
         }
+    }
+
+    /**
+     * 校验文件是否是视频
+     *
+     * @param ext 文件后缀名
+     * @return 校验结果
+     */
+    public static boolean isVideo(String ext) {
+        return VIDEO_EXT.contains(ext);
     }
 
     /**
@@ -154,7 +132,7 @@ public class FileTools {
      * @return 校验结果
      */
     public static boolean isPic(String ext) {
-        return Arrays.asList(EXT).contains(ext);
+        return PICTURE_EXT.contains(ext);
     }
 
 }

@@ -25,12 +25,12 @@ public enum YesOrNoEnum implements SuperEnum<Integer> {
     }
 
     @Override
-    public Integer getCode() {
+    public Integer code() {
         return code;
     }
 
     @Override
-    public String getValue() {
+    public String value() {
         return msg;
     }
 }

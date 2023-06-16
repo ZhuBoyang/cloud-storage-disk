@@ -11,14 +11,14 @@ public interface SuperEnum<T> {
      *
      * @return T
      */
-    T getCode();
+    T code();
 
     /**
      * 获取值
      *
      * @return value
      */
-    String getValue();
+    String value();
 
     /**
      * 对比是否是同一个code
@@ -27,7 +27,7 @@ public interface SuperEnum<T> {
      * @return 是否
      */
     default boolean is(Integer code) {
-        return getCode().equals(code);
+        return code().equals(code);
     }
 
     /**
@@ -37,7 +37,7 @@ public interface SuperEnum<T> {
      * @return 是否
      */
     default boolean is(String code) {
-        return getCode().toString().equals(code);
+        return code().toString().equals(code);
     }
 
 }

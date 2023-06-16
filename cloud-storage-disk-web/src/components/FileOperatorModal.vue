@@ -29,7 +29,7 @@
       </div>
     </div>
     <div class="box-body-empty" v-else>
-      <a-empty :img-src="apiConfig().iconBaseUrl + 'icons/empty-data.png'"/>
+      <a-empty :img-src="apiConfig().iconBaseUrl + 'icons/empty_data.png'"/>
     </div>
     <div class="box-footer">
       <a-button type="primary" shape="round" @click="moveToCurrentFolder">{{ identifyOperationName(operationName) }}至此</a-button>

@@ -4,46 +4,35 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.util.*;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.crypto.SecureUtil;
-import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import online.yangcloud.common.ResultBean;
-import online.yangcloud.common.SystemRecognition;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.common.resultcode.AppResultCode;
-import online.yangcloud.enumration.FileCategoryEnum;
 import online.yangcloud.enumration.FileTypeEnum;
 import online.yangcloud.enumration.YesOrNoEnum;
-import online.yangcloud.exception.BusinessException;
-import online.yangcloud.mapper.BlockMetadataMapper;
-import online.yangcloud.mapper.FileBlockMapper;
-import online.yangcloud.mapper.FileMetadataMapper;
 import online.yangcloud.model.BlockMetadata;
 import online.yangcloud.model.FileBlock;
 import online.yangcloud.model.FileMetadata;
 import online.yangcloud.model.User;
-import online.yangcloud.model.ao.file.BlockUploader;
-import online.yangcloud.model.ao.file.FileRenameRequest;
-import online.yangcloud.model.ao.file.FileSearchRequest;
-import online.yangcloud.model.bo.FileOperationValidate;
-import online.yangcloud.model.vo.file.FileBreadView;
+import online.yangcloud.model.ao.file.FileSearcher;
+import online.yangcloud.model.ao.file.FileUploader;
+import online.yangcloud.model.bo.file.FileOperateValidator;
+import online.yangcloud.model.vo.PagerView;
+import online.yangcloud.model.vo.file.BreadsView;
 import online.yangcloud.model.vo.file.FileMetadataView;
-import online.yangcloud.model.vo.file.FilePlayView;
 import online.yangcloud.service.FileService;
-import online.yangcloud.utils.FileTools;
-import online.yangcloud.utils.IdTools;
-import online.yangcloud.utils.RedisTools;
-import online.yangcloud.wrapper.FileMetadataQuery;
+import online.yangcloud.service.meta.BlockMetadataService;
+import online.yangcloud.service.meta.FileBlockService;
+import online.yangcloud.service.meta.FileMetadataService;
+import online.yangcloud.service.meta.UserMetaService;
+import online.yangcloud.utils.*;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ws.schild.jave.EncoderException;
-import ws.schild.jave.MultimediaObject;
-import ws.schild.jave.info.MultimediaInfo;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -64,16 +53,19 @@ public class FileServiceImpl implements FileService {
     private static final Logger logger = LoggerFactory.getLogger(FileServiceImpl.class);
 
     @Resource
-    private FileMetadataMapper fileMetadataMapper;
+    private UserMetaService userMetaService;
 
     @Resource
-    private BlockMetadataMapper blockMetadataMapper;
+    private FileMetadataService fileMetadataService;
 
     @Resource
-    private FileBlockMapper fileBlockMapper;
+    private FileBlockService fileBlockService;
 
     @Resource
-    private SystemRecognition systemRecognition;
+    private BlockMetadataService blockMetadataService;
+
+    @Resource
+    private SystemTools systemTools;
 
     @Resource
     private RedisTools redisTools;
@@ -82,71 +74,60 @@ public class FileServiceImpl implements FileService {
     private RedissonClient redissonClient;
 
     @Override
-    public Boolean checkBlocksExist(BlockUploader uploader) {
-        // 查询块是否已上传至数据库中
-        BlockMetadata blockMetadata = blockMetadataMapper.findOne(blockMetadataMapper.query()
-                .where.hash().eq(uploader.getHash()).and.isDelete().eq(YesOrNoEnum.NO.getCode()).end());
-        if (ObjectUtil.isNull(blockMetadata)) {
-            return Boolean.FALSE;
+    public Integer checkBlockExist(FileUploader uploader) {
+        // 检测文件块是否已在库中
+        if (ObjectUtil.isNull(blockMetadataService.queryByHash(uploader.getHash()))) {
+            return YesOrNoEnum.NO.code();
         }
 
-        // 查询块是否存在磁盘上
-        File block = FileUtil.file(systemRecognition.generateSystemPath() + AppConstants.BLOCK_UPLOAD_PATH + uploader.getHash());
-        if (!FileUtil.exist(block)) {
-            // 如果磁盘上没有此文件块，那么就将文件块的元数据设置为已删除状态
-            blockMetadataMapper.updateBy(blockMetadataMapper.updater()
-                    .set.isDelete().is(YesOrNoEnum.YES.getCode()).end()
-                    .where.id().eq(blockMetadata.getId()).end());
-            return Boolean.FALSE;
-        }
+        // 将文件块数据存入 redis，待存入文件元数据时使用
         String redisValue = JSONUtil.toJsonStr(uploader);
         double blockIndex = uploader.getBlockIndex().doubleValue();
-        redisTools.zSetAdd(AppConstants.FILE_BLOCK_UPLOAD_PREFIX + uploader.getIdentifier(), redisValue, blockIndex);
-        return Boolean.TRUE;
+        redisTools.zSetAdd(AppConstants.Uploader.FILE_BLOCK_UPLOAD_PREFIX + uploader.getIdentifier(), redisValue, blockIndex);
+        return YesOrNoEnum.YES.code();
     }
 
     @Override
-    public void uploadFileBlock(BlockUploader upload) throws IOException {
+    public Integer blockUpload(FileUploader uploader) {
         // 检测当前文件块是否已存到硬盘上。如果没有，则需要存到磁盘上，并入库
-        RLock blockUploadLock = redissonClient.getLock("upload_file_block_lock:" + upload.getIdentifier());
+        RLock blockUploadLocker = redissonClient.getLock("upload_file_block_lock:" + uploader.getIdentifier());
         try {
-            blockUploadLock.lock();
-            BlockMetadata block = blockMetadataMapper.findOne(blockMetadataMapper.query()
-                    .where.hash().eq(upload.getHash()).and.isDelete().eq(YesOrNoEnum.NO.getCode()).end());
+            blockUploadLocker.lock();
+            BlockMetadata block = blockMetadataService.queryByHash(uploader.getHash());
 
-            if (ObjUtil.isNull(block)) {
-                String uploadPath = systemRecognition.generateSystemPath() + AppConstants.BLOCK_UPLOAD_PATH;
+            // 如果检测到文件块还不存在，就说明还没有上传过，那么先进行落地
+            if (ObjectUtil.isNull(block)) {
+                String uploadPath = systemTools.systemPath() + AppConstants.Uploader.BLOCK_UPLOAD_PATH;
                 if (!FileUtil.exist(uploadPath)) {
                     FileUtil.mkdir(uploadPath);
                 }
-                upload.getFile().transferTo(new File(systemRecognition.generateSystemPath() + AppConstants.BLOCK_UPLOAD_PATH + upload.getHash()));
-
-                block = new BlockMetadata()
-                        .setId(IdUtil.fastSimpleUUID())
-                        .setHash(upload.getHash())
-                        .setStoragePath(AppConstants.BLOCK_UPLOAD_PATH + upload.getHash())
-                        .setBlockSize(upload.getBlockSize());
-                blockMetadataMapper.insertWithPk(block);
+                uploader.getFile().transferTo(new File(uploadPath + uploader.getHash()));
             }
+            block = BlockMetadata.initial(uploader.getHash(), uploader.getBlockSize());
+            blockMetadataService.insertBlock(block);
 
             // 将文件块数据加入到 redis 集合中，便于入库文件元数据，使用 redisson 分布式锁解决并发
-            upload.setFile(null);
-            String redisValue = JSONUtil.toJsonStr(upload);
-            redisTools.zSetAdd(AppConstants.FILE_BLOCK_UPLOAD_PREFIX + upload.getIdentifier(), redisValue, upload.getBlockIndex().doubleValue());
+            uploader.setFile(null);
+            String redisValue = JSONUtil.toJsonStr(uploader);
+            redisTools.zSetAdd(AppConstants.Uploader.FILE_BLOCK_UPLOAD_PREFIX + uploader.getIdentifier(),
+                    redisValue, uploader.getBlockIndex().doubleValue());
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
         } finally {
-            blockUploadLock.unlock();
+            blockUploadLocker.unlock();
         }
+        return YesOrNoEnum.YES.code();
     }
 
     @Override
-    public FileMetadataView mergeFile(String identifier, String hash, User user) throws IOException {
+    public FileMetadataView fileMerge(String identifier, User user) throws IOException {
         // 1. 获取 redis 中存着的文件块数据
         // 2. 将数据转为文件块上传参数列表和文件块 hash 列表
-        List<String> blockUploaderJsons = redisTools.zSetRange(AppConstants.FILE_BLOCK_UPLOAD_PREFIX + identifier, 0D, Double.MAX_VALUE);
-        List<BlockUploader> blockUploaderList = new ArrayList<>();
+        List<String> blockUploaderJsons = redisTools.zSetRange(AppConstants.Uploader.FILE_BLOCK_UPLOAD_PREFIX + identifier, 0D, Double.MAX_VALUE);
+        List<FileUploader> blockUploaderList = new ArrayList<>();
         List<String> blockHashList = new ArrayList<>();
         blockUploaderJsons.forEach(o -> {
-            BlockUploader uploader = JSONUtil.toBean(o, BlockUploader.class);
+            FileUploader uploader = JSONUtil.toBean(o, FileUploader.class);
             blockUploaderList.add(uploader);
             blockHashList.add(uploader.getHash());
         });
@@ -154,31 +135,29 @@ public class FileServiceImpl implements FileService {
         // 1. 从上传的文件块参数中获取第一个个元素
         // 2. 查询上传的目录下所有含有上传文件名相关的文件
         // 3. 计算存储文件的文件名后的后缀数字
-        BlockUploader uploader = blockUploaderList.get(0);
-        List<FileMetadata> files = queryLikePrefix(uploader.getPid(), uploader.getFileName(), FileTypeEnum.FILE, user);
-        int fileNumber = calculateFileNumber(files, uploader.getFileName());
+        FileUploader uploader = blockUploaderList.get(0);
+        List<FileMetadata> files = fileMetadataService.queryLikePrefix(uploader.getId(), uploader.getFileName(), FileTypeEnum.FILE);
+        int fileNumber = FileMetadata.calculateFileSuffixNumber(files, uploader.getFileName());
 
         // 查询并将文件块的元数据转为 map，方便后续生成文件块的存储路径，用以合并文件
-        List<BlockMetadata> blocks = blockMetadataMapper.listEntity(blockMetadataMapper.query()
-                .where.hash().in(blockHashList).and.isDelete().eq(YesOrNoEnum.NO.getCode()).end());
-        Map<String, BlockMetadata> blocksHashMap = blocks.stream().collect(Collectors.toMap(BlockMetadata::getHash, o -> o));
+        List<BlockMetadata> blocks = blockMetadataService.queryListByHashList(blockHashList);
+        Map<String, BlockMetadata> blocksHashMap = blocks.stream().collect(Collectors.toMap(BlockMetadata::getHash, block -> block));
 
         // 生成文件 id，用以存储文件与文件块之间的关联关系
         String fileId = IdTools.fastSimpleUuid();
-        blockUploaderList.sort(Comparator.comparingInt(BlockUploader::getBlockIndex));
+        blockUploaderList.sort(Comparator.comparingInt(FileUploader::getBlockIndex));
         List<FileBlock> fileBlocks = blockUploaderList.stream()
                 .map(o -> FileBlock.initial(fileId, o, blocksHashMap.get(o.getHash())))
                 .collect(Collectors.toList());
-        int updateResult = fileBlockMapper.insertBatchWithPk(fileBlocks);
-        if (updateResult != fileBlocks.size()) {
-            throw new BusinessException(AppResultCode.FAILURE.getMessage());
-        }
+        fileBlockService.batchInsert(fileBlocks);
 
         // 将文件块合并成文件，用以生成文件 hash
-        List<String> blockPaths = blocks.stream()
-                .map(o -> systemRecognition.generateSystemPath() + o.getStoragePath())
+        Map<String, String> blocksPathMap =
+                blocks.stream().collect(Collectors.toMap(BlockMetadata::getId, BlockMetadata::getPath));
+        List<String> blockPaths = fileBlocks.stream()
+                .map(o -> systemTools.systemPath() + blocksPathMap.get(o.getBlockId()))
                 .collect(Collectors.toList());
-        String filePath = systemRecognition.generateSystemPath() + AppConstants.FILE_UPLOAD_PATH + uploader.getIdentifier();
+        String filePath = systemTools.systemPath() + AppConstants.Uploader.FILE_UPLOAD_PATH + uploader.getIdentifier();
         FileTools.combineFile(filePath, blockPaths);
         String fileHash = SecureUtil.md5(Files.newInputStream(FileUtil.file(filePath).toPath()));
         if (FileTools.isPic(uploader.getExt())) {
@@ -190,358 +169,148 @@ public class FileServiceImpl implements FileService {
         }
 
         // 封装文件元数据并入库
-        FileMetadata parent = fileMetadataMapper.findById(uploader.getPid());
+        FileMetadata parent = fileMetadataService.queryById(uploader.getId(), user.getId());
         FileMetadata file = FileMetadata.initial(fileId, fileNumber, fileHash, parent, uploader, user);
-        updateResult = fileMetadataMapper.insertWithPk(file);
-        if (updateResult == 0) {
-            throw new BusinessException(AppResultCode.FAILURE.getMessage());
-        }
+        fileMetadataService.insertWidthPrimaryKey(file);
+
+        // 更新账户的空间容量
+        user.setUsedSpaceSize(user.getUsedSpaceSize() + file.getSize());
+        userMetaService.updateUser(user);
         return BeanUtil.copyProperties(file, FileMetadataView.class);
     }
 
     @Override
-    public List<FileMetadata> queryLikePrefix(String pid, String fileName, FileTypeEnum type, User user) {
-        return fileMetadataMapper.listEntity(fileMetadataMapper.query()
-                .where.pid().eq(pid)
-                .and.name().like(fileName.trim() + AppConstants.PERCENT)
-                .and.type().eq(type.getCode())
-                .and.userId().eq(user.getId())
-                .and.isDelete().eq(YesOrNoEnum.NO.getCode()).end());
+    public void initialUserRoot(String userId) {
+        FileMetadata file = FileMetadata.initial(userId);
+        fileMetadataService.insertWidthPrimaryKey(file);
     }
 
     @Override
-    public void initUserFile(String userId) {
-        FileMetadata file = FileMetadata.initRoot(userId);
-        insertOne(file);
+    public FileMetadataView mkdir(String pid, String name, String userId) {
+        // 1. 查询当前目录下与待创建文件夹名相关的文件列表
+        // 2. 计算文件夹后缀数字
+        List<FileMetadata> files = fileMetadataService.queryLikePrefix(pid, name, FileTypeEnum.DIR);
+        int fileNumber = FileMetadata.calculateFileSuffixNumber(files, name);
+
+        // 查询父级文件元数据，用以拼接祖级文件 id
+        FileMetadata parent = fileMetadataService.queryById(pid, userId);
+
+        // 拼接文件夹名，并入库
+        name = fileNumber == 0 ? name : name + AppConstants.LEFT_BRACKET + fileNumber + AppConstants.RIGHT_BRACKET;
+        FileMetadata file = FileMetadata.initialDir(pid, name, parent.queryAncestors(), userId);
+        fileMetadataService.insertWidthPrimaryKey(file);
+        return FileMetadataView.convert(file);
     }
 
     @Override
-    public FileMetadata insertOne(FileMetadata file) {
-        int updateResult = fileMetadataMapper.insertWithPk(file);
-        if (updateResult == 0) {
-            throw new BusinessException("文件添加失败，请重试");
-        }
-        return file;
-    }
-
-    @Override
-    public FileMetadataView mkdir(String pid, String fileName, User user) {
-        // 查询父级目录的数据，以便获取所有父级目录 id 信息
-        FileMetadata parent = fileMetadataMapper.findById(pid);
-        if (ObjUtil.isNull(parent) || !parent.getUserId().equals(user.getId())) {
-            logger.error("父级目录不存在，操作失败，请重试");
-            throw new BusinessException("父级目录不存在，操作失败，请重试");
-        }
-
-        // 查询与文件夹名称有关的文件夹
-        List<FileMetadata> existDirectories = queryLikePrefix(pid, fileName, FileTypeEnum.DIR, user);
-
-        // 计算存储文件的文件名后的后缀数字
-        int fileNumber = calculateFileNumber(existDirectories, fileName);
-
-        // 封装文件元数据并入库
-        FileMetadata file = new FileMetadata()
-                .setId(IdUtil.fastSimpleUUID())
-                .setPid(pid)
-                .setName(fileNumber == 0 ? fileName : fileName + AppConstants.LEFT_BRACKET + fileNumber + AppConstants.RIGHT_BRACKET)
-                .setExt(CharSequenceUtil.EMPTY)
-                .setHash(CharSequenceUtil.EMPTY)
-                .setPath(CharSequenceUtil.EMPTY)
-                .setType(FileTypeEnum.DIR.getCode())
-                .setSize(0L)
-                .setAncestors(CharSequenceUtil.isBlank(parent.getAncestors()) ? parent.getId() : parent.getAncestors() + StrUtil.COMMA + parent.getId())
-                .setUploadTime(DateUtil.date())
-                .setUpdateTime(DateUtil.date())
-                .setUserId(user.getId());
-        int updateResult = fileMetadataMapper.insertWithPk(file);
-        if (updateResult == 0) {
-            logger.error("文件夹新建失败，请重试");
-            throw new BusinessException("文件夹新建失败，请重试");
-        }
-
-        // 返回视图数据
-        return BeanUtil.copyProperties(file, FileMetadataView.class);
-    }
-
-    @Override
-    public ResultBean<?> batchDeleteFile(List<String> fileIds, User user) {
-        // 检测存在的文件
-        List<FileMetadata> files = fileMetadataMapper.listEntity(fileMetadataMapper.query()
-                .where.id().in(fileIds)
-                .and.isDelete().eq(YesOrNoEnum.NO.getCode())
-                .and.userId().eq(user.getId()).end());
-        fileIds = files.stream().map(FileMetadata::getId).collect(Collectors.toList());
+    public void batchDeleteFile(List<String> ids, String userId) {
+        // 检测存在的文件。因为有可能有的文件已经不存在了
+        ids = fileMetadataService.queryListByIds(ids, userId).stream().map(FileMetadata::getId).collect(Collectors.toList());
 
         // 删除文件
-        int updateResult = fileMetadataMapper.updateBy(fileMetadataMapper.updater()
-                .set.isDelete().is(YesOrNoEnum.YES.getCode()).end()
-                .where.id().in(fileIds).end());
-        if (updateResult != fileIds.size()) {
-            logger.error("文件删除失败，请重试");
-            throw new BusinessException("文件删除失败，请重试");
-        }
-
-        // 查询文件对应的，文件与文件块的关联记录
-        List<FileBlock> fileBlocks = fileBlockMapper.listEntity(fileBlockMapper.query().where.fileId().in(fileIds).end());
-        List<String> fileBlocksIds = fileBlocks.stream().map(FileBlock::getId).collect(Collectors.toList());
-
-        // 删除文件与文件块的关联关系
-        if (fileBlocksIds.size() > 0) {
-            updateResult = fileBlockMapper.updateBy(fileBlockMapper.updater()
-                    .set.isDelete().is(YesOrNoEnum.YES.getCode()).end()
-                    .where.id().in(fileBlocksIds).end());
-            if (updateResult != fileBlocksIds.size()) {
-                logger.error("文件删除失败，请重试.");
-                throw new BusinessException("文件删除失败，请重试.");
-            }
-        }
+        fileMetadataService.batchRemove(ids, userId);
 
         // 查询子级的所有文件与文件夹
         List<FileMetadata> childList = new ArrayList<>();
-        for (String fileId : fileIds) {
-            childList.addAll(fileMetadataMapper.listEntity(fileMetadataMapper.query()
-                    .where.ancestors().like(AppConstants.PERCENT + fileId + AppConstants.PERCENT)
-                    .and.isDelete().eq(YesOrNoEnum.NO.getCode())
-                    .and.userId().eq(user.getId()).end()));
+        for (String fileId : ids) {
+            childList.addAll(fileMetadataService.queryChildListByPid(fileId, userId, Boolean.FALSE));
         }
         if (childList.size() == 0) {
-            return ResultBean.success();
+            return;
         }
-        List<String> childIds = childList.stream().map(FileMetadata::getId).collect(Collectors.toList());
 
         // 删除所有子级文件与文件夹
-        updateResult =
-                fileMetadataMapper.updateBy(fileMetadataMapper.updater().set.isDelete().is(YesOrNoEnum.YES.getCode()).end().where.id().in(childIds).end());
-        if (updateResult != childIds.size()) {
-            logger.error("文件删除失败，请重新尝试");
-            throw new BusinessException("文件删除失败，请重新尝试");
-        }
-
-        // 查询子级文件与文件块的关联
-        fileBlocks = fileBlockMapper.listEntity(fileBlockMapper.query().where.fileId().in(childIds).and.isDelete().eq(YesOrNoEnum.NO.getCode()).end());
-        fileBlocksIds = fileBlocks.stream().map(FileBlock::getId).collect(Collectors.toList());
-
-        // 删除文件与文件块的关联关系
-        if (fileBlocksIds.size() > 0) {
-            updateResult = fileBlockMapper.updateBy(fileBlockMapper.updater()
-                    .set.isDelete().is(YesOrNoEnum.YES.getCode()).end()
-                    .where.id().in(fileBlocksIds).end());
-            if (updateResult != fileBlocksIds.size()) {
-                logger.error("文件删除失败，请重新尝试.");
-                throw new BusinessException("文件删除失败，请重新尝试.");
-            }
-        }
-        return ResultBean.success();
-    }
-
-    /**
-     * 计算文件名名后的后缀数字
-     *
-     * @param files    计算文件范围列表
-     * @param fileName 文件名
-     * @return result
-     */
-    public static int calculateFileNumber(List<FileMetadata> files, String fileName) {
-        int fileNumber = 0;
-        if (files.size() > 0) {
-            // 1. 将文件夹名称刨除掉，过滤掉名称不同的文件夹。如：test（1）切分为 1
-            // 2. 将名称刨除掉后，剩下的名称部分，留下是数字的
-            // 3. 将数字（字符串）转为数字，并升序排序
-            List<Integer> fileNumbers = files.stream()
-                    .map(file -> fileName.equals(file.getName()) ?
-                            CharSequenceUtil.EMPTY : file.getName().substring(fileName.length() + 1, file.getName().length() - 1))
-                    .filter(nameNumber -> CharSequenceUtil.isBlank(nameNumber) || NumberUtil.isInteger(nameNumber))
-                    .map(nameNumber -> CharSequenceUtil.isBlank(nameNumber) ? 0 : Integer.parseInt(nameNumber))
-                    .sorted(Comparator.comparingInt(Integer::intValue))
-                    .collect(Collectors.toList());
-            if (fileNumbers.size() > 0) {
-                fileNumber = fileNumbers.get(fileNumbers.size() - 1) + 1;
-            }
-        }
-        return fileNumber;
+        fileMetadataService.batchRemove(childList.stream().map(FileMetadata::getId).collect(Collectors.toList()), userId);
     }
 
     @Override
-    public ResultBean<?> batchMoveFiles(List<String> sources, String target, User user) {
+    public void batchCopy(List<String> sourcesIds, String targetId, String userId) {
         // 对待操作文件和文件夹与目标目录进行校验
-        FileOperationValidate validate = validateFiles(sources, target, user);
-        FileMetadata targetFile = validate.getTargetFile();
-        List<FileMetadata> sourceFiles = validate.getSourceFiles();
+        FileOperateValidator validator = validator(sourcesIds, targetId, userId);
 
-        // 修改待移动文件的父级文件 id 和所有祖级 id
-        String ancestor = targetFile.getId();
-        if (CharSequenceUtil.isNotBlank(targetFile.getAncestors())) {
-            ancestor += StrUtil.COMMA + targetFile.getAncestors();
-        }
-        int updateResult = fileMetadataMapper.updateBy(fileMetadataMapper.updater()
-                .set.pid().is(target).ancestors().is(ancestor).end()
-                .where.id().in(sources).end());
-        if (updateResult != sourceFiles.size()) {
-            logger.error("文件移动失败，请重试");
-            throw new BusinessException("文件移动失败，请重试");
-        }
+        // 需要复制的文件列表
+        List<FileMetadata> copiedFiles = new ArrayList<>();
+        // 需要复制的文件与文件块的关联关系列表
+        List<FileBlock> copiedBlocks = new ArrayList<>();
 
-        // 修改所有子级文件的祖级 id
-        List<FileMetadata> dirFiles = sourceFiles.stream().filter(file -> YesOrNoEnum.YES.is(file.getType())).collect(Collectors.toList());
-        for (FileMetadata dir : dirFiles) {
-            List<FileMetadata> childList = queryChildFiles(dir.getId());
-            for (FileMetadata child : childList) {
-                String childAncestor = child.getAncestors();
-                String sourceId = sourceFiles.get(0).getId();
-                childAncestor = childAncestor.substring(0, childAncestor.indexOf(sourceId) + sourceId.length());
-                childAncestor = childAncestor + StrUtil.COMMA + ancestor;
-                child.setAncestors(childAncestor);
-                updateResult = fileMetadataMapper.updateById(child);
-                if (updateResult == 0) {
-                    logger.error("文件移动失败，请重新尝试");
-                    throw new BusinessException("文件移动失败，请重新尝试");
-                }
+        Queue<FileMetadata> files = new ArrayDeque<>(validator.getSources());
+        Map<String, FileMetadata> historyThisMap = new HashMap<>(0);
+
+        while (true) {
+            FileMetadata o = files.poll();
+            if (ObjectUtil.isNull(o)) {
+                break;
+            }
+            // 获取文件的父级目录元数据
+            FileMetadata futureParent = historyThisMap.get(o.getPid());
+            if (ObjectUtil.isNull(futureParent)) {
+                futureParent = validator.getTarget();
+            }
+            // 封装新的元数据
+            FileMetadata file = FileMetadata.packNew(o, futureParent.getId(), futureParent.addIdInAncestors());
+            copiedFiles.add(file);
+            // 如果是文件的话，那么查询所有文件块的关联数据
+            if (FileTypeEnum.FILE.is(o.getType())) {
+                copiedBlocks.addAll(fileBlockService.queryBlocks(o.getId()));
+            }
+            // 如果是文件夹的话，需要查询所有子级的文件及文件夹。并加入队列中，后续统一进行入库
+            if (FileTypeEnum.DIR.is(o.getType())) {
+                // 将生成的文件元数据记录到 map 中
+                historyThisMap.put(o.getId(), file);
+                files.addAll(fileMetadataService.queryListByPid(o.getId(), userId));
             }
         }
-        return ResultBean.success();
+
+        fileMetadataService.batchInsert(copiedFiles);
+        fileBlockService.batchInsert(copiedBlocks);
     }
 
     @Override
-    public ResultBean<?> batchCopyFiles(List<String> sources, String target, User user) {
+    public void batchMove(List<String> sources, String target, String userId) {
         // 对待操作文件和文件夹与目标目录进行校验
-        FileOperationValidate validate = validateFiles(sources, target, user);
-        FileMetadata targetFile = validate.getTargetFile();
-        List<FileMetadata> sourceFiles = validate.getSourceFiles();
+        FileOperateValidator validator = validator(sources, target, userId);
 
-        // 修改呗复制文件的父级文件 id 和所有祖级 id
-        String ancestor;
-        if (CharSequenceUtil.isBlank(targetFile.getAncestors())) {
-            ancestor = targetFile.getId();
-        } else {
-            ancestor = targetFile.getId() + StrUtil.COMMA + targetFile.getAncestors();
-        }
-
-        // 构建复制后的文件及文件夹，并入库
-        for (FileMetadata file : sourceFiles) {
-            String fileId = file.getId();
-            // 查询与文件夹名称有关的文件夹
-            List<FileMetadata> existDirectories = queryLikePrefix(target, file.getName(), FileTypeEnum.DIR, user);
-            // 计算存储文件的文件名后的后缀数字
-            int fileNumber = calculateFileNumber(existDirectories, file.getName());
-            file.setId(IdUtil.fastSimpleUUID())
-                    .setPid(target)
-                    .setAncestors(ancestor)
-                    .setName(fileNumber == 0 ? file.getName() : file.getName() + AppConstants.LEFT_BRACKET + fileNumber + AppConstants.RIGHT_BRACKET);
-            int updateResult = fileMetadataMapper.insertWithPk(file);
-            if (updateResult == 0) {
-                logger.error("文件复制失败，请重试");
-                throw new BusinessException("");
-            }
-            // 递归复制下级的所有文件与文件夹
-            List<FileMetadata> childList = fileMetadataMapper.listEntity(fileMetadataMapper.query()
-                    .where.pid().eq(fileId)
-                    .and.isDelete().eq(YesOrNoEnum.NO.getCode()).end());
-            copyChildFiles(childList, file, user);
-        }
-        return ResultBean.success();
-    }
-
-    @Override
-    public FileMetadata rename(FileRenameRequest renameRequest, User user) {
-        // 检测文件是否存在
-        FileMetadata file = fileMetadataMapper.findById(renameRequest.getId());
-        if (ObjUtil.isNull(file) || YesOrNoEnum.YES.is(file.getId())) {
-            logger.error("文件不存在，请重试");
-            throw new BusinessException("文件不存在，请重试");
-        }
-
-        // 检测是否有权限操作此文件
-        if (!user.getId().equals(file.getUserId())) {
-            logger.error("您没有权限操作此文件");
-            throw new BusinessException("您没有权限操作此文件");
-        }
-
-        // 检测是否需要修改数据库中的文件名
-        boolean updateFlag = Boolean.FALSE;
-        if (CharSequenceUtil.isNotBlank(renameRequest.getName())) {
-            if (!file.getName().equals(renameRequest.getName())) {
-                file.setName(renameRequest.getName());
-                updateFlag = Boolean.TRUE;
-                file.setUpdateTime(DateUtil.date());
+        // 检测待操作文件是否已在目标目录下
+        for (FileMetadata file : validator.getSources()) {
+            if (file.getPid().equals(target)) {
+                ExceptionTools.businessLogger("The file is already in the directory and does not need to be moved");
             }
         }
-        if (!updateFlag) {
-            return file;
-        }
 
-        // 重命名
-        int updateResult = fileMetadataMapper.updateById(file);
-        if (updateResult == 0) {
-            logger.error("文件重命名失败，请重试");
-            throw new BusinessException("文件重命名失败，请重试");
-        }
-        return file;
-    }
+        // 需要移动的文件列表
+        List<FileMetadata> movedFiles = new ArrayList<>();
 
-    @Override
-    public FilePlayView findPlayUrl(String fileId) throws EncoderException {
-        // 校验文件是否存在
-        FileMetadata file = fileMetadataMapper.findById(fileId);
-        if (ObjUtil.isNull(file)) {
-            logger.error("文件不存在，请重试");
-            throw new BusinessException("文件不存在，请重试");
-        }
+        Queue<FileMetadata> files = new ArrayDeque<>(validator.getSources());
+        Map<String, FileMetadata> historyThisMap = new HashMap<>(0);
 
-        // 查询文件的所有文件块，以便于合并
-        List<FileBlock> fileBlocks = fileBlockMapper.listEntity(fileBlockMapper.query().where.fileId().eq(fileId).end().orderBy.blockIndex().asc().end());
-        List<String> blockIds = fileBlocks.stream().map(FileBlock::getBlockId).collect(Collectors.toList());
-        List<BlockMetadata> blocks = blockMetadataMapper.listByIds(blockIds);
-        Map<String, BlockMetadata> blockMap = blocks.stream().collect(Collectors.toMap(BlockMetadata::getId, block -> block));
-
-        // 合并文件
-        fileBlocks.sort(Comparator.comparingInt(FileBlock::getBlockIndex));
-        List<String> blockPaths = fileBlocks.stream()
-                .map(fileBlock -> systemRecognition.generateSystemPath() + blockMap.get(fileBlock.getBlockId()).getStoragePath())
-                .collect(Collectors.toList());
-        FilePlayView playView = FilePlayView.packageData(AppConstants.TMP_PATH + file.getHash() + StrUtil.DOT + file.getExt(), file.getExt());
-        FileTools.combineFile(systemRecognition.generateSystemPath() + playView.getPath(), blockPaths);
-
-        if (FileUtil.exist(systemRecognition.generateSystemPath() + playView.getPath())) {
-            // 如果文件是视频的话，那么就获取到视频的宽高，并生成播放地址
-            if (FileTools.determineFileType(FileCategoryEnum.VIDEO, file.getExt())) {
-                MultimediaInfo media = new MultimediaObject(FileUtil.file(systemRecognition.generateSystemPath() + playView.getPath())).getInfo();
-                JSONObject extendObj = JSONUtil.createObj()
-                        .set("width", media.getVideo().getSize().getWidth())
-                        .set("height", media.getVideo().getSize().getHeight());
-                playView.setExtend(extendObj);
+        while (true) {
+            FileMetadata o = files.poll();
+            if (ObjectUtil.isNull(o)) {
+                break;
+            }
+            // 获取文件的父级目录元数据
+            FileMetadata futureParent = historyThisMap.get(o.getPid());
+            Boolean isRoot = Boolean.FALSE;
+            if (ObjectUtil.isNull(futureParent)) {
+                futureParent = validator.getTarget();
+                isRoot = Boolean.TRUE;
+            }
+            // 封装新的元数据，并装入集合，以待后续统一入库
+            if (isRoot) {
+                o.setPid(futureParent.getId());
+            }
+            o.setterAncestors(futureParent.addIdInAncestors());
+            o.setCreateTime(DateUtil.date().getTime()).setUpdateTime(DateUtil.date().getTime());
+            movedFiles.add(o);
+            // 将新的文件元数据存入 map
+            historyThisMap.put(o.getId(), o);
+            // 如果是文件夹的话，需要查询子级文件及文件夹，并放入队列，进行后续的移动操作
+            if (FileTypeEnum.DIR.is(o.getType())) {
+                files.addAll(fileMetadataService.queryListByPid(o.getId(), userId));
             }
         }
-        return playView;
-    }
 
-    /**
-     * 递归复制文件及文件夹
-     *
-     * @param sources 待复制文件及文件夹
-     * @param target  目标目录
-     * @param user    当前登录的用户
-     */
-    private void copyChildFiles(List<FileMetadata> sources, FileMetadata target, User user) {
-        for (FileMetadata source : sources) {
-            String fileId = source.getId();
-            // 复制文件
-            source.setId(IdUtil.fastSimpleUUID())
-                    .setPid(target.getId())
-                    .setAncestors(target.getId() + StrUtil.COMMA + target.getAncestors());
-            int updateResult = fileMetadataMapper.insertWithPk(source);
-            if (updateResult == 0) {
-                logger.error("文件复制失败，请重新尝试");
-                throw new BusinessException("文件复制失败，请重新尝试");
-            }
-            // 如果是文件夹的话，需要复制文件夹下的所有的文件及文件夹
-            if (YesOrNoEnum.YES.is(source.getType())) {
-                List<FileMetadata> childList = fileMetadataMapper.listEntity(fileMetadataMapper.query()
-                        .where.pid().eq(fileId)
-                        .and.userId().eq(user.getId())
-                        .and.isDelete().eq(YesOrNoEnum.NO.getCode()).end());
-                copyChildFiles(childList, source, user);
-            }
-        }
+        fileMetadataService.updateById(movedFiles);
     }
 
     /**
@@ -549,205 +318,115 @@ public class FileServiceImpl implements FileService {
      *
      * @param sources 待操作文件
      * @param target  目标目录
+     * @param userId  文件所属用户 id
      * @return result
      */
-    private FileOperationValidate validateFiles(List<String> sources, String target, User user) {
+    private FileOperateValidator validator(List<String> sources, String target, String userId) {
+        // 检测是否有选中的文件，如果没有选择任何一个文件，那么无法执行后续操作
+        if (sources.size() == 0) {
+            ExceptionTools.businessLogger("请选择要操作的文件");
+        }
+
+        // 检测是否已选择目标目录
+        if (CharSequenceUtil.isBlank(target)) {
+            ExceptionTools.businessLogger("请选择目标目录");
+        }
+
+        // 将目标目录与待操作文件 id 一同进行查询，减少查库次数
+        sources.add(target);
+        List<FileMetadata> files = fileMetadataService.queryListByIds(sources, userId);
+
+        // 获取目标目录元数据
+        List<FileMetadata> findTargets = files.stream().filter(o -> o.getId().equals(target)).collect(Collectors.toList());
+        FileMetadata fileTarget = findTargets.size() == 0 ? null : findTargets.get(0);
+
         // 校验目标目录是否存在
-        FileMetadata targetFile = fileMetadataMapper.findById(target);
-        if (ObjUtil.isNull(targetFile) || YesOrNoEnum.YES.is(targetFile.getIsDelete()) || !targetFile.getUserId().equals(user.getId())) {
-            logger.error("目标目录不存在，请刷新后重试");
-            throw new BusinessException("目标目录不存在，请刷新后重试");
+        if (ObjectUtil.isNull(fileTarget) || YesOrNoEnum.YES.is(fileTarget.getIsDelete())) {
+            ExceptionTools.businessLogger("目标目录不存在，请刷新后重试");
         }
 
         // 检测目标文件是否是目录
-        if (YesOrNoEnum.NO.is(targetFile.getType())) {
-            logger.error("请选择目录");
-            throw new BusinessException("请选择目录");
+        if (ObjectUtil.isNotNull(fileTarget) && FileTypeEnum.FILE.is(fileTarget.getType())) {
+            ExceptionTools.businessLogger("无法移动至文件，请选择文件夹");
         }
 
-        // 校验待移动文件是否都存在
-        List<FileMetadata> sourceFiles = fileMetadataMapper.listEntity(fileMetadataMapper.query()
-                .where.id().in(sources)
-                .and.isDelete().eq(YesOrNoEnum.NO.getCode())
-                .and.userId().eq(user.getId()).end());
-        if (sourceFiles.size() != sources.size()) {
-            logger.error("待操作文件非全部存在，请刷新后重试");
-            throw new BusinessException("待操作文件非全部存在，请刷新后重试");
+        // 校验待操作文件是否都存在
+        List<FileMetadata> fileSources = files.stream().filter(o -> !o.getId().equals(target)).collect(Collectors.toList());
+        if (fileSources.size() != sources.size()) {
+            ExceptionTools.businessLogger("有文件不存在，请刷新后重试");
         }
 
         // 检测目标目录是否为待移动文件或文件夹的子级目录
-        String targetAncestors = targetFile.getAncestors();
-        List<String> targetIdList = CharSequenceUtil.split(targetAncestors, StrUtil.COMMA);
-        targetIdList.add(targetFile.getId());
-        for (FileMetadata source : sourceFiles) {
-            if (YesOrNoEnum.YES.is(source.getType())) {
-                if (targetIdList.contains(source.getId())) {
-                    logger.error("无法操作至下级目录，请选择其他目录");
-                    throw new BusinessException("无法操作至下级目录，请选择其他目录");
+        if (ObjectUtil.isNotNull(fileTarget)) {
+            List<String> ancestors = fileTarget.addIdInAncestors();
+            for (FileMetadata source : fileSources) {
+                if (FileTypeEnum.DIR.is(source.getType()) && ancestors.contains(source.getId())) {
+                    ExceptionTools.businessLogger("文件无法操作至子级目录下");
                 }
             }
         }
-        return new FileOperationValidate()
-                .setTargetFile(targetFile)
-                .setSourceFiles(sourceFiles);
+        return new FileOperateValidator().setTarget(fileTarget).setSources(fileSources);
     }
 
     @Override
-    public List<FileBreadView> queryFileBreads(String id, User user) {
-        // 查询顶级目录
-        if (CharSequenceUtil.isBlank(id)) {
-            FileMetadata rootFile = fileMetadataMapper.findOne(fileMetadataMapper.query().where.pid().eq(id).and.userId().eq(user.getId()).end());
-            return Collections.singletonList(FileBreadView.packageData(rootFile.getId(), rootFile.getName()));
-        }
-
-        // 校验目录是否存在
-        FileMetadata file = fileMetadataMapper.findById(id);
-        if (ObjUtil.isNull(file) || YesOrNoEnum.YES.is(file.getIsDelete()) || !user.getId().equals(file.getUserId())) {
-            logger.error("文件夹不存在，操作失败，请重试");
-            throw new BusinessException("文件夹不存在，操作失败，请重试");
-        }
-
-        if (CharSequenceUtil.isBlank(file.getAncestors())) {
-            // 自己就是最顶级的目录，没有父级目录
-            return Collections.singletonList(FileBreadView.packageData(file.getId(), file.getName()));
-        }
-
-        // 获取所有的父级目录，并查询父级目录信息
-        List<String> parentIds = CharSequenceUtil.split(file.getAncestors(), StrUtil.COMMA);
-        List<FileMetadata> parents = fileMetadataMapper.listByIds(parentIds);
-        parents.sort((o1, o2) -> DateUtil.compare(o1.getUploadTime(), o2.getUploadTime()));
-        List<FileBreadView> breadsViews =
-                parents.stream().map(parent -> FileBreadView.packageData(parent.getId(), parent.getName())).collect(Collectors.toList());
-        breadsViews.add(FileBreadView.packageData(file.getId(), file.getName()));
-        return breadsViews;
+    public FileMetadataView queryById(String id, String userId) {
+        return CharSequenceUtil.isBlank(id) ?
+                FileMetadataView.convert(fileMetadataService.queryByPid(CharSequenceUtil.EMPTY, userId)) :
+                FileMetadataView.convert(fileMetadataService.queryById(id, userId));
     }
 
     @Override
-    public FileMetadata queryById(String id) {
-        return fileMetadataMapper.findById(id);
+    public List<BreadsView> queryBreads(String id, String userId) {
+        FileMetadata file = fileMetadataService.queryById(id, userId);
+        List<String> ancestors = file.queryAncestors();
+        if (ancestors.size() == 0) {
+            return BreadsView.convert(Collections.singletonList(file));
+        }
+        List<FileMetadata> files = fileMetadataService.queryListByIds(ancestors, userId);
+        files.add(file);
+        return BreadsView.convert(files);
     }
 
     @Override
-    public List<FileMetadataView> queryFiles(FileSearchRequest searchRequest, User user) {
-        // 查询起始点文件元数据
-        FileMetadata beginFile;
-        if (CharSequenceUtil.isBlank(searchRequest.getFileId())) {
-            beginFile = fileMetadataMapper.findOne(fileMetadataMapper.query()
-                    .where.pid().eq(CharSequenceUtil.EMPTY)
-                    .and.userId().eq(user.getId()).end());
-        } else {
-            beginFile = fileMetadataMapper.findById(searchRequest.getFileId());
-            if (!user.getId().equals(beginFile.getUserId())) {
-                beginFile = null;
-            }
-        }
-        if (ObjUtil.isNull(beginFile) || YesOrNoEnum.YES.is(beginFile.getIsDelete())) {
-            logger.error(AppResultCode.FAILURE.getMessage());
-            throw new BusinessException(AppResultCode.FAILURE.getMessage());
-        }
-
-        // 构建查询条件
-        FileMetadataQuery query = fileMetadataMapper.query()
-                .where.id().ne(beginFile.getId())
-                .and.uploadTime().ge(beginFile.getUploadTime())
-                .and.userId().eq(user.getId())
-                .and.isDelete().eq(YesOrNoEnum.NO.getCode()).end()
-                .orderBy.uploadTime().asc().end()
-                .limit(0, searchRequest.getSize());
-        if (CharSequenceUtil.isNotBlank(searchRequest.getPid())) {
-            query.where.pid().eq(searchRequest.getPid());
-        }
-        if (CharSequenceUtil.isNotBlank(searchRequest.getFileName())) {
-            query.where.name().like(searchRequest.getFileName().replaceAll(CharSequenceUtil.EMPTY, AppConstants.PERCENT));
-        }
-        List<FileMetadata> files = fileMetadataMapper.listEntity(query);
-        return files.stream()
-                .map(file -> BeanUtil.copyProperties(file, FileMetadataView.class))
-                .sorted((o1, o2) -> DateUtil.compare(o1.getUploadTime(), o2.getUploadTime())).collect(Collectors.toList());
+    public PagerView<FileMetadataView> queryFiles(FileSearcher searcher, String userId) {
+        PagerView<FileMetadata> filePager = fileMetadataService.queryFilesInPager(searcher.getPid(), searcher.getName(), userId,
+                YesOrNoEnum.YES.is(searcher.getIsOnlyDir()), searcher.getPageIndex(), searcher.getPageSize());
+        List<FileMetadataView> views = filePager.getData().stream().map(FileMetadataView::convert).collect(Collectors.toList());
+        return new PagerView<FileMetadataView>().setData(views).setTotal(filePager.getTotal());
     }
 
     @Override
-    public List<FileMetadata> queryChildFiles(String fileId) {
-        return fileMetadataMapper.listEntity(fileMetadataMapper.query()
-                .where.ancestors().like(AppConstants.PERCENT + fileId.trim() + AppConstants.PERCENT)
-                .and.isDelete().eq(YesOrNoEnum.NO.getCode()).end());
-    }
-
-    @Override
-    public List<FileBreadView> queryDirBreads(String parentId) {
-        if (CharSequenceUtil.isBlank(parentId)) {
-            FileMetadata parent = fileMetadataMapper.findOne(fileMetadataMapper.query().where.pid().eq(parentId).end());
-            return Collections.singletonList(BeanUtil.copyProperties(parent, FileBreadView.class));
+    public void download(String id, HttpServletResponse response) {
+        // 校验文件是否存在
+        FileMetadata file = fileMetadataService.queryById(id);
+        if (ObjectUtil.isNull(file)) {
+            ExceptionTools.businessLogger(AppResultCode.DATA_NOT_FOUND.getMessage());
         }
 
-        // 查询父级目录本身
-        FileMetadata parent = fileMetadataMapper.findById(parentId);
-
-        // 查询祖级目录
-        List<String> parentIds = CharSequenceUtil.split(parent.getAncestors(), StrUtil.COMMA);
-        List<FileMetadata> parentsList = fileMetadataMapper.listEntity(fileMetadataMapper.query()
-                .where.id().in(parentIds)
-                .and.isDelete().eq(YesOrNoEnum.NO.getCode()).end());
-
-        // 合并父级目录本身与祖级目录
-        parentsList.add(parent);
-
-        // 构建视图数据并返回
-        return parentsList.stream().map(file -> BeanUtil.copyProperties(file, FileBreadView.class)).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<FileMetadata> queryDirs(String parentId, Integer size, User user) {
-        // 计算父级目录 id
-        String pid = CharSequenceUtil.isBlank(parentId) ?
-                fileMetadataMapper.findOne(fileMetadataMapper.query().where.pid().eq(CharSequenceUtil.EMPTY).end()).getId() : parentId;
-
-        // 构建查询语句
-        FileMetadataQuery query = fileMetadataMapper.query()
-                .where.type().eq(YesOrNoEnum.YES.getCode())
-                .and.pid().eq(pid)
-                .and.isDelete().eq(YesOrNoEnum.NO.getCode())
-                .and.userId().eq(user.getId()).end()
-                .orderBy.uploadTime().asc().end()
-                .limit(0, size);
-
-        // 查询文件夹并返回
-        return fileMetadataMapper.listEntity(query);
-    }
-
-    @Override
-    public void download(String fileId, HttpServletResponse response) {
-        // 查询文件的元数据
-        FileMetadata fileMetadata = fileMetadataMapper.findById(fileId);
-        if (ObjUtil.isNull(fileMetadata)) {
-            throw new BusinessException("文件不存在，请查证。");
+        // 检测文件类型，如果是文件夹，则不能下载
+        if (FileTypeEnum.DIR.is(file.getType())) {
+            ExceptionTools.businessLogger(AppResultCode.FAILURE.getMessage());
         }
 
-        // 查询文件的所有文件块
-        List<FileBlock> fileBlocks = fileBlockMapper.listEntity(fileBlockMapper.query().where.fileId().eq(fileId).end().orderBy.blockIndex().asc().end());
-        List<String> blockIds = fileBlocks.stream().map(FileBlock::getBlockId).collect(Collectors.toList());
-        if (blockIds.size() == 0) {
-            throw new BusinessException("文件不存在，请查证.");
-        }
-        List<BlockMetadata> blocks = blockMetadataMapper.listByIds(blockIds);
-        Map<String, BlockMetadata> blockMap = blocks.stream().collect(Collectors.toMap(BlockMetadata::getId, block -> block));
+        // 查询所有的文件块，并合并文件到临时目录
+        List<FileBlock> fileBlocks = fileBlockService.queryBlocks(file.getId());
 
-        // 获取文件块的所有存储路径
-        List<String> paths = fileBlocks.stream()
-                .map(block -> systemRecognition.generateSystemPath() + blockMap.get(block.getBlockId()).getStoragePath())
-                .collect(Collectors.toList());
+        List<BlockMetadata> blocks = blockMetadataService.queryListByIds(fileBlocks.stream()
+                .map(FileBlock::getBlockId).collect(Collectors.toList()));
+        Map<String, String> blockStorageMap = blocks.stream().collect(Collectors.toMap(BlockMetadata::getId, BlockMetadata::getPath));
 
         // 合并文件
-        String target = systemRecognition.generateSystemPath() + AppConstants.TMP_PATH + fileMetadata.getHash();
-        if (FileUtil.exist(target)) {
-            if (!FileUtil.exist(systemRecognition.generateSystemPath() + AppConstants.TMP_PATH)) {
-                FileUtil.mkdir(systemRecognition.generateSystemPath() + AppConstants.TMP_PATH);
-            }
-            FileTools.combineFile(target, paths);
-        }
+        List<String> storages = fileBlocks.stream()
+                .map(o -> systemTools.systemPath() + blockStorageMap.get(o.getBlockId()))
+                .collect(Collectors.toList());
+        String filePath = systemTools.systemPath() + AppConstants.Uploader.TMP_PATH;
+        FileTools.combineFile(filePath + file.getHash(), storages);
 
         // 下载文件
-        FileTools.downloadResponse(target, fileMetadata.getName() + fileMetadata.getExt(), response);
+        FileTools.downloadResponse(filePath + file.getHash(), file.getName() + file.getExt(), response);
+
+        // 删除临时目录中的文件
+        FileUtil.del(filePath + file.getHash());
     }
 
 }

@@ -2,24 +2,25 @@ package online.yangcloud.model;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
-import cn.org.atool.fluent.mybatis.base.RichEntity;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.enumration.FileTypeEnum;
-import online.yangcloud.enumration.YesOrNoEnum;
-import online.yangcloud.model.ao.file.BlockUploader;
+import online.yangcloud.model.ao.file.FileUploader;
+import online.yangcloud.utils.IdTools;
 
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author zhuboyang
  * @since 2022年12月31 21:20:20
  */
 @FluentMybatis
-public class FileMetadata extends RichEntity {
+public class FileMetadata extends BaseParameter {
 
     /**
      * id
@@ -65,12 +66,7 @@ public class FileMetadata extends RichEntity {
     /**
      * 上传时间
      */
-    private Date uploadTime;
-
-    /**
-     * 更新时间
-     */
-    private Date updateTime;
+    private Long uploadTime;
 
     /**
      * 所有父级目录 id
@@ -78,64 +74,124 @@ public class FileMetadata extends RichEntity {
     private String ancestors;
 
     /**
-     * 是否已删除
-     */
-    private Integer isDelete;
-
-    /**
      * 用户 id
      */
     private String userId;
 
-    /**
-     * 初始化文件元数据
-     *
-     * @param fileId     文件 id
-     * @param fileNumber 文件后缀数
-     * @param fileHash   文件 hash
-     * @param parent     父级目录元数据
-     * @param uploader   文件块上传参数
-     * @param user       操作人
-     * @return 文件元数据
-     */
+    public static FileMetadata initial(String userId) {
+        return new FileMetadata()
+                .setId(IdTools.fastSimpleUuid())
+                .setPid(CharSequenceUtil.EMPTY)
+                .setName("全部")
+                .setHash(CharSequenceUtil.EMPTY)
+                .setExt(CharSequenceUtil.EMPTY)
+                .setPath(CharSequenceUtil.EMPTY)
+                .setType(FileTypeEnum.DIR.code())
+                .setSize(0L)
+                .setAncestors(CharSequenceUtil.EMPTY)
+                .setUploadTime(DateUtil.date().getTime())
+                .setUserId(userId);
+    }
+
     public static FileMetadata initial(String fileId, Integer fileNumber, String fileHash, FileMetadata parent,
-                                              BlockUploader uploader, User user) {
+                                       FileUploader uploader, User user) {
+        List<String> ancestors = parent.queryAncestors();
+        ancestors.add(parent.getId());
         return new FileMetadata()
                 .setId(fileId)
-                .setPid(uploader.getPid())
+                .setPid(uploader.getId())
                 .setName(fileNumber == 0 ?
-                        uploader.getFileName() : uploader.getFileName() + AppConstants.LEFT_BRACKET + fileNumber + AppConstants.RIGHT_BRACKET)
+                        uploader.getFileName() :
+                        uploader.getFileName() + AppConstants.LEFT_BRACKET + fileNumber + AppConstants.RIGHT_BRACKET)
                 .setHash(fileHash)
                 .setExt(uploader.getExt())
-                .setPath(AppConstants.FILE_UPLOAD_PATH + fileHash)
-                .setType(FileTypeEnum.FILE.getCode())
+                .setPath(AppConstants.Uploader.FILE_UPLOAD_PATH + fileHash)
+                .setType(FileTypeEnum.FILE.code())
                 .setSize(uploader.getFileSize())
-                .setAncestors(CharSequenceUtil.isBlank(parent.getAncestors()) ? parent.getId() : parent.getAncestors() + StrUtil.COMMA + parent.getId())
-                .setUploadTime(DateUtil.date())
+                .setterAncestors(ancestors)
+                .setUploadTime(DateUtil.date().getTime())
                 .setUserId(user.getId());
     }
 
-    /**
-     * 初始化用户根目录
-     *
-     * @param userId 用户 id
-     * @return result
-     */
-    public static FileMetadata initRoot(String userId) {
+    public static FileMetadata initialDir(String pid, String name, List<String> ancestors, String userId) {
+        ancestors.add(pid);
         return new FileMetadata()
-                .setId(IdUtil.fastSimpleUUID())
-                .setPid(CharSequenceUtil.EMPTY)
-                .setName("全部")
-                .setPath(CharSequenceUtil.EMPTY)
+                .setId(IdTools.fastSimpleUuid())
+                .setPid(pid)
+                .setName(name)
                 .setHash(CharSequenceUtil.EMPTY)
-                .setType(FileTypeEnum.DIR.getCode())
                 .setExt(CharSequenceUtil.EMPTY)
+                .setPath(CharSequenceUtil.EMPTY)
+                .setType(FileTypeEnum.DIR.code())
                 .setSize(0L)
-                .setUploadTime(DateUtil.date())
-                .setUpdateTime(DateUtil.date())
-                .setIsDelete(YesOrNoEnum.NO.getCode())
-                .setUserId(userId)
-                .setAncestors(CharSequenceUtil.EMPTY);
+                .setterAncestors(ancestors)
+                .setUploadTime(DateUtil.date().getTime())
+                .setUserId(userId);
+    }
+
+    public static FileMetadata packNew(FileMetadata file, String newPid, List<String> ancestors) {
+        FileMetadata o = new FileMetadata()
+                .setId(IdTools.fastSimpleUuid())
+                .setPid(newPid)
+                .setName(file.getName())
+                .setHash(file.getHash())
+                .setExt(file.getExt())
+                .setPath(file.getPath())
+                .setType(file.getType())
+                .setSize(file.getSize())
+                .setterAncestors(ancestors)
+                .setUploadTime(DateUtil.date().getTime())
+                .setUserId(file.getUserId());
+        o.setCreateTime(DateUtil.date().getTime());
+        o.setUpdateTime(DateUtil.date().getTime());
+        return o;
+    }
+
+    public static int calculateFileSuffixNumber(List<FileMetadata> files, String fileName) {
+        int fileNumber = 0;
+        List<Integer> numbers = new ArrayList<>();
+        if (files.size() > 0) {
+            for (FileMetadata file : files) {
+                String name = file.getName();
+                if (name.equals(fileName)) {
+                    numbers.add(0);
+                }
+                if (name.contains(fileName) && name.indexOf(fileName) == 0) {
+                    name = name.replace(fileName, CharSequenceUtil.EMPTY);
+                    if (name.length() < 3) {
+                        continue;
+                    }
+                    name = name.substring(1, name.length() - 1);
+                    if (NumberUtil.isInteger(name)) {
+                        numbers.add(Integer.parseInt(name));
+                    }
+                }
+            }
+        }
+        Collections.sort(numbers);
+        return numbers.size() == 0 ? fileNumber : numbers.get(numbers.size() - 1) + 1;
+    }
+
+    public List<String> queryAncestors() {
+        return CharSequenceUtil.split(ancestors, StrUtil.COMMA);
+    }
+
+    public List<String> addIdInAncestors() {
+        List<String> ancestors = CharSequenceUtil.split(this.ancestors, StrUtil.COMMA);
+        ancestors.add(this.id);
+        return ancestors;
+    }
+
+    public FileMetadata setterAncestors(List<String> ancestors) {
+        StringBuilder sbr = new StringBuilder();
+        for (int i = 0; i < ancestors.size(); i++) {
+            sbr.append(ancestors.get(i));
+            if (i != ancestors.size() - 1) {
+                sbr.append(StrUtil.COMMA);
+            }
+        }
+        this.ancestors = sbr.toString();
+        return this;
     }
 
     public String getId() {
@@ -210,21 +266,12 @@ public class FileMetadata extends RichEntity {
         return this;
     }
 
-    public Date getUploadTime() {
+    public Long getUploadTime() {
         return uploadTime;
     }
 
-    public FileMetadata setUploadTime(Date uploadTime) {
+    public FileMetadata setUploadTime(Long uploadTime) {
         this.uploadTime = uploadTime;
-        return this;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public FileMetadata setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
         return this;
     }
 
@@ -234,15 +281,6 @@ public class FileMetadata extends RichEntity {
 
     public FileMetadata setAncestors(String ancestors) {
         this.ancestors = ancestors;
-        return this;
-    }
-
-    public Integer getIsDelete() {
-        return isDelete;
-    }
-
-    public FileMetadata setIsDelete(Integer isDelete) {
-        this.isDelete = isDelete;
         return this;
     }
 
@@ -267,10 +305,8 @@ public class FileMetadata extends RichEntity {
                 + " ext=" + ext + ","
                 + " size=" + size + ","
                 + " uploadTime=" + uploadTime + ","
-                + " updateTime=" + updateTime + ","
                 + " ancestors=" + ancestors + ","
-                + " isDelete=" + isDelete + ","
-                + " userId=" + userId
+                + " userId=" + userId + ","
                 + " ]"
                 + " "
                 + super.toString();

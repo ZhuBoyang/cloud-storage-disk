@@ -1,25 +1,26 @@
 <template>
   <div class="login-user-action">
     <div class="user-box"
-         @mouseenter="showUserInfoDropdown"
-         @mouseleave="hideUserInfoDropdown"
+         @mouseenter="userInfoBox = true"
+         @mouseleave="userInfoBox = false"
     >
       <div class="user-info-btn">
-        <div class="user-avatar">
-          <img :src="apiConfig().iconBaseUrl + 'icons/ppt.png'" alt="username"/>
+        <div class="user-avatar row-col-center">
+          <span v-if="user.nickName !== ''">{{ user.nickName.substring(0, 1) }}</span>
+          <img :src="apiConfig().iconBaseUrl + 'file/ppt.png'" v-else alt="nickName"/>
         </div>
         <div class="user-intro">
           <div class="user-info">
-            <div class="user-name">{{ data.user.userName }}</div>
-            <div class="user-email">{{ data.user.email }}</div>
+            <div class="user-name">{{ user.nickName }}</div>
+            <div class="user-email">{{ user.email }}</div>
           </div>
           <div class="user-more">
-            <img :src="apiConfig().iconBaseUrl + 'icons//Arrow-Down2.png'" alt="more"/>
+            <img :src="apiConfig().iconBaseUrl + 'icons/arrow_down.png'" alt="more"/>
           </div>
         </div>
       </div>
       <div class="user-info-actions"
-           :class="[{'is-show': data.userInfoBox}]"
+           :class="[{'is-show': userInfoBox}]"
       >
         <div class="actions-item">设置</div>
         <div class="actions-item" @click="logout">退出登录</div>
@@ -30,49 +31,53 @@
 
 <script>
 import http from '../api/http.js'
-import { reactive } from 'vue'
+import { reactive, toRefs } from 'vue'
 import { useRouter } from 'vue-router'
 import apiConfig from '../api/apiConfig.js'
 
 export default {
   name: 'LoginUserAction',
-  setup () {
+  emits: ['on-load'],
+  setup (props, context) {
+    const { emit } = context
     const router = useRouter()
-    const data = reactive({
+    const dataList = reactive({
       userInfoBox: false, // 是否显示用户信息的下拉框
-      user: {} // 用户信息
+      user: {
+        email: '', // 邮箱地址
+        nickName: '', // 昵称
+        avatar: '' // 头像
+      }
     })
     return {
+      emit,
       router,
-      data
+      ...toRefs(dataList)
     }
   },
   created () {
-    this.identifyUserInfo()
+    this.queryUserInfo()
   },
   methods: {
     apiConfig,
     // 获取当前登录的用户信息
-    identifyUserInfo () {
-      const userJson = localStorage.getItem('user')
-      this.data.user = JSON.parse(userJson)
+    queryUserInfo () {
+      http.reqUrl.user.info().then(response => {
+        const { email, nickName, avatar } = response
+        this.user.email = email
+        this.user.nickName = nickName
+        this.user.avatar = avatar
+        this.emit('on-load', response)
+      })
     },
     // 退出登录
     logout () {
-      http.req(http.url.user.logout, http.methods.post).then(response => {
-        if (response !== undefined) {
-          localStorage.removeItem('user')
+      http.reqUrl.user.logout().then(response => {
+        if (response) {
+          localStorage.removeItem('t')
           this.router.push('/login')
         }
       })
-    },
-    // 显示用户账户操作的下拉框
-    showUserInfoDropdown () {
-      this.data.userInfoBox = true
-    },
-    // 隐藏用户账户操作的下拉框
-    hideUserInfoDropdown () {
-      this.data.userInfoBox = false
     }
   }
 }
@@ -99,6 +104,7 @@ export default {
       .user-avatar {
         width: 60px;
         height: 60px;
+        border: 1px solid #efefef;
         border-radius: 50%;
         overflow: hidden;
         img {
