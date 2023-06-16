@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -78,6 +79,27 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
     @Override
     public void batchUpdate(List<FileMetadata> files) {
+        StringBuilder caseWhen = new StringBuilder("case when");
+        List<String> pidList = new ArrayList<>();
+        List<String> ancestors = new ArrayList<>();
+        List<String> ids = new ArrayList<>();
+
+        for (FileMetadata o : files) {
+            caseWhen.append("when ").append(o.getId()).append(" then ? ");
+            pidList.add(o.getPid());
+            ancestors.add(o.getAncestors());
+            ids.add(o.getId());
+        }
+        caseWhen.append(" end ");
+
+        int updateResult = fileMetadataMapper.updateBy(fileMetadataMapper.updater()
+                .set.pid().applyFunc(caseWhen.toString(), pidList.toArray())
+                .set.ancestors().applyFunc(caseWhen.toString(), ancestors.toArray())
+                .end()
+                .where.id().in(ids.toArray()).end());
+        if (updateResult != files.size()) {
+            ExceptionTools.businessLogger();
+        }
     }
 
     @Override

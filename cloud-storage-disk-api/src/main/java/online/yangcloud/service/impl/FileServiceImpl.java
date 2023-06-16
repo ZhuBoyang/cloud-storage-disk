@@ -310,7 +310,7 @@ public class FileServiceImpl implements FileService {
             }
         }
 
-        fileMetadataService.updateById(movedFiles);
+        fileMetadataService.batchUpdate(movedFiles);
     }
 
     /**
