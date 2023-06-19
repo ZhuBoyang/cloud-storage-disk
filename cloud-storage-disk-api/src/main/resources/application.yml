@@ -43,8 +43,6 @@ spring:
         max-idle: 8
         max-wait: 30
         min-idle: 0
-  main:
-    lazy-initialization: true
 # application web connection port
 server:
   port: 8100

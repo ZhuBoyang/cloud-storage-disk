@@ -1,5 +1,6 @@
 package online.yangcloud.service.impl;
 
+import cn.hutool.extra.mail.MailUtil;
 import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.model.ao.email.EmailSender;
@@ -43,7 +44,7 @@ public class EmailServiceImpl implements EmailService {
         String emailContent = emailTools.generateEmailContent(emailCodeInfo, "templates/regEmailValidation.html");
 
         // 发送邮件
-//        MailUtil.send(sender.getEmail(), "平台注册校验码", emailContent, Boolean.TRUE);
+        MailUtil.send(sender.getEmail(), "平台注册校验码", emailContent, Boolean.TRUE);
 
         // 将邮箱地址记入 redis，确保在 5 分钟内无法再次发送验证码
         Boolean setResult = redisTools.setIfAbsent(AppConstants.Email.REGISTER_EMAIL_REDIS_KEY + sender.getEmail(),

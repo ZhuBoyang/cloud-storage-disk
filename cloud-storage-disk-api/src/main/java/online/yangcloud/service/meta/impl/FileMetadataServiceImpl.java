@@ -61,11 +61,22 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
     @Override
     public void batchRemove(List<String> ids, String userId) {
-        int updateResult = fileMetadataMapper.updateBy(fileMetadataMapper.updater()
-                .set.isDelete().is(YesOrNoEnum.YES.code()).end()
-                .where.id().in(ids).and.userId().eq(userId).end());
-        if (updateResult != ids.size()) {
-            ExceptionTools.businessLogger();
+        // 分批次入库
+        int maxCount = AppConstants.FileMetadata.SINGLE_SAVE_MAX_COUNT;
+        int cycleCount = ids.size() / maxCount;
+        if (ids.size() % maxCount != 0) {
+            cycleCount++;
+        }
+        if (ids.size() > 0) {
+            for (int i = 0; i < cycleCount; i++) {
+                List<String> removeIds = ids.subList(i * maxCount, Math.min((i + 1) * maxCount, ids.size()));
+                int updateResult = fileMetadataMapper.updateBy(fileMetadataMapper.updater()
+                        .set.isDelete().is(YesOrNoEnum.YES.code()).end()
+                        .where.id().in(removeIds).and.userId().eq(userId).end());
+                if (updateResult != removeIds.size()) {
+                    ExceptionTools.businessLogger();
+                }
+            }
         }
     }
 
