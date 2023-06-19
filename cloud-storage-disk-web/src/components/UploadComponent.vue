@@ -18,7 +18,7 @@
              v-if="visible && !hideModalVisible && upload.uploading.findIndex(item => item.status === 'loading') === -1"
              @click="closeUploadModal"
         />
-        <img :src="apiConfig().iconBaseUrl + 'icons/Arrow-Up-Circle.png'"
+        <img :src="apiConfig().iconBaseUrl + 'icons/arrow_up.png'"
              alt="显示"
              v-if="visible && hideModalVisible"
              @click="hideModalVisible = false"
