@@ -4,10 +4,8 @@ import online.yangcloud.annotation.SessionValid;
 import online.yangcloud.common.ResultData;
 import online.yangcloud.common.resultcode.AppResultCode;
 import online.yangcloud.model.User;
-import online.yangcloud.model.ao.file.FileMerger;
-import online.yangcloud.model.ao.file.FileMkdir;
-import online.yangcloud.model.ao.file.FileSearcher;
-import online.yangcloud.model.ao.file.FileUploader;
+import online.yangcloud.model.ao.BatchOperator;
+import online.yangcloud.model.ao.file.*;
 import online.yangcloud.model.ao.user.BreadsLooker;
 import online.yangcloud.model.vo.PagerView;
 import online.yangcloud.model.vo.file.FileMetadataView;
@@ -83,6 +81,48 @@ public class FileController {
     }
 
     /**
+     * 批量删除文件及文件夹
+     *
+     * @param operator 待删除文件与文件夹 id 列表
+     * @param user     当前登录用户
+     * @return 删除结果
+     */
+    @SessionValid
+    @PostMapping("/remove")
+    public ResultData batchRemove(@Valid @RequestBody BatchOperator operator, User user) {
+        fileService.batchDeleteFile(operator.getIdsList(), user);
+        return ResultData.success(AppResultCode.SUCCESS);
+    }
+
+    /**
+     * 批量复制文件及文件夹
+     *
+     * @param operator 待操作文件及目标文件
+     * @param user     当前登录用户
+     * @return 复制结果
+     */
+    @SessionValid
+    @PostMapping("/copy")
+    public ResultData copyFiles(@Valid @RequestBody FileBatchOperator operator, User user) {
+        fileService.batchCopy(operator.getSources(), operator.getTarget(), user);
+        return ResultData.success(AppResultCode.SUCCESS, Boolean.TRUE);
+    }
+
+    /**
+     * 批量移动文件及文件夹
+     *
+     * @param operator 待操作文件及目标文件
+     * @param user     当前登录用户
+     * @return 复制结果
+     */
+    @SessionValid
+    @PostMapping("/move")
+    public ResultData moveFiles(@Valid @RequestBody FileBatchOperator operator, User user) {
+        fileService.batchMove(operator.getSources(), operator.getTarget(), user.getId());
+        return ResultData.success(AppResultCode.SUCCESS, Boolean.TRUE);
+    }
+
+    /**
      * 分页查询用户下所有的文件
      *
      * @param searcher searcher
@@ -107,6 +147,19 @@ public class FileController {
     @PostMapping("/breads")
     public ResultData queryBreads(@Valid @RequestBody BreadsLooker looker, User user) {
         return ResultData.success(fileService.queryBreads(looker.getId(), user.getId()));
+    }
+
+    /**
+     * 查询目录下所有的文件夹
+     *
+     * @param looker 目录 id
+     * @param user   当前登录的用户
+     * @return 文件夹列表
+     */
+    @SessionValid
+    @PostMapping("/dirs")
+    public ResultData queryDirs(@Valid @RequestBody DirLooker looker, User user) {
+        return ResultData.success(fileService.queryDirs(looker, user.getId()));
     }
 
     /**

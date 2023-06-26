@@ -112,7 +112,9 @@ export default {
     closeUploadModal () {
       this.upload.uploading = []
       this.hideModalVisible = false
+      // 这里会向父级组件发送消息，以关闭上传文件的模态框
       this.emit('on-upload-change')
+      // 这里会向 FileView 发送消息，以刷新文件列表，并向 LoginUserAction 组件发送消息，以刷新账户空间使用率
       emitter.emit('on-upload-change')
     },
     // 最小化上传文件的窗口

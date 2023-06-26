@@ -1,6 +1,7 @@
 package online.yangcloud.controller;
 
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import online.yangcloud.annotation.SessionValid;
 import online.yangcloud.common.ResultData;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * 用户账户操作接口
@@ -34,7 +36,7 @@ public class UserController {
 
     @Resource
     private UserService userService;
-    
+
     @Resource
     private FileService fileService;
 
@@ -73,7 +75,13 @@ public class UserController {
      */
     @SessionValid
     @PostMapping("/logout")
-    public ResultData logout(HttpServletRequest request) {
+    public ResultData logout(HttpServletRequest request, User user) {
+        // 更新用户账户空间变更
+        List<String> keys = redisTools.queryKeysLikePrefix(AppConstants.User.SPACE_UPDATE + user.getId());
+        if (ObjectUtil.isNotNull(keys) && keys.size() == 1) {
+            userService.updateUserSpace(keys.get(0));
+        }
+        // 删除 redis 中的会话记录
         redisTools.delete(AppConstants.User.LOGIN_TOKEN + SessionTools.getSessionId(request));
         return ResultData.success(Boolean.TRUE);
     }

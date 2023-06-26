@@ -34,6 +34,7 @@ import http from '../api/http.js'
 import { reactive, toRefs } from 'vue'
 import { useRouter } from 'vue-router'
 import apiConfig from '../api/apiConfig.js'
+import emitter from '../tools/emitter.js'
 
 export default {
   name: 'LoginUserAction',
@@ -49,10 +50,24 @@ export default {
         avatar: '' // 头像
       }
     })
+    // 获取当前登录的用户信息
+    const queryUserInfo = () => {
+      http.reqUrl.user.info().then(response => {
+        const { email, nickName, avatar } = response
+        dataList.user.email = email
+        dataList.user.nickName = nickName
+        dataList.user.avatar = avatar
+        emit('on-load', response)
+      })
+    }
+    // 监听 UploadComponent 组件的消息，以刷新账户空间使用率
+    emitter.on('on-upload-change', () => {
+      queryUserInfo()
+    })
     return {
-      emit,
       router,
-      ...toRefs(dataList)
+      ...toRefs(dataList),
+      queryUserInfo
     }
   },
   created () {
@@ -60,16 +75,6 @@ export default {
   },
   methods: {
     apiConfig,
-    // 获取当前登录的用户信息
-    queryUserInfo () {
-      http.reqUrl.user.info().then(response => {
-        const { email, nickName, avatar } = response
-        this.user.email = email
-        this.user.nickName = nickName
-        this.user.avatar = avatar
-        this.emit('on-load', response)
-      })
-    },
     // 退出登录
     logout () {
       http.reqUrl.user.logout().then(response => {

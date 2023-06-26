@@ -122,6 +122,18 @@ public interface FileMetadataService {
     List<FileMetadata> queryLikePrefix(String pid, String fileName, FileTypeEnum type);
 
     /**
+     * 查询指定文件后指定数量的文件/文件夹
+     *
+     * @param pid        父级目录 id
+     * @param createTime 文件创建时间
+     * @param size       查询数量
+     * @param userId     文件所属用户 id
+     * @param flag       是否只查询文件/文件夹，0-只查询文件，1-只查询文件夹，null-查询全部
+     * @return 文件/文件夹列表
+     */
+    List<FileMetadata> queryListAfter(String pid, Long createTime, Integer size, String userId, FileTypeEnum flag);
+
+    /**
      * 查询文件列表
      *
      * @param pid       父级文件 id

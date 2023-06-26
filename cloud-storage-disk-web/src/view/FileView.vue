@@ -87,6 +87,7 @@ export default {
     }
     // 监听新建文件夹
     emitter.on('on-mkdir', () => {
+      // 这里监听来自 ActionComponent 组件发送的新建文件夹的消息，用以刷新文件列表
       if (dataList.files.length === dataList.pager.pageSize) {
         dataList.pager.pageIndex++
       }
@@ -94,7 +95,7 @@ export default {
     })
     // 监听上传文件
     emitter.on('on-upload-close', () => {
-      // 刷新页面中的文件列表
+      // 这里监听来自 UploadComponent 组件的消息，以刷新页面中的文件列表
       if (dataList.files.length === dataList.pager.pageSize) {
         dataList.pager.pageIndex++
       }
@@ -144,14 +145,14 @@ export default {
       // 删除文件，移动文件
       if (action === 'delete' || action === 'move') {
         for (const key in record.fileIds) {
-          const fileIndex = this.data.files.findIndex(file => file.id === record.fileIds[key])
-          this.data.files.splice(fileIndex, 1)
+          const fileIndex = this.files.findIndex(file => file.id === record.fileIds[key])
+          this.files.splice(fileIndex, 1)
         }
       }
       // 文件重命名
       if (action === 'rename') {
-        const fileIndex = this.data.files.findIndex(file => file.id === record.file.id)
-        this.data.files[fileIndex] = record.file
+        const fileIndex = this.files.findIndex(file => file.id === record.file.id)
+        this.files[fileIndex] = record.file
       }
     }
   }

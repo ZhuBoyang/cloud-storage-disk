@@ -1,5 +1,7 @@
 package online.yangcloud.common.constants;
 
+import cn.hutool.core.util.StrUtil;
+
 import java.io.File;
 
 /**
@@ -71,6 +73,10 @@ public interface AppConstants {
          */
         Long ACCOUNT_EXPIRED_STATUS = -1L;
         Long ACCOUNT_NOT_EXIST_STATUS = -2L;
+        /**
+         * 账户空间
+         */
+        String SPACE_UPDATE = "space_update:";
     }
 
     /**
@@ -130,6 +136,8 @@ public interface AppConstants {
     interface FileMetadata {
         // 单次最多插入数据量
         Integer SINGLE_SAVE_MAX_COUNT = 200;
+        // 祖级文件 id 隔断符
+        String ANCESTOR_SEPARATOR = StrUtil.UNDERLINE;
     }
 
 }

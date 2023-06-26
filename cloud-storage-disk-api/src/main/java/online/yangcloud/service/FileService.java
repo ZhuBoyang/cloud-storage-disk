@@ -1,6 +1,7 @@
 package online.yangcloud.service;
 
 import online.yangcloud.model.User;
+import online.yangcloud.model.ao.file.DirLooker;
 import online.yangcloud.model.ao.file.FileSearcher;
 import online.yangcloud.model.ao.file.FileUploader;
 import online.yangcloud.model.vo.PagerView;
@@ -63,10 +64,19 @@ public interface FileService {
     /**
      * 批量删除文件及文件夹
      *
-     * @param ids    文件或文件夹 id 列表
-     * @param userId 当前登录用户 id
+     * @param ids  文件或文件夹 id 列表
+     * @param user 当前登录用户
      */
-    void batchDeleteFile(List<String> ids, String userId);
+    void batchDeleteFile(List<String> ids, User user);
+
+    /**
+     * 批量复制文件
+     *
+     * @param sourcesIds 待复制文件列表
+     * @param targetId   目标目录
+     * @param user       当前登录用户
+     */
+    void batchCopy(List<String> sourcesIds, String targetId, User user);
 
     /**
      * 批量复制文件
@@ -75,16 +85,7 @@ public interface FileService {
      * @param targetId   目标目录
      * @param userId     当前登录用户 id
      */
-    void batchCopy(List<String> sourcesIds, String targetId, String userId);
-
-    /**
-     * 批量复制文件
-     *
-     * @param sources 待复制文件列表
-     * @param target  目标目录
-     * @param userId  当前登录用户 id
-     */
-    void batchMove(List<String> sources, String target, String userId);
+    void batchMove(List<String> sourcesIds, String targetId, String userId);
 
     /**
      * 查询文件元数据
@@ -112,6 +113,25 @@ public interface FileService {
      * @return 次一层级的所有文件及文件夹列表
      */
     PagerView<FileMetadataView> queryFiles(FileSearcher searcher, String userId);
+
+    /**
+     * 查询目录下所有的文件夹
+     *
+     * @param looker 查询参数
+     * @param userId 当前登录的用户 id
+     * @return 文件夹列表
+     */
+    List<FileMetadataView> queryDirs(DirLooker looker, String userId);
+
+    /**
+     * 计算文件名（检查是否有重复的文件名，如果有，就在文件名后添加后缀数字）
+     *
+     * @param pid      父级目录 id
+     * @param name     文件名
+     * @param fileType 文件类型
+     * @return 计算后的文件名
+     */
+    String calculateName(String pid, String name, Integer fileType);
 
     /**
      * 文件下载

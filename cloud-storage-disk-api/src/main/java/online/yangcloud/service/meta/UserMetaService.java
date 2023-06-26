@@ -16,6 +16,22 @@ public interface UserMetaService {
     void insertUser(User user);
 
     /**
+     * 增加账户空间已用量
+     *
+     * @param user         当前操作用户
+     * @param increaseSize 增加的使用量
+     */
+    void increaseUsedSpaceSize(User user, Long increaseSize);
+
+    /**
+     * 减少账户空间已用量
+     *
+     * @param user         当前操作用户
+     * @param decreaseSize 减少的使用量
+     */
+    void decreaseUsedSpaceSize(User user, Long decreaseSize);
+
+    /**
      * 更新用户账户信息
      *
      * @param user 新的账户信息

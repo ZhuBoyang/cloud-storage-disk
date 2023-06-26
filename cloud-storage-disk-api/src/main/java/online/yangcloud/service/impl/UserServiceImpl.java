@@ -2,6 +2,7 @@ package online.yangcloud.service.impl;
 
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.constants.AppConstants;
@@ -17,10 +18,12 @@ import online.yangcloud.utils.ExceptionTools;
 import online.yangcloud.utils.IdTools;
 import online.yangcloud.utils.RedisTools;
 import online.yangcloud.utils.ValidateTools;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -41,6 +44,9 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private RedisTools redisTools;
+
+    @Resource
+    private RedissonClient redissonClient;
 
     @Override
     public void register(UserRegister register) {
@@ -91,6 +97,16 @@ public class UserServiceImpl implements UserService {
                 TimeUnit.MINUTES
         );
         return sessionId;
+    }
+
+    @Override
+    public void updateUserSpace(String expiredKey) {
+        String key = expiredKey.replace(AppConstants.User.SPACE_UPDATE, StrUtil.EMPTY);
+        List<String> list = StrUtil.split(key, StrUtil.UNDERLINE);
+        String userId = list.get(0);
+        Long usedSpaceSize = Long.parseLong(list.get(1));
+        userMetaService.updateUser(User.pack(userId, usedSpaceSize));
+        redisTools.delete(expiredKey);
     }
 
 }

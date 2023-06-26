@@ -8,6 +8,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -52,6 +53,17 @@ public class RedisTools {
      */
     public Long inCre(String redisKey) {
         return redisTemplate.opsForValue().increment(redisKey, 1L);
+    }
+
+    /**
+     * 设置redis的同时设置过期时间
+     *
+     * @param redisKey   redisKey
+     * @param expireTime 过期时间
+     */
+    public void expire(String redisKey, Duration expireTime) {
+        logger.info("开始为redis key[{}] 设置过期时间[{}]", redisKey, expireTime);
+        redisTemplate.expire(redisKey, expireTime);
     }
 
     /**
@@ -164,6 +176,17 @@ public class RedisTools {
             return new HashSet<>();
         }
         return result;
+    }
+
+    /**
+     * 查询符合指定前缀的 redis key 列表
+     *
+     * @param prefix 前缀
+     * @return redis key 列表
+     */
+    public List<String> queryKeysLikePrefix(String prefix) {
+        Set<String> keys = redisTemplate.keys(prefix + "*");
+        return new ArrayList<>(keys);
     }
 
 }

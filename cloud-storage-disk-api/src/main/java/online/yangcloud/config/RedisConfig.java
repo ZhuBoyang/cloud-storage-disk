@@ -10,12 +10,14 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -41,8 +43,8 @@ public class RedisConfig {
         genericObjectPoolConfig.setMaxIdle(redisConfigProperty.getRedisLettuceConfig().getRedisPoolConfig().getMaxIdle());
         genericObjectPoolConfig.setMinIdle(redisConfigProperty.getRedisLettuceConfig().getRedisPoolConfig().getMinIdle());
         genericObjectPoolConfig.setMaxTotal(redisConfigProperty.getRedisLettuceConfig().getRedisPoolConfig().getMaxActive());
-        genericObjectPoolConfig.setMaxWaitMillis(redisConfigProperty.getRedisLettuceConfig().getRedisPoolConfig().getMaxWait());
-        genericObjectPoolConfig.setTimeBetweenEvictionRunsMillis(100);
+        genericObjectPoolConfig.setMaxWait(Duration.ofMillis(redisConfigProperty.getRedisLettuceConfig().getRedisPoolConfig().getMaxWait()));
+        genericObjectPoolConfig.setTimeBetweenEvictionRuns(Duration.ofMillis(100));
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
         redisStandaloneConfiguration.setDatabase(redisConfigProperty.getDatabase());
         redisStandaloneConfiguration.setHostName(redisConfigProperty.getHost());
@@ -78,6 +80,13 @@ public class RedisConfig {
         template.setHashValueSerializer(jackson2JsonRedisSerializer);
         template.afterPropertiesSet();
         return template;
+    }
+
+    @Bean
+    public RedisMessageListenerContainer container(RedisConnectionFactory connectionFactory) {
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        return container;
     }
 
 }

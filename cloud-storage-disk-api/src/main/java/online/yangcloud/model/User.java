@@ -91,6 +91,10 @@ public class User extends BaseParameter {
                 .setUsedSpaceSize(0L);
     }
 
+    public static User pack(String userId, Long usedSpaceSize) {
+        return new User().setId(userId).setUsedSpaceSize(usedSpaceSize);
+    }
+
     public String getId() {
         return id;
     }

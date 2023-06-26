@@ -23,9 +23,10 @@
 </template>
 
 <script>
-import LoginUserAction from './LoginUserAction.vue'
-import { getCurrentInstance } from 'vue'
+import { defineAsyncComponent, getCurrentInstance } from 'vue'
 import apiConfig from '../api/apiConfig.js'
+
+const LoginUserAction = defineAsyncComponent(() => import('./LoginUserAction.vue'))
 
 export default {
   name: 'FileInfoDrawer',

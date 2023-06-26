@@ -1,6 +1,6 @@
 <template>
   <transition name="file-operator-bg">
-    <div class="file-operator-list" v-show="visible && !data.hideModalVisible"></div>
+    <div class="file-operator-list" v-show="visible && !hideModalVisible"></div>
   </transition>
   <div class="file-operator-modal"
        :class="[{'is-close': !visible}]"
@@ -13,18 +13,18 @@
     </div>
     <div class="box-bread">
       <a-breadcrumb>
-        <a-breadcrumb-item v-for="(item, index) in data.breads" :key="index">
-          <a href="javascript:void(0)" @click="returnFolder(index)">{{ item.name }}</a>
+        <a-breadcrumb-item v-for="(o, i) in breads" :key="i">
+          <a href="javascript:void(0)" @click="returnFolder(o, i)">{{ o.name }}</a>
         </a-breadcrumb-item>
       </a-breadcrumb>
     </div>
-    <div class="box-body" v-if="data.pager.list.length > 0">
+    <div class="box-body" v-if="dirs.length > 0">
       <div class="box-body--list">
         <div class="box-body--list-item"
-             v-for="(item, index) in data.pager.list"
-             :key="index"
-             @click="openFolder(item)"
-        >{{ item.name }}
+             v-for="(o, i) in dirs"
+             :key="i"
+             @click="openFolder(o)"
+        >{{ o.name }}
         </div>
       </div>
     </div>
@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import { reactive } from 'vue'
+import { reactive, toRefs, watch } from 'vue'
 import http from '../api/http.js'
 import apiConfig from '../api/apiConfig.js'
 
@@ -58,89 +58,87 @@ export default {
   },
   emits: ['on-change'],
   setup (props, { emit }) {
-    const data = reactive({
+    const dataList = reactive({
       hideModalVisible: false, // 是否半隐藏上传文件的弹窗
       parentId: '', // 父级目录文件 id
       breads: [], // 面包屑数据
+      dirs: [], // 文件夹列表
       pager: {
-        list: [], // 文件夹列表
+        pid: '', // 父级目录 id
         dirId: '', // 查询列表的起始点
         size: 10 // 每次查询的数据量
       }
     })
     // 查询文件夹的面包屑导航数据
     const queryBreads = () => {
-      http.req(http.url.file.dirBreads, http.methods.get, {
-        parentId: data.pager.dirId
-      }).then(response => {
-        data.breads = []
-        for (const key in response) {
-          data.breads.push(response[key])
+      const id = dataList.breads.length === 0 ? '_' : dataList.breads[dataList.breads.length - 1].id
+      http.reqUrl.file.breads({ id }).then(response => {
+        dataList.breads = []
+        for (let i = 0; i < response.length; i++) {
+          dataList.breads.push(response[i])
         }
       })
     }
     // 查询目录下次一级所有的文件夹
     const queryDirs = () => {
-      http.req(http.url.file.dirs, http.methods.get, {
-        parentId: data.pager.dirId,
-        size: data.pager.size
-      }).then(response => {
-        if (response.length === 0) {
-          return
-        }
-        for (const key in response) {
-          data.pager.list.push(response[key])
+      dataList.pager.pid = dataList.breads.length === 0 ? '_' : dataList.breads[dataList.breads.length - 1].id
+      http.reqUrl.file.dirs(dataList.pager).then(response => {
+        if (response.length > 0) {
+          for (let i = 0; i < response.length; i++) {
+            dataList.dirs.push(response[i])
+          }
         }
       })
     }
+    watch(() => props.visible, visible => {
+      if (visible) {
+        queryBreads()
+        queryDirs()
+      } else {
+        dataList.parentId = ''
+        dataList.breads = []
+        dataList.dirs = []
+        dataList.pager = {
+          pid: '',
+          dirId: '',
+          size: 10
+        }
+      }
+    })
     return {
       emit,
-      data,
+      ...toRefs(dataList),
       queryBreads,
       queryDirs
-    }
-  },
-  watch: {
-    visible (newVal) {
-      if (newVal) {
-        this.queryBreads()
-        this.queryDirs()
-      } else {
-        this.data.pager.list = []
-        this.data.pager.dirId = ''
-      }
     }
   },
   methods: {
     apiConfig,
     // 进入文件夹
-    openFolder (record) {
-      const { id, name } = record
-      this.data.breads.push({ id, name })
-      this.data.pager.list = []
-      this.data.pager.dirId = id
-      this.queryDirs()
+    openFolder ({ id, name }) {
+      this.breads.push({ id, name })
+      this.refreshDirs(id)
     },
     // 返回文件夹
-    returnFolder (recordIndex) {
-      const bread = this.data.breads[recordIndex]
-      this.data.breads.splice(recordIndex + 1, this.data.breads.length - recordIndex)
-      this.data.pager.list = []
-      const { id } = bread
-      this.data.pager.dirId = id
+    returnFolder ({ id }, recordIndex) {
+      this.breads.splice(recordIndex + 1, this.breads.length - recordIndex)
+      this.refreshDirs(id)
+    },
+    // 刷新文件夹列表
+    refreshDirs (id) {
+      this.dirs = []
+      this.pager.dirId = id
       this.queryDirs()
     },
     // 移动至此
     moveToCurrentFolder () {
-      const currentFolder = this.data.breads[this.data.breads.length - 1]
-      const { id } = currentFolder
-      this.emit('on-change', { action: 'confirm', id })
+      this.emit('on-change', { action: 'confirm', id: this.breads[this.breads.length - 1].id })
     },
     // 取消移动
     cancelMove () {
       this.emit('on-change', { action: 'cancel' })
     },
-    // 官博弹窗
+    // 关闭弹窗
     closeModal () {
       this.emit('on-change', { action: 'close' })
     },

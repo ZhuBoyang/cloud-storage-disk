@@ -97,10 +97,6 @@ export default {
         }
       }
     })
-    // emitter.on('disk-space-change', record => {
-    //   const { size } = record
-    //   dataList.systemSpace.used += size
-    // })
     return {
       globalProperties,
       router,
@@ -123,8 +119,9 @@ export default {
         common.notify.warning('请输入文件夹名称')
         return
       }
-      const { id } = this.router.currentRoute.value.query
+      const { id } = this.router.currentRoute.value.params
       http.reqUrl.file.mkdir({ id, name }).then(() => {
+        // 这里会向组件 FileView 发送一条消息，刷新文件列表，以显示新创建的文件夹
         emitter.emit('on-mkdir')
         this.closeMkdir()
       })

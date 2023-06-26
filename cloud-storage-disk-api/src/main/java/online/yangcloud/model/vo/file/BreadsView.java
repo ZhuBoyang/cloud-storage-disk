@@ -5,7 +5,6 @@ import online.yangcloud.model.FileMetadata;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author zhuboyang
@@ -32,13 +31,18 @@ public class BreadsView {
         if (ObjectUtil.isNull(files)) {
             return new ArrayList<>();
         }
-        return files.stream().map(BreadsView::convert).collect(Collectors.toList());
+        List<BreadsView> views = new ArrayList<>();
+        for (int i = 0; i < files.size(); i++) {
+            views.add(convert(files.get(i)).setIndex(i));
+        }
+        return views;
     }
 
     public static BreadsView convert(FileMetadata file) {
         return new BreadsView()
                 .setId(file.getId())
-                .setName(file.getName());
+                .setName(file.getName())
+                .setIndex(0);
     }
 
     public String getId() {

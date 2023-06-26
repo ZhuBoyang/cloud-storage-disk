@@ -3,6 +3,7 @@ package online.yangcloud.service.meta.impl;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.org.atool.fluent.mybatis.base.crud.IUpdate;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.common.resultcode.AppResultCode;
 import online.yangcloud.enumration.FileTypeEnum;
@@ -14,6 +15,7 @@ import online.yangcloud.model.vo.PagerView;
 import online.yangcloud.service.meta.FileMetadataService;
 import online.yangcloud.utils.ExceptionTools;
 import online.yangcloud.wrapper.FileMetadataQuery;
+import online.yangcloud.wrapper.FileMetadataUpdate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,28 +92,33 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
     @Override
     public void batchUpdate(List<FileMetadata> files) {
-        StringBuilder caseWhen = new StringBuilder("case when");
-        List<String> pidList = new ArrayList<>();
-        List<String> ancestors = new ArrayList<>();
-        List<String> ids = new ArrayList<>();
-
-        for (FileMetadata o : files) {
-            caseWhen.append("when ").append(o.getId()).append(" then ? ");
-            pidList.add(o.getPid());
-            ancestors.add(o.getAncestors());
-            ids.add(o.getId());
+        List<FileMetadataUpdate> updates = new ArrayList<>();
+        for (FileMetadata file : files) {
+            FileMetadataUpdate update = new FileMetadataUpdate();
+            if (StrUtil.isNotBlank(file.getPid())) {
+                update.set.pid().is(file.getPid());
+            }
+            if (StrUtil.isNotBlank(file.getName())) {
+                update.set.name().is(file.getName());
+            }
+            if (ObjectUtil.isNotNull(file.getUploadTime())) {
+                update.set.uploadTime().is(file.getUploadTime());
+            }
+            if (StrUtil.isNotBlank(file.getAncestors())) {
+                update.set.ancestors().is(file.getAncestors());
+            }
+            update.where.id().eq(file.getId());
+            updates.add(update);
         }
-        caseWhen.append(" end ");
-
-        int updateResult = fileMetadataMapper.updateBy(fileMetadataMapper.updater()
-                .set.pid().applyFunc(caseWhen.toString(), pidList.toArray())
-                .set.ancestors().applyFunc(caseWhen.toString(), ancestors.toArray())
-                .end()
-                .where.id().in(ids.toArray()).end());
-        if (updateResult != files.size()) {
+        int updateResult = fileMetadataMapper.updateBy(updates.toArray(new IUpdate[0]));
+        if (updateResult == 0) {
             ExceptionTools.businessLogger();
         }
     }
+
+//    private Object[] getFields(List<FileMetadata> files, Function<FileMetadata, Object> getField) {
+//        return files.stream().map(getField).toArray(Object[]::new);
+//    }
 
     @Override
     public FileMetadata queryById(String id) {
@@ -172,6 +179,21 @@ public class FileMetadataServiceImpl implements FileMetadataService {
                 .and.name().like(fileName.trim() + AppConstants.PERCENT)
                 .and.type().eq(type.code())
                 .and.isDelete().eq(YesOrNoEnum.NO.code()).end());
+    }
+
+    @Override
+    public List<FileMetadata> queryListAfter(String pid, Long createTime, Integer size, String userId, FileTypeEnum flag) {
+        FileMetadataQuery query = fileMetadataMapper.query()
+                .where.pid().eq(pid)
+                .and.userId().eq(userId)
+                .and.createTime().gt(createTime)
+                .end()
+                .orderBy.uploadTime().asc().end()
+                .limit(0, size);
+        if (ObjectUtil.isNotNull(flag)) {
+            query.where.type().eq(flag.code());
+        }
+        return fileMetadataMapper.listEntity(query);
     }
 
     @Override

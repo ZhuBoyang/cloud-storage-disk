@@ -37,12 +37,6 @@
                    @click="playVideo(item.id)"
               />
             </a-tooltip>
-            <a-tooltip content="文件详情">
-              <img alt="详情"
-                   :src="apiConfig().iconBaseUrl + 'icons/solid_circle.png'"
-                   @click="fileDetail(item)"
-              />
-            </a-tooltip>
           </div>
         </div>
         <div class="body--category">{{ item.type === 1 ? '文件夹' : `${item.ext} 文件` }}</div>
@@ -152,12 +146,13 @@
 </template>
 
 <script>
-import FileInfoDrawer from './FileInfoDrawer.vue'
-import FileOperatorModal from './FileOperatorModal.vue'
-import PlayerModal from './PlayerModal.vue'
-import { getCurrentInstance, reactive } from 'vue'
+import { defineAsyncComponent, getCurrentInstance, reactive } from 'vue'
 import http from '../api/http.js'
 import apiConfig from '../api/apiConfig.js'
+
+const FileInfoDrawer = defineAsyncComponent(() => import('./FileInfoDrawer.vue'))
+const FileOperatorModal = defineAsyncComponent(() => import('./FileOperatorModal.vue'))
+const PlayerModal = defineAsyncComponent(() => import('./PlayerModal.vue'))
 
 export default {
   name: 'FileBox',
@@ -289,10 +284,9 @@ export default {
       this.data.movie.src = ''
     },
     // 文件的操作
-    fileChangeEvent (action, record, recordIndex) {
+    fileChangeEvent (action, { id, name }, recordIndex) {
       // 删除单个文件
       if (action === 'delete') {
-        const { id, name } = record
         this.data.remove.fileId = id
         this.data.remove.fileName = name
         this.data.remove.index = recordIndex
@@ -301,7 +295,6 @@ export default {
       }
       // 移动单个文件
       if (action === 'move' || action === 'copy') {
-        const { id } = record
         this.data.selected[recordIndex] = true
         this.data.selectedFiles.push(id)
         this.data.dirSelector.visible = true
@@ -310,14 +303,12 @@ export default {
       }
       // 重命名文件
       if (action === 'rename') {
-        const { id, name } = record
         this.data.rename.visible = true
         this.data.rename.form.id = id
         this.data.rename.form.name = name
       }
       // 下载文件
       if (action === 'download') {
-        const { id } = record
         window.open(`${apiConfig().apiBaseUrl}${http.url.file.download}${id}`)
       }
     },
@@ -332,26 +323,33 @@ export default {
       this.data.dirSelector.action = 'move'
     },
     // 移动文件
-    operationResult (record) {
-      const { action, id } = record
+    operationResult ({ action, id }) {
       if (action === 'cancel' || action === 'close') {
         this.data.selected = []
         this.data.selectedFiles = []
         this.data.dirSelector.visible = false
         return
       }
-      const url = this.data.dirSelector.action === 'move' ? http.url.file.batchMove : http.url.file.batchCopy
-      http.req(url, http.methods.post, {
-        sources: this.data.selectedFiles,
-        target: id
-      }).then(response => {
-        if (response !== undefined) {
-          const selectedFiles = this.clearSelected()
-          this.emit('action-change', { action: this.data.dirSelector.action, fileIds: [selectedFiles] })
-          this.data.dirSelector.visible = false
-          this.data.dirSelector.action = ''
-        }
-      })
+      if (this.data.dirSelector.action === 'copy') {
+        http.reqUrl.file.copy({ sources: this.data.selectedFiles, target: id }).then(response => {
+          if (response) {
+            const selectedFiles = this.clearSelected()
+            this.emit('action-change', { action: this.data.dirSelector.action, fileIds: [selectedFiles] })
+            this.data.dirSelector.visible = false
+            this.data.dirSelector.action = ''
+          }
+        })
+      }
+      if (this.data.dirSelector.action === 'move') {
+        http.reqUrl.file.move({ sources: this.data.selectedFiles, target: id }).then(response => {
+          if (response) {
+            const selectedFiles = this.clearSelected()
+            this.emit('action-change', { action: this.data.dirSelector.action, fileIds: [selectedFiles] })
+            this.data.dirSelector.visible = false
+            this.data.dirSelector.action = ''
+          }
+        })
+      }
     },
     // 确定删除文件
     confirmRemoveFile () {

@@ -14,8 +14,10 @@
 </template>
 
 <script>
-import VideoPlayer from './custom/VideoPlayer.vue'
 import apiConfig from '../api/apiConfig.js'
+import { defineAsyncComponent } from 'vue'
+
+const VideoPlayer = defineAsyncComponent(() => import('./custom/VideoPlayer.vue'))
 
 export default {
   name: 'PlayerModal',

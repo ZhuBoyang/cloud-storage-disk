@@ -3,7 +3,6 @@ package online.yangcloud.model;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.NumberUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.constants.AppConstants;
@@ -93,16 +92,14 @@ public class FileMetadata extends BaseParameter {
                 .setUserId(userId);
     }
 
-    public static FileMetadata initial(String fileId, Integer fileNumber, String fileHash, FileMetadata parent,
+    public static FileMetadata initial(String fileId, String name, String fileHash, FileMetadata parent,
                                        FileUploader uploader, User user) {
         List<String> ancestors = parent.queryAncestors();
         ancestors.add(parent.getId());
         return new FileMetadata()
                 .setId(fileId)
                 .setPid(uploader.getId())
-                .setName(fileNumber == 0 ?
-                        uploader.getFileName() :
-                        uploader.getFileName() + AppConstants.LEFT_BRACKET + fileNumber + AppConstants.RIGHT_BRACKET)
+                .setName(name)
                 .setHash(fileHash)
                 .setExt(uploader.getExt())
                 .setPath(AppConstants.Uploader.FILE_UPLOAD_PATH + fileHash)
@@ -173,11 +170,11 @@ public class FileMetadata extends BaseParameter {
     }
 
     public List<String> queryAncestors() {
-        return CharSequenceUtil.split(ancestors, StrUtil.COMMA);
+        return CharSequenceUtil.split(ancestors, AppConstants.FileMetadata.ANCESTOR_SEPARATOR);
     }
 
     public List<String> addIdInAncestors() {
-        List<String> ancestors = CharSequenceUtil.split(this.ancestors, StrUtil.COMMA);
+        List<String> ancestors = CharSequenceUtil.split(this.ancestors, AppConstants.FileMetadata.ANCESTOR_SEPARATOR);
         ancestors.add(this.id);
         return ancestors;
     }
@@ -187,7 +184,7 @@ public class FileMetadata extends BaseParameter {
         for (int i = 0; i < ancestors.size(); i++) {
             sbr.append(ancestors.get(i));
             if (i != ancestors.size() - 1) {
-                sbr.append(StrUtil.COMMA);
+                sbr.append(AppConstants.FileMetadata.ANCESTOR_SEPARATOR);
             }
         }
         this.ancestors = sbr.toString();

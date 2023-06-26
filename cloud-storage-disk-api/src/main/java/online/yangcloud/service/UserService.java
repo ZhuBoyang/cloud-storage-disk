@@ -24,4 +24,11 @@ public interface UserService {
      */
     String enter(UserEnter enter);
 
+    /**
+     * 更新用户账户空间
+     *
+     * @param expiredKey 失效 redis key
+     */
+    void updateUserSpace(String expiredKey);
+
 }

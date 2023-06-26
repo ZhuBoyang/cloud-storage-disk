@@ -76,8 +76,8 @@ const url = {
     mergeFile: modules.file + 'merge', // 文件合并
     mkdir: modules.file + 'mkdir', // 新建文件夹
     batchDelete: modules.file + 'batch_delete', // 批量删除文件
-    batchMove: modules.file + 'batch_move', // 批量移动文件及文件夹
-    batchCopy: modules.file + 'batch_copy', // 批量复制文件及文件夹
+    move: modules.file + 'move', // 批量移动文件及文件夹
+    copy: modules.file + 'copy', // 批量复制文件及文件夹
     rename: modules.file + 'rename', // 文件重命名
     playUrl: modules.file + 'play_url', // 获取文件播放地址
     dirBreads: modules.file + 'dir_breads', // 查询文件夹的面包屑导航数据
@@ -128,8 +128,11 @@ const reqUrl = {
   },
   file: {
     mkdir: obj => req(url.file.mkdir, methods.post, obj),
+    move: obj => req(url.file.move, methods.post, obj),
+    copy: obj => req(url.file.copy, methods.post, obj),
     breads: obj => req(url.file.breads, methods.post, obj),
-    pager: obj => req(url.file.pager, methods.get, obj)
+    pager: obj => req(url.file.pager, methods.get, obj),
+    dirs: obj => req(url.file.dirs, methods.post, obj)
   }
 }
 
