@@ -3,7 +3,6 @@ package online.yangcloud.service.meta.impl;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.org.atool.fluent.mybatis.base.crud.IUpdate;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.common.resultcode.AppResultCode;
 import online.yangcloud.enumration.FileTypeEnum;
@@ -15,13 +14,12 @@ import online.yangcloud.model.vo.PagerView;
 import online.yangcloud.service.meta.FileMetadataService;
 import online.yangcloud.utils.ExceptionTools;
 import online.yangcloud.wrapper.FileMetadataQuery;
-import online.yangcloud.wrapper.FileMetadataUpdate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author zhuboyang
@@ -92,33 +90,34 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
     @Override
     public void batchUpdate(List<FileMetadata> files) {
-        List<FileMetadataUpdate> updates = new ArrayList<>();
-        for (FileMetadata file : files) {
-            FileMetadataUpdate update = new FileMetadataUpdate();
-            if (StrUtil.isNotBlank(file.getPid())) {
-                update.set.pid().is(file.getPid());
+        // 分批次入库
+        while (files.size() != 0) {
+            // 切分本次要更新的数据
+            List<FileMetadata> tmp = files.subList(0, Math.min(AppConstants.FileMetadata.SINGLE_SAVE_MAX_COUNT, files.size()));
+
+            // 将本次要更新的数据从原数据列表中去除
+            files = files.subList(Math.min(AppConstants.FileMetadata.SINGLE_SAVE_MAX_COUNT, files.size()), files.size());
+
+            // 构建 case when 语句。以及构建要更新的数据属性
+            StringBuilder caseWhen = new StringBuilder(" case id ");
+            tmp.forEach(o -> caseWhen.append(" when '").append(o.getId()).append("' then ? "));
+            caseWhen.append(" end ");
+
+            // 执行更新操作
+            int updateResult = fileMetadataMapper.updateBy(fileMetadataMapper.updater()
+                    .set.pid().applyFunc(caseWhen.toString(), getFields(tmp, FileMetadata::getPid))
+                    .set.ancestors().applyFunc(caseWhen.toString(), getFields(tmp, FileMetadata::getAncestors))
+                    .end()
+                    .where.id().in(getFields(tmp, FileMetadata::getId)).end());
+            if (updateResult != tmp.size()) {
+                ExceptionTools.businessLogger();
             }
-            if (StrUtil.isNotBlank(file.getName())) {
-                update.set.name().is(file.getName());
-            }
-            if (ObjectUtil.isNotNull(file.getUploadTime())) {
-                update.set.uploadTime().is(file.getUploadTime());
-            }
-            if (StrUtil.isNotBlank(file.getAncestors())) {
-                update.set.ancestors().is(file.getAncestors());
-            }
-            update.where.id().eq(file.getId());
-            updates.add(update);
-        }
-        int updateResult = fileMetadataMapper.updateBy(updates.toArray(new IUpdate[0]));
-        if (updateResult == 0) {
-            ExceptionTools.businessLogger();
         }
     }
 
-//    private Object[] getFields(List<FileMetadata> files, Function<FileMetadata, Object> getField) {
-//        return files.stream().map(getField).toArray(Object[]::new);
-//    }
+    private Object[] getFields(List<FileMetadata> files, Function<FileMetadata, Object> getField) {
+        return files.stream().map(getField).toArray(Object[]::new);
+    }
 
     @Override
     public FileMetadata queryById(String id) {
