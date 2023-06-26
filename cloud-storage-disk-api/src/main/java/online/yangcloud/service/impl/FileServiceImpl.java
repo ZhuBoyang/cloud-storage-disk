@@ -316,6 +316,23 @@ public class FileServiceImpl implements FileService {
         fileMetadataService.batchUpdate(movedFiles);
     }
 
+    @Override
+    public void rename(String id, String name) {
+        // 检测文件是否存在
+        FileMetadata file = fileMetadataService.queryById(id);
+        if (ObjectUtil.isNull(file)) {
+            ExceptionTools.noDataLogger();
+        }
+
+        // 检测当前目录下是否有重复的文件名称
+        if (validDuplicatedName(id, file.getPid(), name, file.getType())) {
+            ExceptionTools.businessLogger("文件名已使用，请更换");
+        }
+
+        // 修改文件名
+        fileMetadataService.updateById(new FileMetadata().setId(id).setName(name));
+    }
+
     /**
      * 移动、复制时的文件校验
      *
@@ -334,7 +351,7 @@ public class FileServiceImpl implements FileService {
         if (CharSequenceUtil.isBlank(target)) {
             ExceptionTools.businessLogger("请选择目标目录");
         }
-        
+
         // 检测选择的目标目录是否是待操作文件
         if (sources.contains(target)) {
             ExceptionTools.businessLogger("无法" + operation + "至待" + operation + "文件下");
@@ -420,10 +437,22 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public String calculateName(String pid, String name, Integer fileType) {
+    public Integer calculateSuffixNumber(String pid, String name, Integer fileType) {
         List<FileMetadata> tmp = fileMetadataService.queryLikePrefix(pid, name, FileTypeEnum.findType(fileType));
-        int fileNumber = FileMetadata.calculateFileSuffixNumber(tmp, name);
+        return FileMetadata.calculateFileSuffixNumber(tmp, name);
+    }
+
+    @Override
+    public String calculateName(String pid, String name, Integer fileType) {
+        Integer fileNumber = calculateSuffixNumber(pid, name, fileType);
         return fileNumber == 0 ? name : name + AppConstants.LEFT_BRACKET + fileNumber + AppConstants.RIGHT_BRACKET;
+    }
+
+    @Override
+    public Boolean validDuplicatedName(String id, String pid, String name, Integer fileType) {
+        List<FileMetadata> tmp = fileMetadataService.queryLikePrefix(pid, name, FileTypeEnum.findType(fileType));
+        tmp.removeIf(o -> o.getId().equals(id));
+        return FileMetadata.calculateFileSuffixNumber(tmp, name) > 0;
     }
 
     @Override

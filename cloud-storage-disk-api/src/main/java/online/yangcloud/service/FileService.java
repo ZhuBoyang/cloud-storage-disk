@@ -88,6 +88,14 @@ public interface FileService {
     void batchMove(List<String> sourcesIds, String targetId, String userId);
 
     /**
+     * 修改文件名
+     *
+     * @param id   文件 id
+     * @param name 文件名
+     */
+    void rename(String id, String name);
+
+    /**
      * 查询文件元数据
      *
      * @param id     文件 id
@@ -124,6 +132,16 @@ public interface FileService {
     List<FileMetadataView> queryDirs(DirLooker looker, String userId);
 
     /**
+     * 计算文件名后缀数字（检查是否有重复的文件名）
+     *
+     * @param pid      父级目录 id
+     * @param name     文件名
+     * @param fileType 文件类型
+     * @return 计算出的文件名后缀数字
+     */
+    Integer calculateSuffixNumber(String pid, String name, Integer fileType);
+
+    /**
      * 计算文件名（检查是否有重复的文件名，如果有，就在文件名后添加后缀数字）
      *
      * @param pid      父级目录 id
@@ -132,6 +150,17 @@ public interface FileService {
      * @return 计算后的文件名
      */
     String calculateName(String pid, String name, Integer fileType);
+
+    /**
+     * 检测是否有重复的文件名称
+     *
+     * @param id       文件 id
+     * @param pid      父级目录 id
+     * @param name     文件名
+     * @param fileType 文件类型
+     * @return 检测结果
+     */
+    Boolean validDuplicatedName(String id, String pid, String name, Integer fileType);
 
     /**
      * 文件下载

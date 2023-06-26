@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * @author zhuboyang
@@ -105,18 +104,14 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
             // 执行更新操作
             int updateResult = fileMetadataMapper.updateBy(fileMetadataMapper.updater()
-                    .set.pid().applyFunc(caseWhen.toString(), getFields(tmp, FileMetadata::getPid))
-                    .set.ancestors().applyFunc(caseWhen.toString(), getFields(tmp, FileMetadata::getAncestors))
+                    .set.pid().applyFunc(caseWhen.toString(), FileMetadata.getFields(tmp, FileMetadata::getPid))
+                    .set.ancestors().applyFunc(caseWhen.toString(), FileMetadata.getFields(tmp, FileMetadata::getAncestors))
                     .end()
-                    .where.id().in(getFields(tmp, FileMetadata::getId)).end());
+                    .where.id().in(FileMetadata.getFields(tmp, FileMetadata::getId)).end());
             if (updateResult != tmp.size()) {
                 ExceptionTools.businessLogger();
             }
         }
-    }
-
-    private Object[] getFields(List<FileMetadata> files, Function<FileMetadata, Object> getField) {
-        return files.stream().map(getField).toArray(Object[]::new);
     }
 
     @Override

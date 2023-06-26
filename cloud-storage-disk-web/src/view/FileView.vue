@@ -153,6 +153,7 @@ export default {
       if (action === 'rename') {
         const fileIndex = this.files.findIndex(file => file.id === record.file.id)
         this.files[fileIndex] = record.file
+        this.queryFiles()
       }
     }
   }

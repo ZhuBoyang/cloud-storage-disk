@@ -123,6 +123,19 @@ public class FileController {
     }
 
     /**
+     * 修改文件名
+     *
+     * @param renamer 文件 id 与修改的名称
+     * @return 修改结果
+     */
+    @SessionValid
+    @PostMapping("/rename")
+    public ResultData rename(@Valid @RequestBody FileRenamer renamer) {
+        fileService.rename(renamer.getId(), renamer.getName());
+        return ResultData.success(AppResultCode.SUCCESS, Boolean.TRUE);
+    }
+
+    /**
      * 分页查询用户下所有的文件
      *
      * @param searcher searcher

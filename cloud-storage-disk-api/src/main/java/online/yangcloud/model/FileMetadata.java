@@ -13,6 +13,7 @@ import online.yangcloud.utils.IdTools;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author zhuboyang
@@ -189,6 +190,10 @@ public class FileMetadata extends BaseParameter {
         }
         this.ancestors = sbr.toString();
         return this;
+    }
+
+    public static Object[] getFields(List<FileMetadata> files, Function<FileMetadata, Object> getField) {
+        return files.stream().map(getField).toArray(Object[]::new);
     }
 
     public String getId() {

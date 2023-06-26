@@ -2,7 +2,7 @@
   <div class="file-box">
     <div class="file-box--header">
       <div class="header--multiselect row-col-center">
-        <a-checkbox v-model="data.selectAll" @change="selectAllFiles"></a-checkbox>
+        <a-checkbox v-model="selectAll" @change="selectAllFiles"></a-checkbox>
       </div>
       <div class="header--icon row-col-center"></div>
       <div class="header--name">文件名</div>
@@ -13,11 +13,11 @@
     <div class="file-box--body">
       <div class="file-box--body-item"
            v-for="(item, index) in fileList"
-           :class="[{'is-selected': data.selected[index]}]"
+           :class="[{'is-selected': selected[index]}]"
            :key="index"
       >
         <div class="body--multiselect row-col-center">
-          <a-checkbox v-model="data.selected[index]" @change="selectFile(item, index)"></a-checkbox>
+          <a-checkbox v-model="selected[index]" @change="selectFile(item, index)"></a-checkbox>
         </div>
         <div class="body--icon row-col-center">
           <div class="body--icon-img row-col-center">
@@ -62,7 +62,7 @@
       </div>
     </div>
     <div class="files-actions"
-         :class="[{'is-hide': data.selectedFiles.length < 2}]"
+         :class="[{'is-hide': selectedFiles.length < 2}]"
     >
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center">
@@ -89,7 +89,7 @@
         </template>
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
-        <div class="actions-item row-col-center" @click="data.batchRemove.visible = true">
+        <div class="actions-item row-col-center" @click="batchRemove.visible = true">
           <img :src="apiConfig().iconBaseUrl + 'icons/Delete.png'" alt="删除"/>
         </div>
         <template #content>
@@ -106,47 +106,47 @@
       </a-trigger>
     </div>
     <!-- 删除文件 -->
-    <a-modal :visible="data.remove.visible"
+    <a-modal :visible="remove.visible"
              @ok="confirmRemoveFile"
-             @cancel="data.remove.visible = false"
+             @cancel="remove.visible = false"
              @close="clearRemoveInfo"
     >
       <template #title>删除文件</template>
-      <div>文件{{ data.remove.fileName }}删除将不可恢复，是否确定删除？</div>
+      <div>文件{{ remove.fileName }}删除将不可恢复，是否确定删除？</div>
     </a-modal>
     <!-- 批量删除文件 -->
-    <a-modal :visible="data.batchRemove.visible"
+    <a-modal :visible="batchRemove.visible"
              @ok="batchRemoveFiles"
-             @cancel="data.batchRemove.visible = false"
+             @cancel="batchRemove.visible = false"
              @close="clearRemoveInfo"
     >
       <template #title>批量删除文件</template>
       <div>文件删除将不可恢复，是否确定删除？</div>
     </a-modal>
     <!-- 重命名文件 -->
-    <a-modal :visible="data.rename.visible"
+    <a-modal :visible="rename.visible"
              @ok="confirmRename"
-             @cancel="data.rename.visible = false"
+             @cancel="rename.visible = false"
              @close="cancelRename"
     >
       <template #title>重命名文件</template>
-      <a-form :model="data.rename.form" layout="vertical">
+      <a-form :model="rename.form" layout="vertical">
         <a-form-item field="rename" label="重命名">
-          <a-input v-model="data.rename.form.name" placeholder="请输入新的文件名"/>
+          <a-input v-model="rename.form.name" placeholder="请输入新的文件名"/>
         </a-form-item>
       </a-form>
     </a-modal>
-    <file-operator-modal :visible="data.dirSelector.visible"
-                         :operation-name="data.dirSelector.action"
+    <file-operator-modal :visible="dirSelector.visible"
+                         :operation-name="dirSelector.action"
                          @on-change="operationResult"
     />
-    <file-info-drawer :file="data.movie.file" @on-hide="hideDrawer" @on-play="playVideo"></file-info-drawer>
-    <player-modal :src="data.movie.src" :width="data.movie.width" :height="data.movie.height" @on-close="closePlayer"/>
+    <file-info-drawer :file="movie.file" @on-hide="hideDrawer" @on-play="playVideo"></file-info-drawer>
+    <player-modal :src="movie.src" :width="movie.width" :height="movie.height" @on-close="closePlayer"/>
   </div>
 </template>
 
 <script>
-import { defineAsyncComponent, getCurrentInstance, reactive } from 'vue'
+import { defineAsyncComponent, getCurrentInstance, reactive, toRefs } from 'vue'
 import http from '../api/http.js'
 import apiConfig from '../api/apiConfig.js'
 
@@ -173,7 +173,7 @@ export default {
   setup (props, { emit }) {
     const { appContext } = getCurrentInstance()
     const { globalProperties } = appContext.config
-    const data = reactive({
+    const dataList = reactive({
       selectAll: false, // 是否选中所有
       selected: [], // 判断文件列表中的文件是否被选中
       selectedFiles: [], // 选中的文件列表
@@ -207,33 +207,33 @@ export default {
     return {
       globalProperties,
       emit,
-      data
+      ...toRefs(dataList)
     }
   },
   methods: {
     apiConfig,
     // 选择所有文件
     selectAllFiles (record) {
-      this.data.selected = []
-      this.data.selectedFiles = []
+      this.selected = []
+      this.selectedFiles = []
       if (record) {
         for (const key in this.fileList) {
-          this.data.selected[key] = true
-          this.data.selectedFiles.push(this.fileList[key].id)
+          this.selected[key] = true
+          this.selectedFiles.push(this.fileList[key].id)
         }
       }
     },
     // 选择单个文件
     selectFile (record, recordIndex) {
-      const selectedIndex = this.data.selectedFiles.findIndex(item => item === record.id)
+      const selectedIndex = this.selectedFiles.findIndex(item => item === record.id)
       if (selectedIndex === -1) {
-        this.data.selected[recordIndex] = true
-        this.data.selectedFiles.push(record.id)
+        this.selected[recordIndex] = true
+        this.selectedFiles.push(record.id)
       } else {
-        this.data.selected[recordIndex] = false
-        this.data.selectedFiles.splice(selectedIndex, 1)
+        this.selected[recordIndex] = false
+        this.selectedFiles.splice(selectedIndex, 1)
       }
-      this.data.selectAll = this.data.selectedFiles.length === this.fileList.length
+      this.selectAll = this.selectedFiles.length === this.fileList.length
     },
     // 点击文件
     clickFile (record) {
@@ -244,7 +244,7 @@ export default {
     },
     // 隐藏文件信息弹窗
     hideDrawer (record) {
-      this.data.movie.file = record
+      this.movie.file = record
     },
     // 播放视频
     playVideo (fileId) {
@@ -253,14 +253,14 @@ export default {
       }).then(response => {
         const { path, extend } = response
         const { width, height } = this.calculatePlayerSize(extend)
-        this.data.movie.src = apiConfig.apiBaseUrl + path
-        this.data.movie.width = width
-        this.data.movie.height = height
+        this.movie.src = apiConfig.apiBaseUrl + path
+        this.movie.width = width
+        this.movie.height = height
       })
     },
     // 查询文件详情
     fileDetail (record) {
-      this.data.movie.file = record
+      this.movie.file = record
     },
     // 计算视频播放器显示的尺寸
     calculatePlayerSize (size) {
@@ -281,31 +281,31 @@ export default {
     },
     // 关闭视频播放器
     closePlayer () {
-      this.data.movie.src = ''
+      this.movie.src = ''
     },
     // 文件的操作
     fileChangeEvent (action, { id, name }, recordIndex) {
       // 删除单个文件
       if (action === 'delete') {
-        this.data.remove.fileId = id
-        this.data.remove.fileName = name
-        this.data.remove.index = recordIndex
-        this.data.remove.visible = true
+        this.remove.fileId = id
+        this.remove.fileName = name
+        this.remove.index = recordIndex
+        this.remove.visible = true
         return
       }
       // 移动单个文件
       if (action === 'move' || action === 'copy') {
-        this.data.selected[recordIndex] = true
-        this.data.selectedFiles.push(id)
-        this.data.dirSelector.visible = true
-        this.data.dirSelector.action = action
+        this.selected[recordIndex] = true
+        this.selectedFiles.push(id)
+        this.dirSelector.visible = true
+        this.dirSelector.action = action
         return
       }
       // 重命名文件
       if (action === 'rename') {
-        this.data.rename.visible = true
-        this.data.rename.form.id = id
-        this.data.rename.form.name = name
+        this.rename.visible = true
+        this.rename.form.id = id
+        this.rename.form.name = name
       }
       // 下载文件
       if (action === 'download') {
@@ -314,39 +314,39 @@ export default {
     },
     // 弹出批量复制的弹窗
     displayBatchCopy () {
-      this.data.dirSelector.visible = true
-      this.data.dirSelector.action = 'copy'
+      this.dirSelector.visible = true
+      this.dirSelector.action = 'copy'
     },
     // 弹出批量移动的弹窗
     displayBatchMove () {
-      this.data.dirSelector.visible = true
-      this.data.dirSelector.action = 'move'
+      this.dirSelector.visible = true
+      this.dirSelector.action = 'move'
     },
     // 移动文件
     operationResult ({ action, id }) {
       if (action === 'cancel' || action === 'close') {
-        this.data.selected = []
-        this.data.selectedFiles = []
-        this.data.dirSelector.visible = false
+        this.selected = []
+        this.selectedFiles = []
+        this.dirSelector.visible = false
         return
       }
-      if (this.data.dirSelector.action === 'copy') {
-        http.reqUrl.file.copy({ sources: this.data.selectedFiles, target: id }).then(response => {
+      if (this.dirSelector.action === 'copy') {
+        http.reqUrl.file.copy({ sources: this.selectedFiles, target: id }).then(response => {
           if (response) {
             const selectedFiles = this.clearSelected()
-            this.emit('action-change', { action: this.data.dirSelector.action, fileIds: [selectedFiles] })
-            this.data.dirSelector.visible = false
-            this.data.dirSelector.action = ''
+            this.emit('action-change', { action: this.dirSelector.action, fileIds: [selectedFiles] })
+            this.dirSelector.visible = false
+            this.dirSelector.action = ''
           }
         })
       }
-      if (this.data.dirSelector.action === 'move') {
-        http.reqUrl.file.move({ sources: this.data.selectedFiles, target: id }).then(response => {
+      if (this.dirSelector.action === 'move') {
+        http.reqUrl.file.move({ sources: this.selectedFiles, target: id }).then(response => {
           if (response) {
             const selectedFiles = this.clearSelected()
-            this.emit('action-change', { action: this.data.dirSelector.action, fileIds: [selectedFiles] })
-            this.data.dirSelector.visible = false
-            this.data.dirSelector.action = ''
+            this.emit('action-change', { action: this.dirSelector.action, fileIds: [selectedFiles] })
+            this.dirSelector.visible = false
+            this.dirSelector.action = ''
           }
         })
       }
@@ -354,57 +354,53 @@ export default {
     // 确定删除文件
     confirmRemoveFile () {
       http.req(http.url.file.batchDelete, http.methods.post, {
-        fileString: this.data.remove.fileId
+        fileString: this.remove.fileId
       }).then(response => {
         if (response !== undefined) {
-          this.data.remove.visible = false
-          this.emit('action-change', { action: 'delete', fileIds: [this.data.remove.fileId] })
+          this.remove.visible = false
+          this.emit('action-change', { action: 'delete', fileIds: [this.remove.fileId] })
         }
       })
     },
     // 清除删除文件的预留 id
     clearRemoveInfo () {
-      this.data.remove.fileId = 0
-      this.data.remove.fileName = ''
-      this.data.remove.index = -1
+      this.remove.fileId = 0
+      this.remove.fileName = ''
+      this.remove.index = -1
     },
     // 确定批量删除文件
     batchRemoveFiles () {
       http.req(http.url.file.batchDelete, http.methods.post, {
-        fileString: this.data.selectedFiles.join(',')
+        fileString: this.selectedFiles.join(',')
       }).then(response => {
         if (response !== undefined) {
           const selectedFiles = this.clearSelected()
-          this.data.batchRemove.visible = false
+          this.batchRemove.visible = false
           this.emit('action-change', { action: 'delete', fileIds: selectedFiles })
         }
       })
     },
     // 清空已选中的文件
     clearSelected () {
-      const selectedFiles = this.data.selectedFiles
-      this.data.selected = []
-      this.data.selectedFiles = []
-      this.data.selectAll = this.data.selectedFiles.length === this.fileList.length
+      const selectedFiles = this.selectedFiles
+      this.selected = []
+      this.selectedFiles = []
+      this.selectAll = this.selectedFiles.length === this.fileList.length
       return selectedFiles
     },
     // 重命名文件
     confirmRename () {
-      const { id, name } = this.data.rename.form
-      http.req(http.url.file.rename, http.methods.post, {
-        id,
-        name
-      }).then(response => {
-        if (response !== undefined) {
-          this.data.rename.visible = false
+      http.reqUrl.file.rename(this.rename.form).then(response => {
+        if (response) {
+          this.rename.visible = false
           this.emit('action-change', { action: 'rename', file: response })
         }
       })
     },
     // 取消重命名
     cancelRename () {
-      this.data.rename.form.id = ''
-      this.data.rename.form.name = ''
+      this.rename.form.id = ''
+      this.rename.form.name = ''
     },
     // 识别文件打开的图标
     identifyOpenFileIcon (ext) {

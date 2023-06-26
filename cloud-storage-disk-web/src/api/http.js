@@ -130,6 +130,7 @@ const reqUrl = {
     mkdir: obj => req(url.file.mkdir, methods.post, obj),
     move: obj => req(url.file.move, methods.post, obj),
     copy: obj => req(url.file.copy, methods.post, obj),
+    rename: obj => req(url.file.rename, methods.post, obj),
     breads: obj => req(url.file.breads, methods.post, obj),
     pager: obj => req(url.file.pager, methods.get, obj),
     dirs: obj => req(url.file.dirs, methods.post, obj)
