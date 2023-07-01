@@ -57,3 +57,19 @@
 - `Vue 3.2.45`
 
 ## 系统截图
+
+### 登录页
+
+![](https://gitee.com/yang_cloud/cloud-storage-disk/raw/master/readme_images/login.png)
+
+### 文件列表页
+
+![](https://gitee.com/yang_cloud/cloud-storage-disk/raw/master/readme_images/file_list.png)
+
+### 文件上传
+
+![](https://gitee.com/yang_cloud/cloud-storage-disk/raw/master/readme_images/upload_file.png)
+
+### 新建文件夹
+
+![](https://gitee.com/yang_cloud/cloud-storage-disk/raw/master/readme_images/mkdir.png)
