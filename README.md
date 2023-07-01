@@ -1,35 +1,59 @@
-# 幻雨云存储
+# 煮雨云存储
 
-#### 功能介绍
+## 项目介绍
 
-[幻雨云存储 - GitMind](https://gitmind.cn/app/docs/mpp7fevz)
+一款开源的云存储（网盘）系统，支持个人存储或多人存储。
 
-#### 技术栈
+## 功能列表
 
-> 后端
+- 注册（使用邮箱进行注册）、登录
 
-- JDK 1.8
+- 文件上传
 
-- Spring Boot 2.7.7
+- 文件复制、移动
 
-- MyBatis 2.3.0
+- 新建文件夹
 
-- Fluent MyBatis
+- 文件下载
 
-- Hutool 5.8.11
+- 删除文件
 
-- Redisson
+## TODO
 
-> 前端
+- 用户账户设置
 
-- Vue 3.2
+- 文件分享
 
-- Spark Md5 3.0.2
+- 文件转存
 
-> 中间件
+- 在线解/压缩
 
-- MySQL 8
+- 文件预览
 
-- Redis
+- 视频/音频在线播放
 
-#### 系统界面一观
+## 运行环境
+
+- `NodeJS`（可以启动`Vue3`的版本即可）
+
+- `JDK1.8`
+
+## 项目技术栈
+
+- `Spring Boot 2.7.6`
+
+- `MyBatis Spring Boot 2.3.0`
+
+- `Fluent MyBatis 1.9.9`
+
+- `mail 1.4.7`
+
+- `Hutool 5.8.15`
+
+- `Redis 6`
+
+- `MySQL 8`
+
+- `Vue 3.2.45`
+
+## 系统截图
