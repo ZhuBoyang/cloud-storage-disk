@@ -5,7 +5,7 @@
            :style="{width: width === 0 ? '800px' : width + 'px', height: height === 0 ? '400px' : height + 'px'}"
       >
         <div class="player--box-close" @click="closePlayer">
-          <img :src="apiConfig().iconBaseUrl + 'icons/Close_Square.png'" alt="关闭"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/close_square.png'" alt="关闭"/>
         </div>
         <video-player class="player-box" :src="src" autoplay/>
       </div>

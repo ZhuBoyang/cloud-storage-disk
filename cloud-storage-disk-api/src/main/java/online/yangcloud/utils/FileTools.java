@@ -12,7 +12,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Vector;
 
 /**
  * 文件工具类
@@ -26,37 +25,16 @@ public class FileTools {
 
     private final static int BUF_SIZE = 1024;
     private final static String PREFIX = "data:image/jpeg;base64,";
-    public final static List<String> PICTURE_EXT = new ArrayList<>(Arrays.asList(".bmp", ".jpg", ".jpeg", ".png", ".gif"));
-    public final static List<String> VIDEO_EXT = new ArrayList<>(Arrays.asList("avi", "mov", "rmvb", "rm", "flv", "mp4", "3gp"));
 
     /**
-     * 文件合并
-     *
-     * @param targetPath 合并后目标文件
-     * @param blocks     文件块路径列表
+     * 图片后缀
      */
-    public static void merge(String targetPath, List<String> blocks) {
-        // 创建源
-        File target = new File(targetPath);
-        // 创建一个容器
-        Vector<InputStream> vi = new Vector<>();
-        try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(target, true));
-             SequenceInputStream sis = new SequenceInputStream(vi.elements())) {
-            for (String block : blocks) {
-                vi.add(new BufferedInputStream(Files.newInputStream(new File(block).toPath())));
-            }
-            // 缓冲区
-            byte[] flush = new byte[1024];
-            // 接收长度
-            int len;
-            while (-1 != (len = sis.read(flush))) {
-                bos.write(flush, 0, len);
-            }
-            bos.flush();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    public final static List<String> PICTURE_EXT = new ArrayList<>(Arrays.asList(".bmp", ".jpg", ".jpeg", ".png", ".gif"));
+
+    /**
+     * 视频后缀
+     */
+    public final static List<String> VIDEO_EXT = new ArrayList<>(Arrays.asList("avi", "mov", "rmvb", "rm", "flv", "mp4", "3gp"));
 
     /**
      * 文件合并
@@ -69,7 +47,7 @@ public class FileTools {
         try (FileOutputStream fos = new FileOutputStream(target)) {
             FileInputStream fis;
             // 一次读取 2M 数据，将读取到的数据保存到 byte 字节数组中
-            byte[] buffer = new byte[1024 * 1024 * 2];
+            byte[] buffer = new byte[BUF_SIZE * BUF_SIZE * 2];
             int len;
             for (String fileName : sources) {
                 fis = new FileInputStream(fileName);
@@ -94,7 +72,7 @@ public class FileTools {
      * @param response     响应
      */
     public static void downloadResponse(String sourceName, String downloadName, HttpServletResponse response) {
-        byte[] buff = new byte[1024];
+        byte[] buff = new byte[BUF_SIZE];
         try (OutputStream os = response.getOutputStream();
              BufferedInputStream bis = new BufferedInputStream(Files.newInputStream(Paths.get(sourceName)))) {
             // 取得输出流

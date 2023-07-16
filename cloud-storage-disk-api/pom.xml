@@ -98,6 +98,7 @@
             <version>1.4.7</version>
         </dependency>
 
+<!--        下列依赖用于获取系统资源（内存、硬盘等）使用情况-->
 <!--        &lt;!&ndash; https://mvnrepository.com/artifact/ws.schild/jave-all-deps &ndash;&gt;-->
 <!--        <dependency>-->
 <!--            <groupId>ws.schild</groupId>-->

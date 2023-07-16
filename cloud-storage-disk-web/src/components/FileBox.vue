@@ -66,7 +66,7 @@
     >
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center">
-          <img :src="apiConfig().iconBaseUrl + 'icons/Download.png'" alt="下载"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/download.png'" alt="下载"/>
         </div>
         <template #content>
           <div class="action-trigger">下载</div>
@@ -90,7 +90,7 @@
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center" @click="batchRemove.visible = true">
-          <img :src="apiConfig().iconBaseUrl + 'icons/Delete.png'" alt="删除"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/delete.png'" alt="删除"/>
         </div>
         <template #content>
           <div class="action-trigger">删除</div>
@@ -98,7 +98,7 @@
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center" @click="clearSelected">
-          <img :src="apiConfig().iconBaseUrl + 'icons/Close_Square.png'" alt="取消"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/close_square.png'" alt="取消"/>
         </div>
         <template #content>
           <div class="action-trigger">取消</div>
@@ -353,8 +353,8 @@ export default {
     },
     // 确定删除文件
     confirmRemoveFile () {
-      http.req(http.url.file.batchDelete, http.methods.post, {
-        fileString: this.remove.fileId
+      http.req(http.url.file.remove, http.methods.post, {
+        idsList: [this.remove.fileId]
       }).then(response => {
         if (response !== undefined) {
           this.remove.visible = false
@@ -370,8 +370,8 @@ export default {
     },
     // 确定批量删除文件
     batchRemoveFiles () {
-      http.req(http.url.file.batchDelete, http.methods.post, {
-        fileString: this.selectedFiles.join(',')
+      http.req(http.url.file.remove, http.methods.post, {
+        idsList: this.selectedFiles
       }).then(response => {
         if (response !== undefined) {
           const selectedFiles = this.clearSelected()

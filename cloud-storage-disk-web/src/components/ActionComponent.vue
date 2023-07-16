@@ -4,7 +4,7 @@
     <div class="file-actions" @mouseenter="showAddBox = true" @mouseleave="showAddBox = false">
       <div class="add-file-btn">
         添加文件
-        <img :src="apiConfig().iconBaseUrl + 'icons/Plus.png'" alt="添加文件"/>
+        <img :src="apiConfig().iconBaseUrl + 'icons/plus.png'" alt="添加文件"/>
       </div>
       <div class="file-actions--list" :class="[{'is-show': showAddBox}]">
         <div class="file-actions--list-item" @click="this.upload.visible = true">上传文件</div>

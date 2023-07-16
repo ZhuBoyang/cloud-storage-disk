@@ -8,7 +8,7 @@
     <div class="box-header">
       <div class="box-header--theme">文件{{ identifyOperationName(operationName) }}</div>
       <div class="box-header--close" @click="closeModal">
-        <img :src="apiConfig().iconBaseUrl + 'icons/Close_Square.png'" alt="关闭"/>
+        <img :src="apiConfig().iconBaseUrl + 'icons/close_square.png'" alt="关闭"/>
       </div>
     </div>
     <div class="box-bread">

@@ -7,19 +7,19 @@
     <div class="menu-list">
       <div class="menu-item is-selected">
         <div class="menu-icon">
-          <img :src="apiConfig().iconBaseUrl + 'icons/Category.png'" alt="dashboard"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/category.png'" alt="dashboard"/>
         </div>
         <div class="menu-name">仪表盘</div>
       </div>
       <div class="menu-item">
         <div class="menu-icon">
-          <img :src="apiConfig().iconBaseUrl + 'icons/Heart.png'" alt="stared"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/heart.png'" alt="stared"/>
         </div>
         <div class="menu-name">关注的</div>
       </div>
       <div class="menu-item">
         <div class="menu-icon">
-          <img :src="apiConfig().iconBaseUrl + 'icons/Delete.png'" alt="deleted"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/delete.png'" alt="deleted"/>
         </div>
         <div class="menu-name">已删除的</div>
       </div>

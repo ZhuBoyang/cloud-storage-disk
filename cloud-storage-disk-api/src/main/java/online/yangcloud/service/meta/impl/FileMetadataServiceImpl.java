@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -153,17 +154,19 @@ public class FileMetadataServiceImpl implements FileMetadataService {
     public List<FileMetadata> queryChildListByPid(String pid, String userId, Boolean isOnlyDir) {
         List<FileMetadata> files = fileMetadataMapper.listEntity(fileMetadataMapper.query()
                 .where.pid().eq(pid).and.userId().eq(userId).and.isDelete().eq(YesOrNoEnum.NO.code()).end());
+        List<FileMetadata> tmp = new ArrayList<>();
         for (FileMetadata file : files) {
             if (!isOnlyDir) {
                 if (FileTypeEnum.FILE.is(file.getType())) {
-                    files.add(file);
+                    tmp.add(file);
                 }
             }
             if (FileTypeEnum.DIR.is(file.getType())) {
-                files.addAll(queryChildListByPid(file.getId(), userId, isOnlyDir));
+                tmp.add(file);
+                tmp.addAll(queryChildListByPid(file.getId(), userId, isOnlyDir));
             }
         }
-        return files;
+        return tmp;
     }
 
     @Override

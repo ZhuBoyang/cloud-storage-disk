@@ -8,7 +8,7 @@
           </template>
         </a-input>
         <div class="file-search-filter-icon">
-          <img :src="apiConfig().iconBaseUrl + 'icons/Filter.png'" alt="filter">
+          <img :src="apiConfig().iconBaseUrl + 'icons/filter.png'" alt="filter">
         </div>
       </div>
       <div class="file-bread">
@@ -94,7 +94,7 @@ export default {
       queryFiles()
     })
     // 监听上传文件
-    emitter.on('on-upload-close', () => {
+    emitter.on('on-upload-change', () => {
       // 这里监听来自 UploadComponent 组件的消息，以刷新页面中的文件列表
       if (dataList.files.length === dataList.pager.pageSize) {
         dataList.pager.pageIndex++
