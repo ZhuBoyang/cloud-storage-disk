@@ -28,22 +28,22 @@
                       :merge-url="upload.mergeUrl"
                       @on-upload-change="hideUploadModal"
     ></upload-file-list>
-  </div>
-  <!-- 新建文件夹 -->
-  <a-modal :visible="mkdir.visible"
-           @ok="submitMkdir"
-           @cancel="this.mkdir.visible = false"
-           @close="closeMkdir"
-  >
-    <template #title>新建文件夹</template>
-    <a-form :model="mkdir.form"
-            layout="vertical"
+    <!-- 新建文件夹 -->
+    <a-modal :visible="mkdir.visible"
+             @ok="submitMkdir"
+             @cancel="this.mkdir.visible = false"
+             @close="closeMkdir"
     >
-      <a-form-item field="fileName" label="文件夹名称">
-        <a-input v-model="mkdir.form.name" placeholder="请输入文件夹名称"/>
-      </a-form-item>
-    </a-form>
-  </a-modal>
+      <template #title>新建文件夹</template>
+      <a-form :model="mkdir.form"
+              layout="vertical"
+      >
+        <a-form-item field="fileName" label="文件夹名称">
+          <a-input v-model="mkdir.form.name" placeholder="请输入文件夹名称"/>
+        </a-form-item>
+      </a-form>
+    </a-modal>
+  </div>
 </template>
 
 <script>
@@ -59,7 +59,7 @@ const UploadFileList = defineAsyncComponent(() => import('./UploadComponent.vue'
 const CircularProgress = defineAsyncComponent(() => import('../components/custom/CircularProgress.vue'))
 
 export default {
-  name: 'DashboardRight',
+  name: 'ActionComponent',
   components: {
     LoginUserAction,
     UploadFileList,
@@ -142,7 +142,6 @@ export default {
 <style scoped lang="scss">
 .action-component {
   margin-top: 40px;
-  width: 450px;
   height: calc(100% - 40px);
   .file-actions {
     position: relative;

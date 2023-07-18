@@ -24,20 +24,8 @@
             <img :src="globalProperties.common.identifyFileAvatar(item)" alt="文件"/>
           </div>
         </div>
-        <div class="body--name">
-          <div class="body--name-content"
-               @click="clickFile(item)"
-          >{{ item.type === 1 || item.ext === '' ? item.name : item.name + item.ext }}
-          </div>
-          <div class="body--name-runner">
-            <a-tooltip :content="identifyOpenFileIcon(item.ext).content">
-              <img v-if="Object.keys(identifyOpenFileIcon(item.ext)).length > 0"
-                   alt="播放"
-                   :src="identifyOpenFileIcon(item.ext).icon"
-                   @click="playVideo(item.id)"
-              />
-            </a-tooltip>
-          </div>
+        <div class="body--name" @dblclick="clickFile(item)">
+          {{ item.type === 1 || item.ext === '' ? item.name : item.name + item.ext }}
         </div>
         <div class="body--category">{{ item.type === 1 ? '文件夹' : `${item.ext} 文件` }}</div>
         <div class="body--size">{{ item.type === 1 ? '' : globalProperties.common.formatSizeInPerson(item.size) }}</div>
@@ -467,9 +455,9 @@ export default {
         background-color: #f0edfe;
         transition: all .3s;
         .body--name {
-          .body--name-runner {
-            display: flex;
-          }
+          //.body--name-runner {
+          //  display: flex;
+          //}
         }
       }
       .body--multiselect {

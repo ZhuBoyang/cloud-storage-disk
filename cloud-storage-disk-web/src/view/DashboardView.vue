@@ -1,8 +1,14 @@
 <template>
   <div class="dashboard">
-    <menu-component/>
-    <file-view/>
-    <action-component/>
+    <div class="menu">
+      <menu-component/>
+    </div>
+    <div class="file">
+      <file-view/>
+    </div>
+    <div class="action">
+      <action-component/>
+    </div>
   </div>
 </template>
 
@@ -27,5 +33,14 @@ export default {
 .dashboard {
   width: 100%;
   display: flex;
+  .menu {
+    width: 258px;
+  }
+  .file {
+    width: calc(100% - 258px - 450px);
+  }
+  .action {
+    width: 450px;
+  }
 }
 </style>

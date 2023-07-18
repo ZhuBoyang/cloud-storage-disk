@@ -7,8 +7,8 @@ const apiConfig = () => {
     }
   }
   return {
-    apiBaseUrl: 'http://panapi.yangcloud.online/',
-    iconBaseUrl: 'http://panapi.yangcloud.online/'
+    apiBaseUrl: window.origin + '/api/',
+    iconBaseUrl: window.origin + '/api/'
   }
 }
 

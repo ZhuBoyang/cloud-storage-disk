@@ -13,15 +13,15 @@
       </div>
       <div class="menu-item">
         <div class="menu-icon">
-          <img :src="apiConfig().iconBaseUrl + 'icons/heart.png'" alt="stared"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/delete.png'" alt="recycle"/>
         </div>
-        <div class="menu-name">关注的</div>
+        <div class="menu-name">回收站</div>
       </div>
       <div class="menu-item">
         <div class="menu-icon">
-          <img :src="apiConfig().iconBaseUrl + 'icons/delete.png'" alt="deleted"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/swap.png'" alt="transformer"/>
         </div>
-        <div class="menu-name">已删除的</div>
+        <div class="menu-name">传输列表</div>
       </div>
     </div>
   </div>
@@ -41,7 +41,6 @@ export default {
 <style scoped lang="scss">
 .menu-component {
   padding-top: 50px;
-  width: 258px;
   height: calc(100% - 50px);
   background-color: rgba(106, 75, 255, .05);
   .menu-avatar {

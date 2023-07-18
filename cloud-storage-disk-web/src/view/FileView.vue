@@ -162,7 +162,6 @@ export default {
 
 <style scoped lang="scss">
 .file-view {
-  width: calc(100% - 258px - 450px);
   height: 100%;
   .view-box {
     margin: 50px auto 0;

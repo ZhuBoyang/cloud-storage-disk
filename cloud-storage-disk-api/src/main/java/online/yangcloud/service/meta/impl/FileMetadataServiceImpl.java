@@ -4,10 +4,8 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import online.yangcloud.common.constants.AppConstants;
-import online.yangcloud.common.resultcode.AppResultCode;
 import online.yangcloud.enumration.FileTypeEnum;
 import online.yangcloud.enumration.YesOrNoEnum;
-import online.yangcloud.exception.BusinessException;
 import online.yangcloud.mapper.FileMetadataMapper;
 import online.yangcloud.model.FileMetadata;
 import online.yangcloud.model.vo.PagerView;
@@ -42,40 +40,26 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
     @Override
     public void batchInsert(List<FileMetadata> files) {
-        // 分批次入库
-        int maxCount = AppConstants.FileMetadata.SINGLE_SAVE_MAX_COUNT;
-        int cycleCount = files.size() / maxCount;
-        if (files.size() % maxCount != 0) {
-            cycleCount++;
-        }
-        if (files.size() > 0) {
-            for (int i = 0; i < cycleCount; i++) {
-                List<FileMetadata> currentCopied = files.subList(i * maxCount, Math.min((i + 1) * maxCount, files.size()));
-                int updateResult = fileMetadataMapper.insertBatchWithPk(currentCopied);
-                if (updateResult != currentCopied.size()) {
-                    throw new BusinessException(AppResultCode.FAILURE.getMessage());
-                }
+        while (files.size() > 0) {
+            List<FileMetadata> tmp = files.subList(0, Math.min(AppConstants.Batch.COUNT, files.size()));
+            files = files.subList(Math.min(AppConstants.Batch.COUNT, files.size()), files.size());
+            int updateResult = fileMetadataMapper.insertBatchWithPk(tmp);
+            if (updateResult != tmp.size()) {
+                ExceptionTools.businessLogger();
             }
         }
     }
 
     @Override
     public void batchRemove(List<String> ids, String userId) {
-        // 分批次入库
-        int maxCount = AppConstants.FileMetadata.SINGLE_SAVE_MAX_COUNT;
-        int cycleCount = ids.size() / maxCount;
-        if (ids.size() % maxCount != 0) {
-            cycleCount++;
-        }
-        if (ids.size() > 0) {
-            for (int i = 0; i < cycleCount; i++) {
-                List<String> removeIds = ids.subList(i * maxCount, Math.min((i + 1) * maxCount, ids.size()));
-                int updateResult = fileMetadataMapper.updateBy(fileMetadataMapper.updater()
-                        .set.isDelete().is(YesOrNoEnum.YES.code()).end()
-                        .where.id().in(removeIds).and.userId().eq(userId).end());
-                if (updateResult != removeIds.size()) {
-                    ExceptionTools.businessLogger();
-                }
+        while (ids.size() > 0) {
+            List<String> tmp = ids.subList(0, Math.min(AppConstants.Batch.COUNT, ids.size()));
+            ids = ids.subList(Math.min(AppConstants.Batch.COUNT, ids.size()), ids.size());
+            int updateResult = fileMetadataMapper.updateBy(fileMetadataMapper.updater()
+                    .set.isDelete().is(YesOrNoEnum.YES.code()).end()
+                    .where.id().in(tmp).and.userId().eq(userId).end());
+            if (updateResult != tmp.size()) {
+                ExceptionTools.businessLogger();
             }
         }
     }
@@ -90,13 +74,10 @@ public class FileMetadataServiceImpl implements FileMetadataService {
 
     @Override
     public void batchUpdate(List<FileMetadata> files) {
-        // 分批次入库
+        // 分批次更新
         while (files.size() != 0) {
-            // 切分本次要更新的数据
-            List<FileMetadata> tmp = files.subList(0, Math.min(AppConstants.FileMetadata.SINGLE_SAVE_MAX_COUNT, files.size()));
-
-            // 将本次要更新的数据从原数据列表中去除
-            files = files.subList(Math.min(AppConstants.FileMetadata.SINGLE_SAVE_MAX_COUNT, files.size()), files.size());
+            List<FileMetadata> tmp = files.subList(0, Math.min(AppConstants.Batch.COUNT, files.size()));
+            files = files.subList(Math.min(AppConstants.Batch.COUNT, files.size()), files.size());
 
             // 构建 case when 语句。以及构建要更新的数据属性
             StringBuilder caseWhen = new StringBuilder(" case id ");

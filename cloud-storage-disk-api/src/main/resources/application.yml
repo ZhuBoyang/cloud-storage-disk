@@ -46,9 +46,3 @@ spring:
 # application web connection port
 server:
   port: 8100
-# email config
-email:
-  send-from: 903103398@qq.com
-  send-host: smtp.qq.com
-  email-port: 587
-  email-pass: thywdaldvdfqbeha

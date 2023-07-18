@@ -17,6 +17,10 @@ public interface AppConstants {
     String PERCENT = "%";
     String LEFT_BRACKET = "（";
     String RIGHT_BRACKET = "）";
+    interface Special {
+        String POUND = "#";
+        String EQUAL = "=";
+    }
 
     /**
      * 执行耗时
@@ -33,21 +37,13 @@ public interface AppConstants {
      * 邮箱相关
      */
     interface Email {
-        /**
-         * 邮箱验证码过期时间（时间单位：m）
-         */
+        // 邮箱验证码过期时间（时间单位：m）
         Integer EMAIL_CODE_EXPIRED_TIME = 5;
-        /**
-         * 用于注册的邮箱验证码的 redis key
-         */
+        // 用于注册的邮箱验证码的 redis key
         String REGISTER_EMAIL_REDIS_KEY = "register_email_code:";
-        /**
-         * 用于重置密码的邮箱验证码的 redis key
-         */
+        // 用于重置密码的邮箱验证码的 redis key
         String RESET_PASSWORD_REDIS_KEY = "reset_password:";
-        /**
-         * 邮箱正则
-         */
+        // 邮箱正则
         String EMAIL_REGULAR = "^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$";
     }
 
@@ -56,26 +52,16 @@ public interface AppConstants {
      */
     interface User {
         String LOGIN_TOKEN = "token:";
-        /**
-         * 账号登录 session 会话过期时间：7 * 24 小时
-         */
+        // 账号登录 session 会话过期时间：7 * 24 小时
         Integer LOGIN_SESSION_EXPIRE_TIME = 7 * 24 * 60 * 60;
-        /**
-         * 会话标识
-         */
+        // 会话标识
         String AUTHORIZATION = "authorization";
-        /**
-         * 账户总容量
-         */
+        // 账户总容量
         Long TOTAL_SPACE_SIZE = 5 * 1024 * 1024 * 1024L;
-        /**
-         * 登录状态续期
-         */
+        // 登录状态续期
         Long ACCOUNT_EXPIRED_STATUS = -1L;
         Long ACCOUNT_NOT_EXIST_STATUS = -2L;
-        /**
-         * 账户空间
-         */
+        // 账户空间
         String SPACE_UPDATE = "space_update:";
     }
 
@@ -89,18 +75,20 @@ public interface AppConstants {
         String X_REAL_IP = "x-real-ip";
         String PROXY_CLIENT_IP = "Proxy-Client-IP";
         String WL_PROXY_CLIENT_IP = "WL-Proxy-Client-IP";
-        /**
-         * 本地 ipv4 地址
-         */
+        // 本地 ipv4 地址
         String LOCAL_IPV4_ADDRESS = "127.0.0.1";
-        /**
-         * 本地 ipv6 地址，如果后期不需要，可以不使用
-         */
+        // 本地 ipv6 地址，如果后期不需要，可以不使用
         String LOCAL_IPV6_ADDRESS = "0:0:0:0:0:0:0:1";
-        /**
-         * 访问者 ip 地址前缀
-         */
-        String VISITOR_IP_PREFIX = "visit_ip:";
+        // 访问者 ip 地址前缀
+        String VISITOR_IP = "visit_ip:";
+    }
+
+    /**
+     * 批量操作相关
+     */
+    interface Batch {
+        // 单次批量插入数据的最大数据量
+        Integer COUNT = 500;
     }
 
     /**
@@ -134,8 +122,6 @@ public interface AppConstants {
      * 文件相关
      */
     interface FileMetadata {
-        // 单次最多插入数据量
-        Integer SINGLE_SAVE_MAX_COUNT = 200;
         // 祖级文件 id 隔断符
         String ANCESTOR_SEPARATOR = StrUtil.UNDERLINE;
     }
