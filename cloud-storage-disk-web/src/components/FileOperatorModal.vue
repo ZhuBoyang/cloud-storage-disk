@@ -79,7 +79,7 @@ export default {
         }
       })
     }
-    // 查询目录下次一级所有的文件夹
+    // 查询目录下，次一级所有的文件夹
     const queryDirs = () => {
       dataList.pager.pid = dataList.breads.length === 0 ? '_' : dataList.breads[dataList.breads.length - 1].id
       http.reqUrl.file.dirs(dataList.pager).then(response => {

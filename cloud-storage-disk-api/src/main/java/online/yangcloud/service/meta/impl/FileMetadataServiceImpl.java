@@ -184,6 +184,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
                 .where.pid().eq(pid)
                 .and.userId().eq(userId)
                 .and.createTime().gt(createTime)
+                .and.isDelete().eq(YesOrNoEnum.NO.code())
                 .end()
                 .orderBy.uploadTime().asc().end()
                 .limit(0, size);
