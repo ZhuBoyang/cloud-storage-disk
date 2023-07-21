@@ -98,13 +98,19 @@ java -jar cloud-storage-disk-api.jar
 cd cloud-storage-disk-web/
 ```
 
-⑥ 启动前端项目
+⑥ 安装依赖
+
+```bash
+npm install
+```
+
+⑦ 启动前端项目
 
 ```bash
 npm run dev
 ```
 
-⑦ 打开浏览器访问
+⑧ 打开浏览器访问
 
 ```bash
 http://127.0.0.1:5173/
