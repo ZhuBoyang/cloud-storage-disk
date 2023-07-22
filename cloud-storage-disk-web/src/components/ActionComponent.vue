@@ -119,7 +119,7 @@ export default {
         common.notify.warning('请输入文件夹名称')
         return
       }
-      const { id } = this.router.currentRoute.value.params
+      const id = this.router.currentRoute.value.query.router
       http.reqUrl.file.mkdir({ id, name }).then(() => {
         // 这里会向组件 FileView 发送一条消息，刷新文件列表，以显示新创建的文件夹
         emitter.emit('on-mkdir')

@@ -11,8 +11,7 @@ export default {
   name: 'HomePage',
   setup () {
     const router = useRouter()
-    const { id } = router.currentRoute.value.params
-    router.push(`/dashboard/${id}`)
+    router.push('/dashboard')
   }
 }
 </script>

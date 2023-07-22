@@ -136,6 +136,19 @@ public class FileController {
     }
 
     /**
+     * 查询到面包屑导航数据
+     *
+     * @param looker 当前所在目录的文件 id
+     * @param user   当前登录的用户
+     * @return 导航项列表
+     */
+    @SessionValid
+    @PostMapping("/breads")
+    public ResultData queryBreads(@Valid @RequestBody BreadsLooker looker, User user) {
+        return ResultData.success(fileService.queryBreads(looker.getId(), user.getId()));
+    }
+
+    /**
      * 分页查询用户下所有的文件
      *
      * @param searcher searcher
@@ -150,19 +163,6 @@ public class FileController {
     }
 
     /**
-     * 查询到面包屑导航数据
-     *
-     * @param looker 当前所在目录的文件 id
-     * @param user   当前登录的用户
-     * @return 导航项列表
-     */
-    @SessionValid
-    @PostMapping("/breads")
-    public ResultData queryBreads(@Valid @RequestBody BreadsLooker looker, User user) {
-        return ResultData.success(fileService.queryBreads(looker.getId(), user.getId()));
-    }
-
-    /**
      * 查询目录下所有的文件夹
      *
      * @param looker 目录 id
@@ -173,6 +173,19 @@ public class FileController {
     @PostMapping("/dirs")
     public ResultData queryDirs(@Valid @RequestBody DirLooker looker, User user) {
         return ResultData.success(fileService.queryDirs(looker, user.getId()));
+    }
+
+    /**
+     * 查询已删除的文件列表
+     *
+     * @param query 起始文件 id 与每次请求的数据量
+     * @param user  当前登录的用户
+     * @return 文件列表
+     */
+    @SessionValid
+    @PostMapping("/trash")
+    public ResultData queryTrashFiles(@Valid @RequestBody TrashQuery query, User user) {
+        return ResultData.success(fileService.queryDeletedFiles(query, user.getId()));
     }
 
     /**

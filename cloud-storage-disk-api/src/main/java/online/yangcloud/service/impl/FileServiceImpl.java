@@ -19,6 +19,7 @@ import online.yangcloud.model.User;
 import online.yangcloud.model.ao.file.DirLooker;
 import online.yangcloud.model.ao.file.FileSearcher;
 import online.yangcloud.model.ao.file.FileUploader;
+import online.yangcloud.model.ao.file.TrashQuery;
 import online.yangcloud.model.bo.file.FileOperateValidator;
 import online.yangcloud.model.vo.PagerView;
 import online.yangcloud.model.vo.file.BreadsView;
@@ -205,19 +206,21 @@ public class FileServiceImpl implements FileService {
         // 删除文件
         fileMetadataService.batchRemove(ids, user.getId());
 
-        // 查询子级的所有文件与文件夹
+        // 查询子级的所有文件与文件夹，并计算占用空间总量
+        long spaceSize = 0;
         for (String fileId : ids) {
             List<FileMetadata> files = fileMetadataService.queryChildListByPid(fileId, user.getId(), Boolean.FALSE);
             for (FileMetadata file : files) {
                 if (FileTypeEnum.FILE.is(file.getType())) {
-                    // 减少用户账户的空间使用量
-                    userMetaService.decreaseUsedSpaceSize(user, file.getSize());
+                    spaceSize += file.getSize();
                 }
             }
         }
 
-        // 删除所有子级文件与文件夹
-//        fileMetadataService.batchRemove(childList.stream().map(FileMetadata::getId).collect(Collectors.toList()), userId);
+        // 更新用户账户中的空间使用量
+        if (spaceSize > 0) {
+            userMetaService.decreaseUsedSpaceSize(user, spaceSize);
+        }
     }
 
     @Override
@@ -415,6 +418,14 @@ public class FileServiceImpl implements FileService {
         List<FileMetadata> files = fileMetadataService.queryListByIds(ancestors, userId);
         files.add(file);
         return BreadsView.convert(files);
+    }
+
+    @Override
+    public PagerView<FileMetadataView> queryDeletedFiles(TrashQuery query, String userId) {
+        List<FileMetadata> files = fileMetadataService.queryDeletedFiles(query.getPageIndex(), query.getPageSize(), userId);
+        Integer count = fileMetadataService.queryDeletedCount(userId);
+        List<FileMetadataView> views = files.stream().map(FileMetadataView::convert).collect(Collectors.toList());
+        return PagerView.initial(count, views);
     }
 
     @Override

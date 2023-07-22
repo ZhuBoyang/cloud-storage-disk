@@ -159,7 +159,6 @@ export default {
     },
     // 将文件分片生成 form 表单数据
     generateUploadFormData (file, blocks, fileIndex) {
-      const { id } = this.router.currentRoute.value.params
       const identifier = nanoid() + '_' + new Date().getTime()
       for (let index = 0; index < blocks.length; index++) {
         const item = blocks[index]
@@ -173,7 +172,7 @@ export default {
           identifier, // 文件唯一标识
           fileName, // 文件名
           ext, // 文件名后缀
-          id, // 当前所在目录的文件 id
+          id: this.router.currentRoute.value.query.router, // 当前所在目录的文件 id
           shard: 1 // 是否开启分片
         }
         // 计算文件块的 hash
@@ -325,7 +324,8 @@ export default {
   }
   .upload-list {
     margin-top: 40px;
-    min-height: 60vh;
+    height: 60vh;
+    overflow-y: auto;
     .upload-item {
       padding: 10px 0;
       .item-info {

@@ -119,7 +119,8 @@ const reqUrl = {
     rename: obj => req(modules.file + 'rename', methods.post, obj),
     breads: obj => req(modules.file + 'breads', methods.post, obj),
     pager: obj => req(modules.file + 'pager', methods.get, obj),
-    dirs: obj => req(modules.file + 'dirs', methods.post, obj)
+    dirs: obj => req(modules.file + 'dirs', methods.post, obj),
+    trash: obj => req(modules.file + 'trash', methods.post, obj)
   }
 }
 

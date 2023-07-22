@@ -19,12 +19,22 @@ const routes = [
     component: () => import('./view/ResetPwdView.vue')
   },
   {
-    path: '/index/:id',
+    path: '/index',
     component: () => import('./view/HomeView.vue'),
     children: [
       {
-        path: '/dashboard/:id',
-        component: () => import('./view/DashboardView.vue')
+        path: '/dashboard',
+        component: () => import('./view/DashboardView.vue'),
+        children: [
+          {
+            path: '/dashboard/files',
+            component: () => import('./view/FileView.vue')
+          },
+          {
+            path: '/dashboard/trash',
+            component: () => import('./view/TrashView.vue')
+          }
+        ]
       }
     ]
   }

@@ -1,5 +1,6 @@
 package online.yangcloud.service.meta.impl;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -56,7 +57,9 @@ public class FileMetadataServiceImpl implements FileMetadataService {
             List<String> tmp = ids.subList(0, Math.min(AppConstants.Batch.COUNT, ids.size()));
             ids = ids.subList(Math.min(AppConstants.Batch.COUNT, ids.size()), ids.size());
             int updateResult = fileMetadataMapper.updateBy(fileMetadataMapper.updater()
-                    .set.isDelete().is(YesOrNoEnum.YES.code()).end()
+                    .set.isDelete().is(YesOrNoEnum.YES.code())
+                    .set.updateTime().is(DateUtil.date().getTime())
+                    .end()
                     .where.id().in(tmp).and.userId().eq(userId).end());
             if (updateResult != tmp.size()) {
                 ExceptionTools.businessLogger();
@@ -115,6 +118,12 @@ public class FileMetadataServiceImpl implements FileMetadataService {
     }
 
     @Override
+    public FileMetadata queryByIdInDeleted(String id, String userId) {
+        return fileMetadataMapper.findOne(fileMetadataMapper.query()
+                .where.id().eq(id).and.userId().eq(userId).and.isDelete().eq(YesOrNoEnum.YES.code()).end());
+    }
+
+    @Override
     public List<FileMetadata> queryListByIds(List<String> fileIds, String userId) {
         return fileMetadataMapper.listEntity(fileMetadataMapper.query()
                 .where.id().in(fileIds).and.userId().eq(userId).and.isDelete().eq(YesOrNoEnum.NO.code()).end());
@@ -124,6 +133,16 @@ public class FileMetadataServiceImpl implements FileMetadataService {
     public List<FileMetadata> queryListByPid(String pid, String userId) {
         return fileMetadataMapper.listEntity(fileMetadataMapper.query()
                 .where.pid().eq(pid).and.userId().eq(userId).and.isDelete().eq(YesOrNoEnum.NO.code()).end());
+    }
+
+    @Override
+    public List<FileMetadata> queryDeletedFiles(Integer pageIndex, Integer pageSize, String userId) {
+        return fileMetadataMapper.listEntity(fileMetadataMapper.query()
+                .where.and.isDelete().eq(YesOrNoEnum.YES.code())
+                .and.userId().eq(userId)
+                .end()
+                .orderBy.uploadTime().desc().end()
+                .limit((pageIndex - 1) * pageSize, pageSize));
     }
 
     @Override
@@ -187,7 +206,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
             if (StrUtil.UNDERLINE.equals(pid)) {
                 FileMetadata root = fileMetadataMapper.findOne(fileMetadataMapper.query()
                         .where.pid().eq(CharSequenceUtil.EMPTY).and.isDelete().eq(YesOrNoEnum.NO.code()).end());
-                pid = root.getPid();
+                pid = root.getId();
             }
             query.where.pid().eq(pid);
         }
@@ -205,6 +224,14 @@ public class FileMetadataServiceImpl implements FileMetadataService {
         return new PagerView<FileMetadata>()
                 .setData(fileMetadataMapper.listEntity(query))
                 .setTotal(fileMetadataMapper.countNoLimit(query));
+    }
+
+    @Override
+    public Integer queryDeletedCount(String userId) {
+        return fileMetadataMapper.count(fileMetadataMapper.query()
+                .where.userId().eq(userId)
+                .and.isDelete().eq(YesOrNoEnum.YES.code())
+                .end());
     }
 
 }

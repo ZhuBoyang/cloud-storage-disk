@@ -129,7 +129,6 @@
                          @on-change="operationResult"
     />
     <file-info-drawer :file="movie.file" @on-hide="hideDrawer" @on-play="playVideo"></file-info-drawer>
-    <player-modal :src="movie.src" :width="movie.width" :height="movie.height" @on-close="closePlayer"/>
   </div>
 </template>
 
@@ -140,14 +139,12 @@ import apiConfig from '../api/apiConfig.js'
 
 const FileInfoDrawer = defineAsyncComponent(() => import('./FileInfoDrawer.vue'))
 const FileOperatorModal = defineAsyncComponent(() => import('./FileOperatorModal.vue'))
-const PlayerModal = defineAsyncComponent(() => import('./PlayerModal.vue'))
 
 export default {
   name: 'FileBox',
   components: {
     FileInfoDrawer,
-    FileOperatorModal,
-    PlayerModal
+    FileOperatorModal
   },
   props: {
     fileList: {
@@ -157,7 +154,7 @@ export default {
       }
     }
   },
-  emits: ['load-more', 'on-select', 'action-change'],
+  emits: ['load-more', 'on-select', 'action-change', 'on-load'],
   setup (props, { emit }) {
     const { appContext } = getCurrentInstance()
     const { globalProperties } = appContext.config
@@ -246,10 +243,6 @@ export default {
         this.movie.height = height
       })
     },
-    // 查询文件详情
-    fileDetail (record) {
-      this.movie.file = record
-    },
     // 计算视频播放器显示的尺寸
     calculatePlayerSize (size) {
       let windowWidth = window.innerWidth
@@ -266,10 +259,6 @@ export default {
         return { width: windowWidth, height: 400 }
       }
       return { width: 400, height: 400 }
-    },
-    // 关闭视频播放器
-    closePlayer () {
-      this.movie.src = ''
     },
     // 文件的操作
     fileChangeEvent (action, { id, name }, recordIndex) {
@@ -389,13 +378,6 @@ export default {
     cancelRename () {
       this.rename.form.id = ''
       this.rename.form.name = ''
-    },
-    // 识别文件打开的图标
-    identifyOpenFileIcon (ext) {
-      if (this.globalProperties.type.isVideo(ext)) {
-        return { content: '播放', icon: apiConfig().iconBaseUrl + 'icons/Arrow-Right-2.png' }
-      }
-      return {}
     }
   }
 }
@@ -439,7 +421,7 @@ export default {
     }
   }
   .file-box--body {
-    height: calc(100vh - 50px - 60px - 50px - 24px - 50px);
+    height: calc(100vh - 60px - 30px - 24px - 20px - 50px - 75px - 50px);
     overflow-y: auto;
     .file-box--body-item {
       height: 72px;

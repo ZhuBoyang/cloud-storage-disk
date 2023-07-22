@@ -78,7 +78,8 @@ export default {
       http.reqUrl.user.login({ email, password }).then(response => {
         const { token, id } = response
         localStorage.setItem('t', token)
-        this.router.push(`/index/${id}`)
+        localStorage.setItem('id', id)
+        this.router.push('/index')
       })
     }
   }

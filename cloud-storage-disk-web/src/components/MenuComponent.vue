@@ -5,23 +5,12 @@
       <div class="avatar-name">Rain Drive</div>
     </div>
     <div class="menu-list">
-      <div class="menu-item is-selected">
+      <div class="menu-item" v-for="(o, i) in menus" :key="i" :class="[{'is-selected': o.alt === activated}]"
+           @click="changeMenu(o)">
         <div class="menu-icon">
-          <img :src="apiConfig().iconBaseUrl + 'icons/category.png'" alt="dashboard"/>
+          <img :src="apiConfig().iconBaseUrl + o.avatar" :alt="o.alt"/>
         </div>
-        <div class="menu-name">仪表盘</div>
-      </div>
-      <div class="menu-item">
-        <div class="menu-icon">
-          <img :src="apiConfig().iconBaseUrl + 'icons/delete.png'" alt="recycle"/>
-        </div>
-        <div class="menu-name">回收站</div>
-      </div>
-      <div class="menu-item">
-        <div class="menu-icon">
-          <img :src="apiConfig().iconBaseUrl + 'icons/swap.png'" alt="transformer"/>
-        </div>
-        <div class="menu-name">传输列表</div>
+        <div class="menu-name">{{ o.name }}</div>
       </div>
     </div>
   </div>
@@ -29,11 +18,44 @@
 
 <script>
 import apiConfig from '../api/apiConfig.js'
+import { useRouter } from 'vue-router'
+import { reactive, toRefs } from 'vue'
 
 export default {
   name: 'MenuComponent',
+  setup () {
+    const router = useRouter()
+    const menus = [
+      { avatar: 'icons/category.png', name: '仪表盘', alt: 'files' },
+      { avatar: 'icons/delete.png', name: '回收站', alt: 'trash' },
+      { avatar: 'icons/swap_black.png', name: '传输列表', alt: 'transform' }
+    ]
+    const dataList = reactive({
+      menus,
+      activated: router.currentRoute.value.path.split('/')[2]
+    })
+    const index = menus.findIndex(o => router.currentRoute.value.path.indexOf(o.alt) > 0)
+    if (index === -1) {
+      dataList.activated = menus[0].alt
+      router.push(`${router.currentRoute.value.path}/${menus[0].alt}`)
+    } else {
+      router.push(router.currentRoute.value.path)
+    }
+    return {
+      router,
+      ...toRefs(dataList)
+    }
+  },
   methods: {
-    apiConfig
+    apiConfig,
+    changeMenu ({ alt }) {
+      const { path } = this.router.currentRoute.value
+      if (path.indexOf(alt) > 0) {
+        return
+      }
+      this.activated = alt
+      this.router.push(`/${path.split('/')[1]}/${alt}`)
+    }
   }
 }
 </script>
@@ -75,11 +97,6 @@ export default {
         color: #ffffff;
         background-color: rgb(106, 75, 254);
         transition: all .3s;
-        .menu-icon {
-          img {
-            filter: brightness(100);
-          }
-        }
       }
       &:first-child {
         margin-top: 0;

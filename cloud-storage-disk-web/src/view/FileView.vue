@@ -2,7 +2,7 @@
   <div class="file-view">
     <div class="view-box">
       <div class="file-searcher">
-        <a-input class="file-search-input" placeholder="请输入关键词" size="large" allow-clear>
+        <a-input class="file-search-input" placeholder="请输入关键词" size="large" v-model:model-value="pager.name" allow-clear>
           <template #prefix>
             <img :src="apiConfig().iconBaseUrl + 'icons/search.png'" alt="search" width="20">
           </template>
@@ -37,11 +37,12 @@
 </template>
 
 <script>
-import { defineAsyncComponent, reactive, toRefs } from 'vue'
+import { defineAsyncComponent, reactive, toRefs, watch } from 'vue'
 import emitter from '../tools/emitter.js'
 import { useRouter } from 'vue-router'
 import apiConfig from '../api/apiConfig.js'
 import http from '../api/http.js'
+import common from '../tools/common.js'
 
 const FileBox = defineAsyncComponent(() => import('../components/FileBox.vue'))
 
@@ -64,25 +65,27 @@ export default {
     })
     // 查询文件面包屑导航数据
     const queryBreads = () => {
-      const { id } = router.currentRoute.value.params
+      let id = router.currentRoute.value.query.router
+      if (id === undefined) {
+        id = dataList.breads.length === 0 ? '_' : dataList.breads[dataList.breads.length - 1].id
+      }
       http.reqUrl.file.breads({ id }).then(response => {
         dataList.breads = []
         for (let i = 0; i < response.length; i++) {
           dataList.breads.push(response[i])
         }
+        common.setUrlQuery(router, 'router', dataList.breads[dataList.breads.length - 1].id)
       })
     }
     // 查询文件列表数据
-    const queryFiles = () => {
-      const pid = dataList.breads.length === 0 ? router.currentRoute.value.params.id : dataList.breads[dataList.breads.length - 1].id
-      const param = { pid }
-      for (const key in dataList.pager) {
-        param[key] = dataList.pager[key]
+    const queryFiles = (pid) => {
+      if (pid === undefined) {
+        pid = dataList.breads.length === 0 ? '_' : dataList.breads[dataList.breads.length - 1].id
       }
-      http.reqUrl.file.pager(param).then(response => {
-        const { total, data } = response
-        dataList.files = data
-        dataList.pager.total = total
+      dataList.pager.pid = pid
+      http.reqUrl.file.pager(dataList.pager).then(response => {
+        dataList.files = response.data
+        dataList.pager.total = response.total
       })
     }
     // 监听新建文件夹
@@ -101,6 +104,9 @@ export default {
       }
       queryFiles()
     })
+    watch(() => dataList.pager.name, () => {
+      queryFiles()
+    })
     return {
       router,
       ...toRefs(dataList),
@@ -110,16 +116,15 @@ export default {
   },
   created () {
     this.queryBreads()
-    this.queryFiles()
+    this.queryFiles(this.router.currentRoute.value.query.router)
   },
   methods: {
     apiConfig,
     // 跳转到某上层目录
     returnParent (record, recordIndex) {
-      const { id } = record
-      this.router.push(`${id}`)
       this.breads.splice(recordIndex + 1, this.breads.length - recordIndex - 1)
-      this.queryFiles()
+      common.setUrlQuery(this.router, 'router', this.breads[this.breads.length - 1].id)
+      this.queryFiles(this.breads[this.breads.length - 1].id)
     },
     // 选择文件
     selectChange (record) {
@@ -135,9 +140,9 @@ export default {
         // }
         return
       }
-      this.router.push(`${id}`)
       this.breads.push({ id, name })
-      this.queryFiles()
+      common.setUrlQuery(this.router, 'router', this.breads[this.breads.length - 1].id)
+      this.queryFiles(id)
     },
     // 文件操作的结果
     actionResult (record) {
@@ -164,9 +169,10 @@ export default {
 .file-view {
   height: 100%;
   .view-box {
-    margin: 50px auto 0;
+    margin: 0 auto;
+    padding-top: 50px;
     width: 94%;
-    height: calc(100% - 50px);
+    height: calc(100vh - 50px);
     .file-searcher {
       display: flex;
       justify-content: space-between;

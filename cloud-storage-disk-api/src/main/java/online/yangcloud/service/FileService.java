@@ -4,6 +4,7 @@ import online.yangcloud.model.User;
 import online.yangcloud.model.ao.file.DirLooker;
 import online.yangcloud.model.ao.file.FileSearcher;
 import online.yangcloud.model.ao.file.FileUploader;
+import online.yangcloud.model.ao.file.TrashQuery;
 import online.yangcloud.model.vo.PagerView;
 import online.yangcloud.model.vo.file.BreadsView;
 import online.yangcloud.model.vo.file.FileMetadataView;
@@ -112,6 +113,15 @@ public interface FileService {
      * @return 面包屑导航数据
      */
     List<BreadsView> queryBreads(String id, String userId);
+
+    /**
+     * 分段查询已删除的文件
+     *
+     * @param query  查询条件
+     * @param userId 文件所属用户 id
+     * @return 文件列表
+     */
+    PagerView<FileMetadataView> queryDeletedFiles(TrashQuery query, String userId);
 
     /**
      * 分页搜索某一目录下次一层级的所有文件及文件夹

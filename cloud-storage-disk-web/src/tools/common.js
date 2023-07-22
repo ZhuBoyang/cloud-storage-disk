@@ -74,9 +74,9 @@ const formatDateTime = (timestamp) => {
   const minutes = date.getMinutes()
   const seconds = date.getSeconds()
   return `${years}-${months < 10 ? '0' + months : months}-${days < 10 ? '0' + days : days} ` +
-      `${hours < 10 ? '0' + hours : hours}:` +
-      `${minutes < 10 ? '0' + minutes : minutes}:` +
-      `${seconds < 10 ? '0' + seconds : seconds}`
+    `${hours < 10 ? '0' + hours : hours}:` +
+    `${minutes < 10 ? '0' + minutes : minutes}:` +
+    `${seconds < 10 ? '0' + seconds : seconds}`
 }
 
 // 读取本地文件函数
@@ -92,9 +92,22 @@ const readLocalFile = (fileUrl) => {
 
 const notify = {
   warning: msg => {
-    Notification.warning({
-      title: '警告',
-      content: msg
+    Notification.warning({ title: '警告', content: msg })
+  }
+}
+
+// 重写浏览器地址中的 query 参数
+const setUrlQuery = (router, key, value, defaultValue) => {
+  const { query, path } = router.currentRoute.value
+  const routerQuery = {}
+  for (const key in query) {
+    routerQuery[key] = query[key]
+  }
+  if (query[key] === undefined || query[key] !== defaultValue) {
+    routerQuery[key] = value
+    router.push({
+      path,
+      query: routerQuery
     })
   }
 }
@@ -105,7 +118,8 @@ const common = {
   jumpUrl,
   formatDateTime,
   readLocalFile,
-  notify
+  notify,
+  setUrlQuery
 }
 
 export default common

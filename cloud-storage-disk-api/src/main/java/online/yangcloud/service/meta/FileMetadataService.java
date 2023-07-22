@@ -75,6 +75,15 @@ public interface FileMetadataService {
     FileMetadata queryByPid(String pid, String userId);
 
     /**
+     * 查询文件元数据（已删除）
+     *
+     * @param id     文件 id
+     * @param userId 所属用户 id
+     * @return 文件元数据
+     */
+    FileMetadata queryByIdInDeleted(String id, String userId);
+
+    /**
      * 批量查询文件元数据
      *
      * @param fileIds 文件 id 列表
@@ -91,6 +100,16 @@ public interface FileMetadataService {
      * @return 文件元数据列表
      */
     List<FileMetadata> queryListByPid(String pid, String userId);
+
+    /**
+     * 分段查询已删除的文件及文件夹
+     *
+     * @param pageIndex 页码
+     * @param pageSize  每次请求的数据量
+     * @param userId    文件归属人
+     * @return 文件列表
+     */
+    List<FileMetadata> queryDeletedFiles(Integer pageIndex, Integer pageSize, String userId);
 
     /**
      * 查询目录下所有的文件
@@ -146,5 +165,13 @@ public interface FileMetadataService {
      */
     PagerView<FileMetadata> queryFilesInPager(String pid, String name, String userId, Boolean isOnlyDir,
                                               Integer pageIndex, Integer pageSize);
+
+    /**
+     * 查询已删除文件的总量
+     *
+     * @param userId 文件归属人 id
+     * @return 文件列表
+     */
+    Integer queryDeletedCount(String userId);
 
 }

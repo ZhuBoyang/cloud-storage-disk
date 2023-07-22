@@ -4,7 +4,7 @@
       <menu-component/>
     </div>
     <div class="file">
-      <file-view/>
+      <router-view/>
     </div>
     <div class="action">
       <action-component/>
@@ -16,14 +16,12 @@
 import { defineAsyncComponent } from 'vue'
 
 const MenuComponent = defineAsyncComponent(() => import('../components/MenuComponent.vue'))
-const FileView = defineAsyncComponent(() => import('./FileView.vue'))
 const ActionComponent = defineAsyncComponent(() => import('../components/ActionComponent.vue'))
 
 export default {
   name: 'DashboardView',
   components: {
     MenuComponent,
-    FileView,
     ActionComponent
   }
 }
