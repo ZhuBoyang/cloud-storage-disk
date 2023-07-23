@@ -1,6 +1,7 @@
 package online.yangcloud.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.CharSequenceUtil;
@@ -317,6 +318,41 @@ public class FileServiceImpl implements FileService {
         }
 
         fileMetadataService.batchUpdate(movedFiles);
+    }
+
+    @Override
+    public void rollbackTrash(List<String> idsList, String userId) {
+        // 查询账户根目录的文件 id
+        FileMetadata root = fileMetadataService.queryByPid(StrUtil.EMPTY, userId);
+
+        // 循环恢复所有需要恢复的文件及文件夹
+        List<FileMetadata> files = new ArrayList<>();
+        for (String id : idsList) {
+            // 查询文件元数据
+            FileMetadata file = fileMetadataService.queryByIdInDeleted(id, userId);
+            if (FileTypeEnum.DIR.is(file.getType())) {
+                // 如果是文件夹，则查询文件夹下所有未删除的文件及文件夹，以修改祖级文件 id
+                List<FileMetadata> childFiles = fileMetadataService.queryChildListByPid(file.getId(), userId, Boolean.FALSE);
+                files.addAll(childFiles.stream()
+                        .map(o -> {
+                            List<String> ancestors = o.queryAncestors();
+                            int index = ancestors.indexOf(file.getId());
+                            ancestors = ListUtil.sub(ancestors, index, ancestors.size());
+                            ancestors.add(0, root.getId());
+                            return o.setterAncestors(ancestors);
+                        })
+                        .collect(Collectors.toList()));
+                file.setIsDelete(YesOrNoEnum.NO.code());
+                files.add(file.setterAncestors(Collections.singletonList(root.getId())));
+            }
+            if (FileTypeEnum.FILE.is(file.getType())) {
+                file.setIsDelete(YesOrNoEnum.NO.code());
+                files.add(file.setterAncestors(Collections.singletonList(root.getId())));
+            }
+        }
+
+        // 批量修改文件元数据
+        fileMetadataService.batchUpdate(files);
     }
 
     @Override

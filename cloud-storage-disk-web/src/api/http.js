@@ -116,6 +116,7 @@ const reqUrl = {
     mkdir: obj => req(modules.file + 'mkdir', methods.post, obj),
     move: obj => req(modules.file + 'move', methods.post, obj),
     copy: obj => req(modules.file + 'copy', methods.post, obj),
+    rollback: obj => req(modules.file + 'rollback', methods.post, obj),
     rename: obj => req(modules.file + 'rename', methods.post, obj),
     breads: obj => req(modules.file + 'breads', methods.post, obj),
     pager: obj => req(modules.file + 'pager', methods.get, obj),

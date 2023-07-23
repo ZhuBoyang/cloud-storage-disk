@@ -8,6 +8,7 @@ import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.enumration.FileTypeEnum;
 import online.yangcloud.enumration.YesOrNoEnum;
 import online.yangcloud.mapper.FileMetadataMapper;
+import online.yangcloud.model.BaseParameter;
 import online.yangcloud.model.FileMetadata;
 import online.yangcloud.model.vo.PagerView;
 import online.yangcloud.service.meta.FileMetadataService;
@@ -91,6 +92,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
             int updateResult = fileMetadataMapper.updateBy(fileMetadataMapper.updater()
                     .set.pid().applyFunc(caseWhen.toString(), FileMetadata.getFields(tmp, FileMetadata::getPid))
                     .set.ancestors().applyFunc(caseWhen.toString(), FileMetadata.getFields(tmp, FileMetadata::getAncestors))
+                    .set.isDelete().applyFunc(caseWhen.toString(), FileMetadata.getFields(tmp, BaseParameter::getIsDelete))
                     .end()
                     .where.id().in(FileMetadata.getFields(tmp, FileMetadata::getId)).end());
             if (updateResult != tmp.size()) {
@@ -141,7 +143,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
                 .where.and.isDelete().eq(YesOrNoEnum.YES.code())
                 .and.userId().eq(userId)
                 .end()
-                .orderBy.uploadTime().desc().end()
+                .orderBy.uploadTime().asc().end()
                 .limit((pageIndex - 1) * pageSize, pageSize));
     }
 

@@ -53,7 +53,7 @@
          :class="[{'is-hide': selectedFiles.length < 2}]"
     >
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
-        <div class="actions-item row-col-center">
+        <div class="actions-item row-col-center" v-if="actions.indexOf('download') > -1">
           <img :src="apiConfig().iconBaseUrl + 'icons/download.png'" alt="下载"/>
         </div>
         <template #content>
@@ -61,7 +61,7 @@
         </template>
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
-        <div class="actions-item row-col-center" @click="displayBatchCopy">
+        <div class="actions-item row-col-center" v-if="actions.indexOf('copy') > -1" @click="displayBatchCopy">
           <img :src="apiConfig().iconBaseUrl + 'icons/arrow_right.png'" alt="复制"/>
         </div>
         <template #content>
@@ -69,7 +69,7 @@
         </template>
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
-        <div class="actions-item row-col-center" @click="displayBatchMove">
+        <div class="actions-item row-col-center" v-if="actions.indexOf('move') > -1" @click="displayBatchMove">
           <img :src="apiConfig().iconBaseUrl + 'icons/arrow_right.png'" alt="移动"/>
         </div>
         <template #content>
@@ -77,7 +77,7 @@
         </template>
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
-        <div class="actions-item row-col-center" @click="batchRemove.visible = true">
+        <div class="actions-item row-col-center" v-if="actions.indexOf('remove') > -1" @click="batchRemove.visible = true">
           <img :src="apiConfig().iconBaseUrl + 'icons/delete.png'" alt="删除"/>
         </div>
         <template #content>
@@ -85,7 +85,15 @@
         </template>
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
-        <div class="actions-item row-col-center" @click="clearSelected">
+        <div class="actions-item row-col-center" v-if="actions.indexOf('rollback') > -1" @click="rollback">
+          <img :src="apiConfig().iconBaseUrl + 'icons/rollback.png'" alt="恢复"/>
+        </div>
+        <template #content>
+          <div class="action-trigger">恢复至根目录</div>
+        </template>
+      </a-trigger>
+      <a-trigger position="top" auto-fit-position :unmount-on-close="false">
+        <div class="actions-item row-col-center" v-if="actions.indexOf('cancel') > -1" @click="clearSelected">
           <img :src="apiConfig().iconBaseUrl + 'icons/close_square.png'" alt="取消"/>
         </div>
         <template #content>
@@ -148,6 +156,12 @@ export default {
   },
   props: {
     fileList: {
+      type: Array,
+      default: () => {
+        return []
+      }
+    },
+    actions: {
       type: Array,
       default: () => {
         return []
@@ -371,6 +385,16 @@ export default {
         if (response) {
           this.rename.visible = false
           this.emit('action-change', { action: 'rename', file: response })
+        }
+      })
+    },
+    // 批量恢复文件
+    rollback () {
+      http.reqUrl.file.rollback({ idsList: this.selectedFiles }).then(response => {
+        if (response) {
+          const selectedFiles = this.selectedFiles
+          this.clearSelected()
+          this.emit('action-change', { action: 'rollback', fileIds: selectedFiles })
         }
       })
     },

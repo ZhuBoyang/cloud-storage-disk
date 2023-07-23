@@ -89,6 +89,15 @@ public interface FileService {
     void batchMove(List<String> sourcesIds, String targetId, String userId);
 
     /**
+     * 恢复已删除的文件及文件夹
+     * 但不会恢复到原来位置，会恢复到账户根目录下
+     *
+     * @param idsList 要恢复的文件及文件夹 id 列表
+     * @param userId  文件归属人 id
+     */
+    void rollbackTrash(List<String> idsList, String userId);
+
+    /**
      * 修改文件名
      *
      * @param id   文件 id

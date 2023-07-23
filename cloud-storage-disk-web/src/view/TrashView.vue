@@ -20,6 +20,8 @@
       <file-box class="file-list-box"
                 v-else
                 :file-list="files"
+                :actions="['rollback', 'cancel']"
+                @action-change="actionResult"
       ></file-box>
       <div class="file-pagination row-col-center">
         <a-pagination v-model:current="pager.pageIndex" v-model:page-size="pager.pageSize" :total="pager.total" @change="changePage"/>
@@ -69,10 +71,17 @@ export default {
   },
   methods: {
     apiConfig,
+    // 切换页面
     changePage (pageIndex) {
-      console.log(pageIndex)
       this.pager.pageIndex = pageIndex
       this.queryTrashFiles()
+    },
+    // 文件操作的结果
+    actionResult (record) {
+      const { action } = record
+      if (action === 'rollback') {
+        this.queryTrashFiles()
+      }
     }
   }
 }

@@ -123,6 +123,20 @@ public class FileController {
     }
 
     /**
+     * 批量恢复已删除的文件及文件夹
+     *
+     * @param operator 要恢复的文件 id 列表
+     * @param user     当前登录的用户 id
+     * @return 恢复结果
+     */
+    @SessionValid
+    @PostMapping("/rollback")
+    public ResultData rollbackRemoved(@Valid @RequestBody BatchOperator operator, User user) {
+        fileService.rollbackTrash(operator.getIdsList(), user.getId());
+        return ResultData.success(AppResultCode.SUCCESS, Boolean.TRUE);
+    }
+
+    /**
      * 修改文件名
      *
      * @param renamer 文件 id 与修改的名称

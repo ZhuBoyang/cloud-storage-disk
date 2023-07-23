@@ -26,11 +26,12 @@
       <file-box class="file-list-box"
                 v-else
                 :file-list="files"
+                :actions="['download', 'copy', 'move', 'remove', 'cancel']"
                 @on-select="selectChange"
                 @action-change="actionResult"
       ></file-box>
       <div class="file-pagination row-col-center">
-        <a-pagination v-model:current="pager.pageIndex" v-model:page-size="pager.pageSize" :total="pager.total"/>
+        <a-pagination v-model:current="pager.pageIndex" v-model:page-size="pager.pageSize" :total="pager.total" @change="changePage"/>
       </div>
     </div>
   </div>
@@ -144,15 +145,17 @@ export default {
       common.setUrlQuery(this.router, 'router', this.breads[this.breads.length - 1].id)
       this.queryFiles(id)
     },
+    // 切换页面
+    changePage (pageIndex) {
+      this.pager.pageIndex = pageIndex
+      this.queryFiles()
+    },
     // 文件操作的结果
     actionResult (record) {
       const { action } = record
       // 删除文件，移动文件
       if (action === 'delete' || action === 'move') {
-        for (const key in record.fileIds) {
-          const fileIndex = this.files.findIndex(file => file.id === record.fileIds[key])
-          this.files.splice(fileIndex, 1)
-        }
+        this.queryFiles()
       }
       // 文件重命名
       if (action === 'rename') {
