@@ -33,6 +33,14 @@ const routes = [
           {
             path: '/dashboard/trash',
             component: () => import('./view/TrashView.vue')
+          },
+          {
+            path: '/dashboard/transformer',
+            component: () => import('./view/TransformerView.vue')
+          },
+          {
+            path: '/dashboard/application',
+            component: () => import('./view/ApplicationView.vue')
           }
         ]
       }

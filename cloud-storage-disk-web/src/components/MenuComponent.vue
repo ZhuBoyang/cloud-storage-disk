@@ -5,10 +5,15 @@
       <div class="avatar-name">Rain Drive</div>
     </div>
     <div class="menu-list">
-      <div class="menu-item" v-for="(o, i) in menus" :key="i" :class="[{'is-selected': o.alt === activated}]"
+      <div class="menu-item"
+           v-for="(o, i) in menus"
+           :key="i"
+           :class="[{'is-selected': o.avatar === activated}, {'is-hovered': o.avatar === hovered}]"
+           @mouseover="onmouseover(o)"
+           @mouseout="onmouseout"
            @click="changeMenu(o)">
         <div class="menu-icon">
-          <img :src="apiConfig().iconBaseUrl + o.avatar" :alt="o.alt"/>
+          <img :src="analysisItemIcon(o)" :alt="o.avatar"/>
         </div>
         <div class="menu-name">{{ o.name }}</div>
       </div>
@@ -26,18 +31,20 @@ export default {
   setup () {
     const router = useRouter()
     const menus = [
-      { avatar: 'icons/category.png', name: '仪表盘', alt: 'files' },
-      { avatar: 'icons/delete.png', name: '回收站', alt: 'trash' },
-      { avatar: 'icons/swap_black.png', name: '传输列表', alt: 'transform' }
+      { avatar: 'files', name: '文件库' },
+      { avatar: 'trash', name: '回收站' },
+      { avatar: 'transformer', name: '传输列表' },
+      { avatar: 'application', name: '应用列表' }
     ]
     const dataList = reactive({
       menus,
-      activated: router.currentRoute.value.path.split('/')[2]
+      activated: router.currentRoute.value.path.split('/')[2],
+      hovered: ''
     })
-    const index = menus.findIndex(o => router.currentRoute.value.path.indexOf(o.alt) > 0)
+    const index = menus.findIndex(o => router.currentRoute.value.path.indexOf(o.avatar) > 0)
     if (index === -1) {
-      dataList.activated = menus[0].alt
-      router.push(`${router.currentRoute.value.path}/${menus[0].alt}`)
+      dataList.activated = menus[0].avatar
+      router.push(`${router.currentRoute.value.path}/${menus[0].avatar}`)
     } else {
       router.push(router.currentRoute.value.path)
     }
@@ -48,13 +55,28 @@ export default {
   },
   methods: {
     apiConfig,
-    changeMenu ({ alt }) {
+    changeMenu ({ avatar }) {
       const { path } = this.router.currentRoute.value
-      if (path.indexOf(alt) > 0) {
+      if (path.indexOf(avatar) > 0) {
         return
       }
-      this.activated = alt
-      this.router.push(`/${path.split('/')[1]}/${alt}`)
+      this.activated = avatar
+      this.router.push(`/${path.split('/')[1]}/${avatar}`)
+    },
+    // 解析菜单项的 icon 图标
+    analysisItemIcon ({ avatar }) {
+      if (avatar === this.activated || avatar === this.hovered) {
+        return apiConfig().iconBaseUrl + 'icons/' + avatar + '_white.png'
+      }
+      return apiConfig().iconBaseUrl + 'icons/' + avatar + '_black.png'
+    },
+    // 鼠标移入
+    onmouseover ({ avatar }) {
+      this.hovered = avatar
+    },
+    // 鼠标移出
+    onmouseout () {
+      this.hovered = ''
     }
   }
 }
@@ -93,7 +115,8 @@ export default {
       cursor: pointer;
       transition: all .3s;
       &:hover,
-      &.is-selected {
+      &.is-selected,
+      &.is-hovered {
         color: #ffffff;
         background-color: rgb(106, 75, 254);
         transition: all .3s;
