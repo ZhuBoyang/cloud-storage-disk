@@ -1,7 +1,7 @@
 spring:
   datasource:
     # database url
-    url: "jdbc:mysql://mysql:3306/cloud-storage-disk?useSSL=false&\
+    url: "jdbc:mysql://127.0.0.1:3306/cloud-storage-disk?useSSL=false&\
       useUnicode=true&\
       characterEncoding=UTF-8&\
       allowMultiQueries=true&\
@@ -12,5 +12,5 @@ spring:
     password: Jhxz951129Jhxz
   # redis config
   redis:
-    host: redis
+    host: 127.0.0.1
     password: Jhxz951129Jhxz
