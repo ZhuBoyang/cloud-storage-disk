@@ -78,7 +78,7 @@
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
         <div class="actions-item row-col-center" v-if="actions.indexOf('remove') > -1" @click="batchRemove.visible = true">
-          <img :src="apiConfig().iconBaseUrl + 'icons/delete.png'" alt="删除"/>
+          <img :src="apiConfig().iconBaseUrl + 'icons/trash.png'" alt="删除"/>
         </div>
         <template #content>
           <div class="action-trigger">删除</div>

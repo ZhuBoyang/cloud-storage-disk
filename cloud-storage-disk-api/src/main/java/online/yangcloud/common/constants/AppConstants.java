@@ -20,6 +20,8 @@ public interface AppConstants {
     interface Special {
         String POUND = "#";
         String EQUAL = "=";
+        // 各平台文件名分隔符
+        String SEPARATOR = File.separator;
     }
 
     /**
