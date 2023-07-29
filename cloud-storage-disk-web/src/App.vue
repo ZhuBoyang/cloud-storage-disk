@@ -17,12 +17,6 @@ export default {
     return {
       router
     }
-  },
-  created () {
-    // const token = localStorage.getItem('t')
-    // if (token !== undefined && token !== null && token !== '') {
-    //   this.router.push('/index')
-    // }
   }
 }
 </script>

@@ -14,7 +14,7 @@
       </div>
       <a-empty class="empty-box"
                v-if="files.length === 0"
-               description="暂无文件，请上传文件"
+               description="您没有删除的文件哦"
                :img-src="apiConfig().iconBaseUrl + 'icons/empty_data.png'"
       />
       <file-box class="file-list-box"

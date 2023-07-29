@@ -34,7 +34,7 @@ public class EmailTools {
 
     static {
         try {
-            File mailSetting = FileUtil.file("/Users/boyang/code/config/mail_config.txt");
+            File mailSetting = FileUtil.file(SystemTools.systemPath() + "mail_config.txt");
             String mailContents = IoUtil.read(Files.newInputStream(mailSetting.toPath()), StandardCharsets.UTF_8);
             List<String> mailConfigs = StrUtil.split(mailContents, StrUtil.LF);
             for (String o : mailConfigs) {

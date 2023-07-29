@@ -7,8 +7,8 @@ const apiConfig = () => {
     }
   }
   return {
-    apiBaseUrl: window.origin + '/api/',
-    iconBaseUrl: window.origin + '/api/'
+    apiBaseUrl: window.origin + '/pan/',
+    iconBaseUrl: window.origin + '/pan/'
   }
 }
 
