@@ -49,6 +49,15 @@ public class FfmpegTools {
             return this;
         }
 
+        /**
+         * 显示可用复用器
+         */
+        private Builder muxers() {
+            COMMANDS.clear();
+            COMMANDS.add("-muxers");
+            return this;
+        }
+
         public String build() {
             return FFMPEG + StrUtil.SPACE + StrUtil.join(StrUtil.SPACE, COMMANDS);
         }
