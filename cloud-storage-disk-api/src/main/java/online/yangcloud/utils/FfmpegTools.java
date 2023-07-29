@@ -41,7 +41,7 @@ public class FfmpegTools {
         }
 
         /**
-         * 查询支持的格式
+         * 显示可用格式 (muxers + demuxers)
          */
         private Builder formats() {
             COMMANDS.clear();
