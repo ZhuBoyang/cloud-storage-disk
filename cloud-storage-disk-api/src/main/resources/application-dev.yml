@@ -1,7 +1,7 @@
 spring:
   datasource:
     # database url
-    url: "jdbc:mysql://localhost:3306/cloud_storage_disk?useSSL=false&\
+    url: "jdbc:mysql://127.0.0.1:3306/cloud_storage_disk?useSSL=false&\
       useUnicode=true&\
       characterEncoding=UTF-8&\
       allowMultiQueries=true&\
