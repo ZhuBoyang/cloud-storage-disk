@@ -10,7 +10,7 @@
     </parent>
     <groupId>online.yangcloud</groupId>
     <artifactId>cloud-storage-disk-api</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0</version>
     <name>cloud-storage-disk-api</name>
     <description>cloud-storage-disk-api</description>
     <properties>
