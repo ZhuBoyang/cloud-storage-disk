@@ -7,9 +7,9 @@ import cn.hutool.crypto.SecureUtil;
 import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.model.User;
+import online.yangcloud.model.business.email.EmailCodeInfo;
 import online.yangcloud.model.request.user.UserEnter;
 import online.yangcloud.model.request.user.UserRegister;
-import online.yangcloud.model.business.email.EmailCodeInfo;
 import online.yangcloud.model.view.user.UserView;
 import online.yangcloud.service.FileService;
 import online.yangcloud.service.UserService;
@@ -18,7 +18,6 @@ import online.yangcloud.utils.ExceptionTools;
 import online.yangcloud.utils.IdTools;
 import online.yangcloud.utils.RedisTools;
 import online.yangcloud.utils.ValidateTools;
-import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,9 +43,6 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private RedisTools redisTools;
-
-    @Resource
-    private RedissonClient redissonClient;
 
     @Override
     public void register(UserRegister register) {

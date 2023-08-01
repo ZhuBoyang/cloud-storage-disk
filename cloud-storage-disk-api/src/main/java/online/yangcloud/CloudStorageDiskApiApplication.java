@@ -8,14 +8,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 
 /**
  * @author zhuboyang
  * @since 2022/12/31 11:53
  */
 @SpringBootApplication
+@EnableScheduling
 public class CloudStorageDiskApiApplication {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(CloudStorageDiskApiApplication.class);
 
     public static void main(String[] args) {

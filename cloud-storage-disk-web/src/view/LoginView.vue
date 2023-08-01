@@ -52,8 +52,8 @@ export default {
     const router = useRouter()
     const dataList = reactive({
       form: {
-        email: '', // 邮箱
-        password: '' // 密码
+        email: 'zhuboyang1996@foxmail.com', // 邮箱
+        password: '123456' // 密码
       }
     })
     return {

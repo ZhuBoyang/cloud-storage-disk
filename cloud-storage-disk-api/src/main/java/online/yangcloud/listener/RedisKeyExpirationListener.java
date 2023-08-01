@@ -20,7 +20,7 @@ public class RedisKeyExpirationListener extends KeyExpirationEventMessageListene
 
     @Resource
     private UserService userService;
-    
+
     @Resource
     private RedisTools redisTools;
 

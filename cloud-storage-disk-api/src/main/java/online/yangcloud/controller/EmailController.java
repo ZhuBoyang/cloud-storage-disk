@@ -4,6 +4,7 @@ import online.yangcloud.common.ResultData;
 import online.yangcloud.common.resultcode.AppResultCode;
 import online.yangcloud.model.request.email.EmailSender;
 import online.yangcloud.service.EmailService;
+import online.yangcloud.utils.ExceptionTools;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +32,7 @@ public class EmailController {
      */
     @PostMapping("/register")
     public ResultData register(@Valid @RequestBody EmailSender sender) {
+        ExceptionTools.businessLogger("暂未开放注册");
         emailService.sendRegisterEmail(sender);
         return ResultData.success(AppResultCode.SUCCESS);
     }

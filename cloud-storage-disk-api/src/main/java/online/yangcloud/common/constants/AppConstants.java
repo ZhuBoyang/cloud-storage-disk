@@ -17,6 +17,7 @@ public interface AppConstants {
     String PERCENT = "%";
     String LEFT_BRACKET = "（";
     String RIGHT_BRACKET = "）";
+
     interface Special {
         String POUND = "#";
         String EQUAL = "=";
@@ -101,23 +102,22 @@ public interface AppConstants {
          * 文件块上传缓存
          */
         String FILE_BLOCK_UPLOAD_PREFIX = "file_block_upload:";
-        String FILE_BLOCK_UPLOAD_BUFFER_PREFIX = "file_block_buffer_upload:";
         /**
-         * 文件块是否已上传检测
+         * 上传总目录
          */
-        String BLOCK_METADATA_PREFIX = "block_metadata:";
+        String UPLOAD = "upload" + Special.SEPARATOR;
         /**
          * 文件上传目录
          */
-        String FILE_UPLOAD_PATH = "upload" + File.separator + "file" + File.separator;
+        String FILE_UPLOAD_PATH = UPLOAD + "file" + Special.SEPARATOR;
         /**
          * 文件块上传目录
          */
-        String BLOCK_UPLOAD_PATH = "upload" + File.separator + "block" + File.separator;
+        String BLOCK_UPLOAD_PATH = UPLOAD + "block" + Special.SEPARATOR;
         /**
          * 临时文件存放目录
          */
-        String TMP_PATH = "tmp" + File.separator;
+        String TMP_PATH = "tmp" + Special.SEPARATOR;
     }
 
     /**

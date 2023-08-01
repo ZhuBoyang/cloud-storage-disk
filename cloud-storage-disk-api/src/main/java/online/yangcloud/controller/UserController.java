@@ -15,6 +15,7 @@ import online.yangcloud.model.view.user.LoginView;
 import online.yangcloud.model.view.user.UserView;
 import online.yangcloud.service.FileService;
 import online.yangcloud.service.UserService;
+import online.yangcloud.utils.ExceptionTools;
 import online.yangcloud.utils.RedisTools;
 import online.yangcloud.utils.SystemTools;
 import org.springframework.web.bind.annotation.*;
@@ -50,6 +51,7 @@ public class UserController {
      */
     @PostMapping("/register")
     public ResultData register(@Valid @RequestBody UserRegister register) {
+        ExceptionTools.businessLogger("暂未开放注册");
         userService.register(register);
         return ResultData.success(AppResultCode.SUCCESS.clone("注册成功，请前往登录"), Boolean.TRUE);
     }
