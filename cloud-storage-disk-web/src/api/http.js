@@ -57,24 +57,6 @@ const modules = {
   systemSpace: 'space/' // 系统空间
 }
 
-const url = {
-  user: {
-    reset: modules.user + 'reset' // 重置用户账户密码
-  },
-  file: {
-    checkExist: modules.file + 'check_exist', // 检查文件块是否已入库
-    uploadBlocks: modules.file + 'upload', // 上传文件块
-    mergeFile: modules.file + 'merge', // 文件合并
-    remove: modules.file + 'remove', // 批量删除文件
-    playUrl: modules.file + 'play_url', // 获取文件播放地址
-    dirBreads: modules.file + 'dir_breads', // 查询文件夹的面包屑导航数据
-    download: modules.file + 'download/' // 文件下载
-  },
-  systemSpace: {
-    diskInfo: modules.systemSpace + 'disk' // 系统磁盘空间使用量
-  }
-}
-
 const methods = {
   get: 'get',
   post: 'post',
@@ -102,6 +84,15 @@ const req = function (url, method, data, headers) {
   }
 }
 
+const url = {
+  file: {
+    checkExist: modules.file + 'check_exist', // 检查文件块是否已入库
+    uploadBlocks: modules.file + 'upload', // 上传文件块
+    mergeFile: modules.file + 'merge', // 文件合并
+    download: modules.file + 'download/' // 文件下载
+  }
+}
+
 const reqUrl = {
   email: {
     sendRegCoder: email => req(modules.email + 'register', methods.post, { email })
@@ -110,18 +101,22 @@ const reqUrl = {
     register: obj => req(modules.user + 'register', methods.post, obj),
     login: obj => req(modules.user + 'login', methods.post, obj),
     logout: () => req(modules.user + 'logout', methods.post),
+    reset: obj => req(modules.user + 'reset', methods.post, obj), // 重置用户账户密码
     info: () => req(modules.user + 'info', methods.get)
   },
   file: {
     mkdir: obj => req(modules.file + 'mkdir', methods.post, obj),
+    remove: obj => req(modules.file + 'remove', methods.post, obj), // 批量删除文件
     move: obj => req(modules.file + 'move', methods.post, obj),
     copy: obj => req(modules.file + 'copy', methods.post, obj),
     rollback: obj => req(modules.file + 'rollback', methods.post, obj),
     rename: obj => req(modules.file + 'rename', methods.post, obj),
+    checkSize: obj => req(modules.file + 'check_size', methods.post, obj), // 检测用户空间剩余大小是否充足
     breads: obj => req(modules.file + 'breads', methods.post, obj),
     pager: obj => req(modules.file + 'pager', methods.get, obj),
     dirs: obj => req(modules.file + 'dirs', methods.post, obj),
-    trash: obj => req(modules.file + 'trash', methods.post, obj)
+    trash: obj => req(modules.file + 'trash', methods.post, obj), // 查询回收站的文件列表
+    playUrl: obj => req(modules.file + 'play_url', methods.post, obj) // 获取文件播放地址
   }
 }
 

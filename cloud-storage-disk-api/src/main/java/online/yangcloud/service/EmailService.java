@@ -1,6 +1,6 @@
 package online.yangcloud.service;
 
-import online.yangcloud.model.ao.email.EmailSender;
+import online.yangcloud.model.request.email.EmailSender;
 
 /**
  * @author zhuboyang

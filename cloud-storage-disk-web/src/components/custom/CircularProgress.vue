@@ -1,8 +1,8 @@
 <template>
   <div class="circular-progress">
     <div class="circular-progress--percent" v-if="percentVisible">
-      <div class="circular-progress--percent-number">{{ percent }}</div>
       <div class="circular-progress--percent-label">已使用</div>
+      <div class="circular-progress--percent-number">{{ percent }}</div>
     </div>
     <svg viewBox="0 0 100 100" class="circular-progress--svg">
       <circle r="50"

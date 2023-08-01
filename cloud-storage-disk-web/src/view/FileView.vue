@@ -27,6 +27,7 @@
                 v-else
                 :file-list="files"
                 :actions="['download', 'copy', 'move', 'remove', 'cancel']"
+                :file-actions="['rename', 'copy', 'move', 'download', 'delete', 'share', 'detail']"
                 @on-select="selectChange"
                 @action-change="actionResult"
       ></file-box>
@@ -154,7 +155,7 @@ export default {
     actionResult (record) {
       const { action } = record
       // 删除文件，移动文件
-      if (action === 'delete' || action === 'move') {
+      if (action === 'delete' || action === 'copy' || action === 'move') {
         this.queryFiles()
       }
       // 文件重命名

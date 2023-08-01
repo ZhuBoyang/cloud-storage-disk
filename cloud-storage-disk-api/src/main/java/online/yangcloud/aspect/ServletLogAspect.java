@@ -8,7 +8,7 @@ import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.model.User;
 import online.yangcloud.utils.ExceptionTools;
 import online.yangcloud.utils.RedisTools;
-import online.yangcloud.utils.SessionTools;
+import online.yangcloud.utils.SystemTools;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -16,14 +16,10 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.annotation.Resource;
 import java.lang.reflect.Method;
-import java.util.Objects;
 
 /**
  * @author zhuboyang
@@ -35,7 +31,7 @@ public class ServletLogAspect {
 
     public static final Logger logger = LoggerFactory.getLogger(ServletLogAspect.class);
 
-    @Autowired
+    @Resource
     private RedisTools redisTools;
 
     /**
@@ -92,13 +88,9 @@ public class ServletLogAspect {
      */
     @Around("execution(* online.yangcloud.controller.*.*(..))")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
-        ServletRequestAttributes servletRequestAttributes
-                = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = Objects.requireNonNull(servletRequestAttributes).getRequest();
-
         // 检测接口是否需要校验登录状态，并对会话进行续期
         if (needMethodValid(joinPoint)) {
-            String sessionId = SessionTools.getSessionId(request);
+            String sessionId = SystemTools.getHeaders().getAuthorization();
             if (StrUtil.isNotBlank(sessionId)) {
                 logger.info("session id [{}]", sessionId);
                 String userInfoJson = redisTools.get(AppConstants.User.LOGIN_TOKEN + sessionId);
@@ -127,7 +119,7 @@ public class ServletLogAspect {
         if (args != null && args.length > 0) {
             for (int i = 0; i < args.length; i++) {
                 if (args[i] instanceof User) {
-                    String sessionId = SessionTools.getSessionId(request);
+                    String sessionId = SystemTools.getHeaders().getAuthorization();
                     if (StrUtil.isBlank(sessionId)) {
                         user = new User();
                     } else {

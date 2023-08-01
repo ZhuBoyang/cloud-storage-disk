@@ -21,6 +21,7 @@
                 v-else
                 :file-list="files"
                 :actions="['rollback', 'cancel']"
+                :file-actions="['rollback']"
                 @action-change="actionResult"
       ></file-box>
       <div class="file-pagination row-col-center">

@@ -110,7 +110,7 @@ export default {
       const { totalSpaceSize, usedSpaceSize } = info
       this.space.totalSpaceSize = totalSpaceSize
       this.space.usedSpaceSize = usedSpaceSize
-      this.space.usageRate = this.space.usedSpaceSize / this.space.totalSpaceSize
+      this.space.usageRate = (this.space.usedSpaceSize / this.space.totalSpaceSize * 100).toFixed(2) + '%'
     },
     // 提交新建文件夹的请求
     submitMkdir () {

@@ -10,7 +10,7 @@ import online.yangcloud.enumration.YesOrNoEnum;
 import online.yangcloud.mapper.FileMetadataMapper;
 import online.yangcloud.model.BaseParameter;
 import online.yangcloud.model.FileMetadata;
-import online.yangcloud.model.vo.PagerView;
+import online.yangcloud.model.view.PagerView;
 import online.yangcloud.service.meta.FileMetadataService;
 import online.yangcloud.utils.ExceptionTools;
 import online.yangcloud.wrapper.FileMetadataQuery;

@@ -35,15 +35,14 @@
               <img :src="apiConfig().iconBaseUrl + 'icons/more.png'" alt="更多">
             </div>
             <template #content>
-              <a-doption value="rename">重命名</a-doption>
-              <a-doption value="copy">复制</a-doption>
-              <a-doption value="move">移动</a-doption>
-              <a-doption value="download">下载</a-doption>
-              <a-doption value="delete">删除</a-doption>
-              <a-doption value="share">分享</a-doption>
-              <a-doption value="link">获取链接</a-doption>
-              <a-doption value="like">添加到喜欢</a-doption>
-              <a-doption value="detail">查看详情</a-doption>
+              <a-doption value="rename" v-if="fileActions.indexOf('rename') > -1">重命名</a-doption>
+              <a-doption value="copy" v-if="fileActions.indexOf('copy') > -1">复制</a-doption>
+              <a-doption value="move" v-if="fileActions.indexOf('move') > -1">移动</a-doption>
+              <a-doption value="download" v-if="fileActions.indexOf('download') > -1">下载</a-doption>
+              <a-doption value="delete" v-if="fileActions.indexOf('delete') > -1">删除</a-doption>
+              <a-doption value="share" v-if="fileActions.indexOf('share') > -1">分享分享链接</a-doption>
+              <a-doption value="detail" v-if="fileActions.indexOf('detail') > -1">查看详情</a-doption>
+              <a-doption value="rollback" v-if="fileActions.indexOf('rollback') > -1">恢复至根目录</a-doption>
             </template>
           </a-dropdown>
         </div>
@@ -77,15 +76,17 @@
         </template>
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
-        <div class="actions-item row-col-center" v-if="actions.indexOf('remove') > -1" @click="batchRemove.visible = true">
-          <img :src="apiConfig().iconBaseUrl + 'icons/trash.png'" alt="删除"/>
+        <div class="actions-item row-col-center" v-if="actions.indexOf('remove') > -1"
+             @click="batchRemove.visible = true">
+          <img :src="apiConfig().iconBaseUrl + 'icons/trash_black.png'" alt="删除"/>
         </div>
         <template #content>
           <div class="action-trigger">删除</div>
         </template>
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
-        <div class="actions-item row-col-center" v-if="actions.indexOf('rollback') > -1" @click="rollback">
+        <div class="actions-item row-col-center" v-if="actions.indexOf('rollback') > -1"
+             @click="rollback.visible = true">
           <img :src="apiConfig().iconBaseUrl + 'icons/rollback.png'" alt="恢复"/>
         </div>
         <template #content>
@@ -132,6 +133,15 @@
         </a-form-item>
       </a-form>
     </a-modal>
+    <!-- 还原文件 -->
+    <a-modal :visible="rollback.visible"
+             @ok="rollbackFiles"
+             @cancel="rollback.visible = false"
+             @close="cancelRollback"
+    >
+      <template #title>还原文件</template>
+      是否确认将文件还原至根目录?
+    </a-modal>
     <file-operator-modal :visible="dirSelector.visible"
                          :operation-name="dirSelector.action"
                          @on-change="operationResult"
@@ -144,6 +154,8 @@
 import { defineAsyncComponent, getCurrentInstance, reactive, toRefs } from 'vue'
 import http from '../api/http.js'
 import apiConfig from '../api/apiConfig.js'
+import emitter from '../tools/emitter.js'
+import common from '../tools/common.js'
 
 const FileInfoDrawer = defineAsyncComponent(() => import('./FileInfoDrawer.vue'))
 const FileOperatorModal = defineAsyncComponent(() => import('./FileOperatorModal.vue'))
@@ -162,6 +174,12 @@ export default {
       }
     },
     actions: {
+      type: Array,
+      default: () => {
+        return []
+      }
+    },
+    fileActions: {
       type: Array,
       default: () => {
         return []
@@ -194,6 +212,12 @@ export default {
         form: {
           id: '', // 文件 id
           name: '' // 文件名
+        }
+      },
+      rollback: {
+        visible: false,
+        form: {
+          ids: [] // 待还原的文件 id 列表
         }
       },
       movie: {
@@ -247,9 +271,7 @@ export default {
     },
     // 播放视频
     playVideo (fileId) {
-      http.req(http.url.file.playUrl, http.methods.post, {
-        fileId
-      }).then(response => {
+      http.reqUrl.file.playUrl({ fileId }).then(response => {
         const { path, extend } = response
         const { width, height } = this.calculatePlayerSize(extend)
         this.movie.src = apiConfig.apiBaseUrl + path
@@ -282,7 +304,6 @@ export default {
         this.remove.fileName = name
         this.remove.index = recordIndex
         this.remove.visible = true
-        return
       }
       // 移动单个文件
       if (action === 'move' || action === 'copy') {
@@ -290,7 +311,6 @@ export default {
         this.selectedFiles.push(id)
         this.dirSelector.visible = true
         this.dirSelector.action = action
-        return
       }
       // 重命名文件
       if (action === 'rename') {
@@ -301,6 +321,12 @@ export default {
       // 下载文件
       if (action === 'download') {
         window.open(`${apiConfig().apiBaseUrl}${http.url.file.download}${id}`)
+      }
+      // 还原文件
+      if (action === 'rollback') {
+        this.selected[recordIndex] = true
+        this.selectedFiles.push(id)
+        this.rollback.visible = true
       }
     },
     // 弹出批量复制的弹窗
@@ -313,7 +339,7 @@ export default {
       this.dirSelector.visible = true
       this.dirSelector.action = 'move'
     },
-    // 移动文件
+    // 文件操作
     operationResult ({ action, id }) {
       if (action === 'cancel' || action === 'close') {
         this.selected = []
@@ -321,35 +347,27 @@ export default {
         this.dirSelector.visible = false
         return
       }
-      if (this.dirSelector.action === 'copy') {
-        http.reqUrl.file.copy({ sources: this.selectedFiles, target: id }).then(response => {
-          if (response) {
-            const selectedFiles = this.clearSelected()
-            this.emit('action-change', { action: this.dirSelector.action, fileIds: [selectedFiles] })
-            this.dirSelector.visible = false
-            this.dirSelector.action = ''
-          }
-        })
-      }
+      let request = http.reqUrl.file.copy({ sources: this.selectedFiles, target: id })
       if (this.dirSelector.action === 'move') {
-        http.reqUrl.file.move({ sources: this.selectedFiles, target: id }).then(response => {
-          if (response) {
-            const selectedFiles = this.clearSelected()
-            this.emit('action-change', { action: this.dirSelector.action, fileIds: [selectedFiles] })
-            this.dirSelector.visible = false
-            this.dirSelector.action = ''
-          }
-        })
+        request = http.reqUrl.file.move({ sources: this.selectedFiles, target: id })
       }
+      request.then(response => {
+        if (response) {
+          const selectedFiles = this.clearSelected()
+          this.dirSelector.visible = false
+          this.dirSelector.action = ''
+          this.emit('action-change', { action: this.dirSelector.action, fileIds: [selectedFiles] })
+          emitter.emit('on-flush')
+        }
+      })
     },
     // 确定删除文件
     confirmRemoveFile () {
-      http.req(http.url.file.remove, http.methods.post, {
-        idsList: [this.remove.fileId]
-      }).then(response => {
+      http.reqUrl.file.remove({ idsList: [this.remove.fileId] }).then(response => {
         if (response !== undefined) {
           this.remove.visible = false
           this.emit('action-change', { action: 'delete', fileIds: [this.remove.fileId] })
+          emitter.emit('on-flush')
         }
       })
     },
@@ -361,13 +379,12 @@ export default {
     },
     // 确定批量删除文件
     batchRemoveFiles () {
-      http.req(http.url.file.remove, http.methods.post, {
-        idsList: this.selectedFiles
-      }).then(response => {
+      http.reqUrl.file.remove({ idsList: this.selectedFiles }).then(response => {
         if (response !== undefined) {
           const selectedFiles = this.clearSelected()
           this.batchRemove.visible = false
           this.emit('action-change', { action: 'delete', fileIds: selectedFiles })
+          emitter.emit('on-flush')
         }
       })
     },
@@ -388,20 +405,51 @@ export default {
         }
       })
     },
-    // 批量恢复文件
-    rollback () {
-      http.reqUrl.file.rollback({ idsList: this.selectedFiles }).then(response => {
-        if (response) {
-          const selectedFiles = this.selectedFiles
-          this.clearSelected()
-          this.emit('action-change', { action: 'rollback', fileIds: selectedFiles })
-        }
-      })
-    },
     // 取消重命名
     cancelRename () {
       this.rename.form.id = ''
       this.rename.form.name = ''
+    },
+    // 还原文件
+    rollbackFiles () {
+      const arr = []
+      this.selectedFiles.forEach(o => arr.push(this.fileList[this.calculateIndex(o)].size))
+      http.reqUrl.file.checkSize({ sizes: arr.join(',') }).then(response => {
+        const idsList = []
+        const errorName = []
+        for (let i = 0; i < this.selectedFiles.length; i++) {
+          if (response[i]) {
+            idsList.push(this.selectedFiles[i])
+          } else {
+            errorName.push(this.fileList[this.calculateIndex(this.selectedFiles[i])].name)
+          }
+        }
+        if (errorName.length > 0) {
+          let errorMsg = '您的空间已不足，文件'
+          for (const name of errorName) {
+            errorMsg += `【${name}】`
+          }
+          errorMsg += '还原失败。'
+          common.notify.warning(errorMsg)
+        }
+        http.reqUrl.file.rollback({ idsList }).then(response => {
+          if (response) {
+            const selectedFiles = this.selectedFiles
+            this.cancelRollback()
+            this.emit('action-change', { action: 'rollback', fileIds: selectedFiles })
+            emitter.emit('on-flush')
+          }
+        })
+      })
+    },
+    // 取消还原
+    cancelRollback () {
+      this.clearSelected()
+      this.rollback.visible = false
+    },
+    // 查询文件在列表中的位置
+    calculateIndex (fileId) {
+      return this.fileList.findIndex(o => o.id === fileId)
     }
   }
 }

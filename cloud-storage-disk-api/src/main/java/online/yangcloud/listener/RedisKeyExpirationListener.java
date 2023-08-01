@@ -1,7 +1,9 @@
 package online.yangcloud.listener;
 
+import cn.hutool.core.util.StrUtil;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.service.UserService;
+import online.yangcloud.utils.RedisTools;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
@@ -18,6 +20,9 @@ public class RedisKeyExpirationListener extends KeyExpirationEventMessageListene
 
     @Resource
     private UserService userService;
+    
+    @Resource
+    private RedisTools redisTools;
 
     public RedisKeyExpirationListener(RedisMessageListenerContainer listenerContainer) {
         super(listenerContainer);
@@ -33,8 +38,10 @@ public class RedisKeyExpirationListener extends KeyExpirationEventMessageListene
     public void onMessage(Message message, byte[] pattern) {
         String expiredKey = message.toString();
         if (expiredKey.startsWith(AppConstants.User.SPACE_UPDATE)) {
+            // 获取要更新的用户 id
+            String userId = StrUtil.split(expiredKey, StrUtil.COLON).get(1);
             // 更新用户账户空间
-            userService.updateUserSpace(expiredKey);
+            userService.updateUserSpace(redisTools.keys(AppConstants.User.SPACE_UPDATE + StrUtil.COLON + userId), null);
         }
     }
 

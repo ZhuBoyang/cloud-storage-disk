@@ -8,21 +8,21 @@ import online.yangcloud.common.ResultData;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.common.resultcode.AppResultCode;
 import online.yangcloud.model.User;
-import online.yangcloud.model.ao.user.UserEnter;
-import online.yangcloud.model.ao.user.UserRegister;
-import online.yangcloud.model.vo.file.FileMetadataView;
-import online.yangcloud.model.vo.user.LoginView;
-import online.yangcloud.model.vo.user.UserView;
+import online.yangcloud.model.request.user.UserEnter;
+import online.yangcloud.model.request.user.UserRegister;
+import online.yangcloud.model.view.file.FileMetadataView;
+import online.yangcloud.model.view.user.LoginView;
+import online.yangcloud.model.view.user.UserView;
 import online.yangcloud.service.FileService;
 import online.yangcloud.service.UserService;
 import online.yangcloud.utils.RedisTools;
-import online.yangcloud.utils.SessionTools;
+import online.yangcloud.utils.SystemTools;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 用户账户操作接口
@@ -70,19 +70,22 @@ public class UserController {
     /**
      * 退出登录
      *
-     * @param request 请求
      * @return result
      */
     @SessionValid
     @PostMapping("/logout")
-    public ResultData logout(HttpServletRequest request, User user) {
+    public ResultData logout(User user) {
         // 更新用户账户空间变更
-        List<String> keys = redisTools.queryKeysLikePrefix(AppConstants.User.SPACE_UPDATE + user.getId());
+        List<String> keys = redisTools.keys(AppConstants.User.SPACE_UPDATE + user.getId());
         if (ObjectUtil.isNotNull(keys) && keys.size() == 1) {
-            userService.updateUserSpace(keys.get(0));
+            userService.updateUserSpace(keys, user);
         }
-        // 删除 redis 中的会话记录
-        redisTools.delete(AppConstants.User.LOGIN_TOKEN + SessionTools.getSessionId(request));
+        // 更新 redis 中的登录信息，设置 1s 后过期
+        redisTools.expire(AppConstants.User.LOGIN_TOKEN + SystemTools.getHeaders().getAuthorization(),
+                JSONUtil.toJsonStr(user),
+                1,
+                TimeUnit.SECONDS
+        );
         return ResultData.success(Boolean.TRUE);
     }
 

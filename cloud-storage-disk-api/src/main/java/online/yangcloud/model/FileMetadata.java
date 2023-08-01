@@ -7,7 +7,7 @@ import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.enumration.FileTypeEnum;
-import online.yangcloud.model.ao.file.FileUploader;
+import online.yangcloud.model.request.file.FileUploader;
 import online.yangcloud.utils.IdTools;
 
 import java.util.ArrayList;

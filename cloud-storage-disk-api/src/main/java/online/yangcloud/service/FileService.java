@@ -1,13 +1,13 @@
 package online.yangcloud.service;
 
 import online.yangcloud.model.User;
-import online.yangcloud.model.ao.file.DirLooker;
-import online.yangcloud.model.ao.file.FileSearcher;
-import online.yangcloud.model.ao.file.FileUploader;
-import online.yangcloud.model.ao.file.TrashQuery;
-import online.yangcloud.model.vo.PagerView;
-import online.yangcloud.model.vo.file.BreadsView;
-import online.yangcloud.model.vo.file.FileMetadataView;
+import online.yangcloud.model.request.file.DirLooker;
+import online.yangcloud.model.request.file.FileSearcher;
+import online.yangcloud.model.request.file.FileUploader;
+import online.yangcloud.model.request.file.TrashQuery;
+import online.yangcloud.model.view.PagerView;
+import online.yangcloud.model.view.file.BreadsView;
+import online.yangcloud.model.view.file.FileMetadataView;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -93,9 +93,9 @@ public interface FileService {
      * 但不会恢复到原来位置，会恢复到账户根目录下
      *
      * @param idsList 要恢复的文件及文件夹 id 列表
-     * @param userId  文件归属人 id
+     * @param user    文件归属人
      */
-    void rollbackTrash(List<String> idsList, String userId);
+    void rollbackTrash(List<String> idsList, User user);
 
     /**
      * 修改文件名

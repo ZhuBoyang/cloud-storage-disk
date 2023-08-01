@@ -2,7 +2,7 @@ package online.yangcloud.service.meta;
 
 import online.yangcloud.enumration.FileTypeEnum;
 import online.yangcloud.model.FileMetadata;
-import online.yangcloud.model.vo.PagerView;
+import online.yangcloud.model.view.PagerView;
 
 import java.util.List;
 

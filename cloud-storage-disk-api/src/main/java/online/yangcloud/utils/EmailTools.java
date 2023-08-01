@@ -9,7 +9,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.mail.MailAccount;
 import online.yangcloud.common.constants.AppConstants;
-import online.yangcloud.model.bo.email.EmailCodeInfo;
+import online.yangcloud.model.business.email.EmailCodeInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

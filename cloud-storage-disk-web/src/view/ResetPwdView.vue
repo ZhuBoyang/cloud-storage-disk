@@ -97,10 +97,7 @@ export default {
         })
         return
       }
-      http.req(http.url.user.reset, http.methods.post, {
-        email,
-        password
-      }).then(response => {
+      http.reqUrl.user.reset({ email, password }).then(response => {
         if (response !== undefined) {
           setTimeout(() => {
             this.router.push('/login')

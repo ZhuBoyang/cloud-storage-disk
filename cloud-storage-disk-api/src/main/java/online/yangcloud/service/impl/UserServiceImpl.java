@@ -7,10 +7,10 @@ import cn.hutool.crypto.SecureUtil;
 import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.model.User;
-import online.yangcloud.model.ao.user.UserEnter;
-import online.yangcloud.model.ao.user.UserRegister;
-import online.yangcloud.model.bo.email.EmailCodeInfo;
-import online.yangcloud.model.vo.user.UserView;
+import online.yangcloud.model.request.user.UserEnter;
+import online.yangcloud.model.request.user.UserRegister;
+import online.yangcloud.model.business.email.EmailCodeInfo;
+import online.yangcloud.model.view.user.UserView;
 import online.yangcloud.service.FileService;
 import online.yangcloud.service.UserService;
 import online.yangcloud.service.meta.UserMetaService;
@@ -100,13 +100,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUserSpace(String expiredKey) {
-        String key = expiredKey.replace(AppConstants.User.SPACE_UPDATE, StrUtil.EMPTY);
-        List<String> list = StrUtil.split(key, StrUtil.UNDERLINE);
-        String userId = list.get(0);
-        Long usedSpaceSize = Long.parseLong(list.get(1));
-        userMetaService.updateUser(User.pack(userId, usedSpaceSize));
-        redisTools.delete(expiredKey);
+    public void updateUserSpace(List<String> keys, User user) {
+        // 计算要变动的空间容量
+        long total = 0;
+        for (String key : keys) {
+            redisTools.delete(key);
+            total += Long.parseLong(key.substring(key.lastIndexOf(StrUtil.COLON) + 1));
+        }
+
+        // 修改用户账户的空间剩余量
+        if (ObjectUtil.isNull(user)) {
+            String userId = StrUtil.split(keys.get(0), StrUtil.COLON).get(1);
+            user = userMetaService.queryUserById(userId);
+        }
+        user.setUsedSpaceSize(user.getUsedSpaceSize() + total);
+        userMetaService.updateUser(user);
     }
 
 }

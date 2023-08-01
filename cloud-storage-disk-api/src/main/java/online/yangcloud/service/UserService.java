@@ -1,7 +1,10 @@
 package online.yangcloud.service;
 
-import online.yangcloud.model.ao.user.UserEnter;
-import online.yangcloud.model.ao.user.UserRegister;
+import online.yangcloud.model.User;
+import online.yangcloud.model.request.user.UserEnter;
+import online.yangcloud.model.request.user.UserRegister;
+
+import java.util.List;
 
 /**
  * @author zhuboyang
@@ -27,8 +30,9 @@ public interface UserService {
     /**
      * 更新用户账户空间
      *
-     * @param expiredKey 失效 redis key
+     * @param keys 失效 redis key
+     * @param user 更新的账户
      */
-    void updateUserSpace(String expiredKey);
+    void updateUserSpace(List<String> keys, User user);
 
 }

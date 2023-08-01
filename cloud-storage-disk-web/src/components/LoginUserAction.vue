@@ -60,8 +60,8 @@ export default {
         emit('on-load', response)
       })
     }
-    // 监听 UploadComponent 组件的消息，以刷新账户空间使用率
-    emitter.on('on-upload-change', () => {
+    // 监听 UploadComponent、FileBox 组件的消息，以刷新账户空间使用率
+    emitter.on('on-flush', () => {
       queryUserInfo()
     })
     return {

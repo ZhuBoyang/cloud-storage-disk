@@ -1,14 +1,15 @@
 package online.yangcloud.controller;
 
+import cn.hutool.core.util.StrUtil;
 import online.yangcloud.annotation.SessionValid;
 import online.yangcloud.common.ResultData;
 import online.yangcloud.common.resultcode.AppResultCode;
 import online.yangcloud.model.User;
-import online.yangcloud.model.ao.BatchOperator;
-import online.yangcloud.model.ao.file.*;
-import online.yangcloud.model.ao.user.BreadsLooker;
-import online.yangcloud.model.vo.PagerView;
-import online.yangcloud.model.vo.file.FileMetadataView;
+import online.yangcloud.model.request.BatchOperator;
+import online.yangcloud.model.request.file.*;
+import online.yangcloud.model.request.user.BreadsLooker;
+import online.yangcloud.model.view.PagerView;
+import online.yangcloud.model.view.file.FileMetadataView;
 import online.yangcloud.service.FileService;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +17,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author zhuboyang
@@ -27,6 +30,30 @@ public class FileController {
 
     @Resource
     private FileService fileService;
+
+    /**
+     * 检测文件大小是否允许上传，用户空间剩余量是否足够
+     *
+     * @param checker 文件大小
+     * @return 结果
+     */
+    @SessionValid
+    @PostMapping("/check_size")
+    public ResultData checkFileSize(@Valid @RequestBody FileSizeChecker checker, User user) {
+        List<String> sizes = StrUtil.split(checker.getSizes(), StrUtil.COMMA);
+        List<Boolean> flags = new ArrayList<>();
+        long total = user.getUsedSpaceSize();
+        for (String o : sizes) {
+            long size = Long.parseLong(o);
+            if (total + size <= user.getTotalSpaceSize()) {
+                total += size;
+                flags.add(Boolean.TRUE);
+            } else {
+                flags.add(Boolean.FALSE);
+            }
+        }
+        return ResultData.success(flags);
+    }
 
     /**
      * 检测文件块是否已在库中
@@ -126,13 +153,13 @@ public class FileController {
      * 批量恢复已删除的文件及文件夹
      *
      * @param operator 要恢复的文件 id 列表
-     * @param user     当前登录的用户 id
+     * @param user     当前登录的用户
      * @return 恢复结果
      */
     @SessionValid
     @PostMapping("/rollback")
     public ResultData rollbackRemoved(@Valid @RequestBody BatchOperator operator, User user) {
-        fileService.rollbackTrash(operator.getIdsList(), user.getId());
+        fileService.rollbackTrash(operator.getIdsList(), user);
         return ResultData.success(AppResultCode.SUCCESS, Boolean.TRUE);
     }
 

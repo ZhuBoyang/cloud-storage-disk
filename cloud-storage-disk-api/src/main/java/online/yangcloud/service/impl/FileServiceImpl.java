@@ -17,14 +17,14 @@ import online.yangcloud.model.BlockMetadata;
 import online.yangcloud.model.FileBlock;
 import online.yangcloud.model.FileMetadata;
 import online.yangcloud.model.User;
-import online.yangcloud.model.ao.file.DirLooker;
-import online.yangcloud.model.ao.file.FileSearcher;
-import online.yangcloud.model.ao.file.FileUploader;
-import online.yangcloud.model.ao.file.TrashQuery;
-import online.yangcloud.model.bo.file.FileOperateValidator;
-import online.yangcloud.model.vo.PagerView;
-import online.yangcloud.model.vo.file.BreadsView;
-import online.yangcloud.model.vo.file.FileMetadataView;
+import online.yangcloud.model.request.file.DirLooker;
+import online.yangcloud.model.request.file.FileSearcher;
+import online.yangcloud.model.request.file.FileUploader;
+import online.yangcloud.model.request.file.TrashQuery;
+import online.yangcloud.model.business.file.FileOperateValidator;
+import online.yangcloud.model.view.PagerView;
+import online.yangcloud.model.view.file.BreadsView;
+import online.yangcloud.model.view.file.FileMetadataView;
 import online.yangcloud.service.FileService;
 import online.yangcloud.service.meta.BlockMetadataService;
 import online.yangcloud.service.meta.FileBlockService;
@@ -169,7 +169,10 @@ public class FileServiceImpl implements FileService {
         fileMetadataService.insertWidthPrimaryKey(file);
 
         // 增加空间使用量
-        userMetaService.increaseUsedSpaceSize(user, file.getSize());
+        userMetaService.updateSpaceSize(user, file.getSize());
+
+        // 清空文件块的缓存记录
+        redisTools.delete(AppConstants.Uploader.FILE_BLOCK_UPLOAD_PREFIX + identifier);
         return BeanUtil.copyProperties(file, FileMetadataView.class);
     }
 
@@ -199,25 +202,31 @@ public class FileServiceImpl implements FileService {
     @Override
     public void batchDeleteFile(List<String> ids, User user) {
         // 检测存在的文件。因为有可能有的文件已经不存在了
-        ids = fileMetadataService.queryListByIds(ids, user.getId()).stream().map(FileMetadata::getId).collect(Collectors.toList());
+        List<FileMetadata> files = fileMetadataService.queryListByIds(ids, user.getId());
+        ids = files.stream().map(FileMetadata::getId).collect(Collectors.toList());
 
         // 删除文件
         fileMetadataService.batchRemove(ids, user.getId());
 
         // 查询子级的所有文件与文件夹，并计算占用空间总量
-        long spaceSize = 0;
-        for (String fileId : ids) {
-            List<FileMetadata> files = fileMetadataService.queryChildListByPid(fileId, user.getId(), Boolean.FALSE);
-            for (FileMetadata file : files) {
-                if (FileTypeEnum.FILE.is(file.getType())) {
-                    spaceSize += file.getSize();
+        long total = 0;
+        for (FileMetadata o : files) {
+            if (FileTypeEnum.FILE.is(o.getType())) {
+                total += o.getSize();
+            }
+            if (FileTypeEnum.DIR.is(o.getType())) {
+                List<FileMetadata> childList = fileMetadataService.queryChildListByPid(o.getId(), user.getId(), Boolean.FALSE);
+                for (FileMetadata child : childList) {
+                    if (FileTypeEnum.FILE.is(child.getType())) {
+                        total += child.getSize();
+                    }
                 }
             }
         }
 
         // 更新用户账户中的空间使用量
-        if (spaceSize > 0) {
-            userMetaService.decreaseUsedSpaceSize(user, spaceSize);
+        if (total > 0) {
+            userMetaService.updateSpaceSize(user, total * -1);
         }
     }
 
@@ -234,6 +243,9 @@ public class FileServiceImpl implements FileService {
         Queue<FileMetadata> files = new ArrayDeque<>(validator.getSources());
         Map<String, FileMetadata> historyThisMap = new HashMap<>(0);
 
+        // 记录本次操作的文件的总空间占用大小，以判断账户剩余空间是否允许此操作
+        long total = user.getUsedSpaceSize();
+
         while (true) {
             FileMetadata o = files.poll();
             if (ObjectUtil.isNull(o)) {
@@ -249,11 +261,14 @@ public class FileServiceImpl implements FileService {
             // 判断目标目录中是否有同样名字的文件名。如果有，则需要加后缀数字
             o.setName(calculateName(futureParent.getId(), o.getName(), o.getType()));
             copiedFiles.add(file);
+            total += file.getSize();
             // 如果是文件的话，那么查询所有文件块的关联数据
             if (FileTypeEnum.FILE.is(o.getType())) {
-                copiedBlocks.addAll(fileBlockService.queryBlocks(o.getId()));
+                List<FileBlock> fileBlocks = fileBlockService.queryBlocks(o.getId());
+                fileBlocks.forEach(value -> value.setId(IdTools.fastSimpleUuid()).setFileId(file.getId()));
+                copiedBlocks.addAll(fileBlocks);
                 // 增加用户账户空间已用量
-                userMetaService.increaseUsedSpaceSize(user, file.getSize());
+                userMetaService.updateSpaceSize(user, file.getSize());
             }
             // 如果是文件夹的话，需要查询所有子级的文件及文件夹。并加入队列中，后续统一进行入库
             if (FileTypeEnum.DIR.is(o.getType())) {
@@ -261,6 +276,11 @@ public class FileServiceImpl implements FileService {
                 historyThisMap.put(o.getId(), file);
                 files.addAll(fileMetadataService.queryListByPid(o.getId(), user.getId()));
             }
+        }
+
+        // 要操作的文件总大小已超过账户可用空间大小，无法继续操作
+        if (total > user.getTotalSpaceSize()) {
+            ExceptionTools.businessLogger("您的空间容量剩余不足，操作失败");
         }
 
         fileMetadataService.batchInsert(copiedFiles);
@@ -318,38 +338,44 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public void rollbackTrash(List<String> idsList, String userId) {
+    public void rollbackTrash(List<String> idsList, User user) {
         // 查询账户根目录的文件 id
-        FileMetadata root = fileMetadataService.queryByPid(StrUtil.EMPTY, userId);
+        FileMetadata root = fileMetadataService.queryByPid(StrUtil.EMPTY, user.getId());
 
         // 循环恢复所有需要恢复的文件及文件夹
         List<FileMetadata> files = new ArrayList<>();
+        // 还原的文件大小
+        long total = 0;
         for (String id : idsList) {
-            // 查询文件元数据
-            FileMetadata file = fileMetadataService.queryByIdInDeleted(id, userId);
+            FileMetadata file = fileMetadataService.queryByIdInDeleted(id, user.getId());
             if (FileTypeEnum.DIR.is(file.getType())) {
                 // 如果是文件夹，则查询文件夹下所有未删除的文件及文件夹，以修改祖级文件 id
-                List<FileMetadata> childFiles = fileMetadataService.queryChildListByPid(file.getId(), userId, Boolean.FALSE);
-                files.addAll(childFiles.stream()
-                        .map(o -> {
-                            List<String> ancestors = o.queryAncestors();
-                            int index = ancestors.indexOf(file.getId());
-                            ancestors = ListUtil.sub(ancestors, index, ancestors.size());
-                            ancestors.add(0, root.getId());
-                            return o.setterAncestors(ancestors);
-                        })
-                        .collect(Collectors.toList()));
+                List<FileMetadata> childFiles = fileMetadataService.queryChildListByPid(file.getId(), user.getId(), Boolean.FALSE);
+                for (FileMetadata o : childFiles) {
+                    List<String> ancestors = o.queryAncestors();
+                    int index = ancestors.indexOf(file.getId());
+                    ancestors = ListUtil.sub(ancestors, index, ancestors.size());
+                    ancestors.add(0, root.getId());
+                    files.add(o.setterAncestors(ancestors));
+                    if (FileTypeEnum.FILE.is(o.getType())) {
+                        total += o.getSize();
+                    }
+                }
                 file.setIsDelete(YesOrNoEnum.NO.code());
                 files.add(file.setterAncestors(Collections.singletonList(root.getId())));
             }
             if (FileTypeEnum.FILE.is(file.getType())) {
                 file.setIsDelete(YesOrNoEnum.NO.code());
                 files.add(file.setterAncestors(Collections.singletonList(root.getId())));
+                total += file.getSize();
             }
         }
 
         // 批量修改文件元数据
         fileMetadataService.batchUpdate(files);
+
+        // 更新账户的空间容量大小
+        userMetaService.updateSpaceSize(user, total);
     }
 
     @Override
@@ -379,7 +405,7 @@ public class FileServiceImpl implements FileService {
      */
     private FileOperateValidator validator(List<String> sources, String target, String userId, String operation) {
         // 检测是否有选中的文件，如果没有选择任何一个文件，那么无法执行后续操作
-        if (sources.size() == 0) {
+        if (sources.isEmpty()) {
             ExceptionTools.businessLogger("请选择要" + operation + "的文件");
         }
 
@@ -399,7 +425,7 @@ public class FileServiceImpl implements FileService {
 
         // 获取目标目录元数据
         List<FileMetadata> findTargets = files.stream().filter(o -> o.getId().equals(target)).collect(Collectors.toList());
-        FileMetadata fileTarget = findTargets.size() == 0 ? null : findTargets.get(0);
+        FileMetadata fileTarget = findTargets.isEmpty() ? null : findTargets.get(0);
 
         // 校验目标目录是否存在
         if (ObjectUtil.isNull(fileTarget) || YesOrNoEnum.YES.is(fileTarget.getIsDelete())) {
@@ -445,7 +471,7 @@ public class FileServiceImpl implements FileService {
         }
         FileMetadata file = fileMetadataService.queryById(id, userId);
         List<String> ancestors = file.queryAncestors();
-        if (ancestors.size() == 0) {
+        if (ancestors.isEmpty()) {
             return BreadsView.convert(Collections.singletonList(file));
         }
         List<FileMetadata> files = fileMetadataService.queryListByIds(ancestors, userId);

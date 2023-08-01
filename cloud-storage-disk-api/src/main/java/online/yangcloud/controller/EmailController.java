@@ -2,7 +2,7 @@ package online.yangcloud.controller;
 
 import online.yangcloud.common.ResultData;
 import online.yangcloud.common.resultcode.AppResultCode;
-import online.yangcloud.model.ao.email.EmailSender;
+import online.yangcloud.model.request.email.EmailSender;
 import online.yangcloud.service.EmailService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

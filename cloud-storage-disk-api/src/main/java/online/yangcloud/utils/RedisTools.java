@@ -1,6 +1,8 @@
 package online.yangcloud.utils;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.ObjectUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -172,7 +174,7 @@ public class RedisTools {
     public Set<String> rangSetData(String redisKey) {
         ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         Set<String> result = zSetOperations.range(redisKey, 0, -1);
-        if (result == null || result.size() == 0) {
+        if (result == null || result.isEmpty()) {
             return new HashSet<>();
         }
         return result;
@@ -184,8 +186,11 @@ public class RedisTools {
      * @param prefix 前缀
      * @return redis key 列表
      */
-    public List<String> queryKeysLikePrefix(String prefix) {
+    public List<String> keys(String prefix) {
         Set<String> keys = redisTemplate.keys(prefix + "*");
+        if (ObjectUtil.isNull(keys) || keys.isEmpty()) {
+            return ListUtil.empty();
+        }
         return new ArrayList<>(keys);
     }
 

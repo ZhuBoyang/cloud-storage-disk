@@ -1,12 +1,17 @@
 package online.yangcloud.utils;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.sun.management.OperatingSystemMXBean;
 import online.yangcloud.common.constants.AppConstants;
-import online.yangcloud.model.vo.DiskInfoView;
-import online.yangcloud.model.vo.MemoryInfoView;
+import online.yangcloud.model.business.HeadersParameters;
+import online.yangcloud.model.view.DiskInfoView;
+import online.yangcloud.model.view.MemoryInfoView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 
@@ -91,6 +96,21 @@ public class SystemTools {
     public static MemoryInfoView findMemoryInfo() {
         OperatingSystemMXBean mem = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
         return MemoryInfoView.pack(mem.getTotalPhysicalMemorySize(), mem.getFreePhysicalMemorySize());
+    }
+
+    /**
+     * 获取请求头中自定义的属性字段
+     *
+     * @return 自定义的属性字段
+     */
+    public static HeadersParameters getHeaders() {
+        ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (ObjectUtil.isNull(requestAttributes)) {
+            return new HeadersParameters();
+        }
+        // get the request
+        HttpServletRequest request = requestAttributes.getRequest();
+        return new HeadersParameters().setAuthorization(request.getHeader(AppConstants.User.AUTHORIZATION));
     }
 
 }

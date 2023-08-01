@@ -34,10 +34,14 @@
           <div class="item-icon row-col-center">
             <img :src="globalProperties.common.identifyFileAvatar(o)" alt="文档"/>
           </div>
-          <div class="item-name">{{ o.fileName }}</div>
+          <div class="item-name">
+            <div class="item-filename">{{ o.fileName }}</div>
+            <div class="item-msg" v-if="o.status === 'error' && o.msg !== ''">{{ o.msg }}</div>
+          </div>
           <div class="item-size">{{ globalProperties.common.formatSizeInPerson(o.fileSize) }}</div>
           <div class="item-status">
             <img :src="apiConfig().iconBaseUrl + 'icons/success.png'" class="upload-success" alt="成功" v-if="o.status === 'success'"/>
+            <img :src="apiConfig().iconBaseUrl + 'icons/error.png'" class="upload-error" alt="失败" v-if="o.status === 'error'"/>
           </div>
         </div>
         <div class="item-process">
@@ -112,10 +116,6 @@ export default {
     closeUploadModal () {
       this.upload.uploading = []
       this.hideModalVisible = false
-      // 这里会向父级组件发送消息，以关闭上传文件的模态框
-      this.emit('on-upload-change')
-      // 这里会向 FileView 发送消息，以刷新文件列表，并向 LoginUserAction 组件发送消息，以刷新账户空间使用率
-      emitter.emit('on-upload-change')
     },
     // 最小化上传文件的窗口
     hideUploadModal () {
@@ -130,20 +130,31 @@ export default {
     // 读取上传的文件
     readUploadFiles (e) {
       const files = e.target.files
-      const uploadedCount = this.upload.uploading.length
-      for (let i = 0; i < files.length; i++) {
-        const current = files[i]
-        const file = {
-          fileName: current.name, // 文件名
-          fileSize: current.size, // 文件大小
-          ext: current.name.substring(current.name.lastIndexOf('.') + 1), // 文件后缀
-          process: 0, // 校验进度或上传进度
-          blockNumber: 0, // 已上传文件块数量
-          blockCount: 0 // 文件块总数据量
+
+      // 先判断用户剩余空间是否还允许上传文件，将不允许上传的文件进行标明警告
+      const sizes = []
+      files.forEach(o => sizes.push(o.size))
+      http.reqUrl.file.checkSize({ sizes: sizes.join(',') }).then(response => {
+        const uploadedCount = this.upload.uploading.length
+        for (let i = 0; i < files.length; i++) {
+          const current = files[i]
+          const flag = response[i]
+          const file = {
+            fileName: current.name, // 文件名
+            fileSize: current.size, // 文件大小
+            ext: current.name.substring(current.name.lastIndexOf('.') + 1), // 文件后缀
+            process: 0, // 校验进度或上传进度
+            blockNumber: 0, // 已上传文件块数量
+            blockCount: 0, // 文件块总数据量
+            status: flag ? '' : 'error',
+            msg: flag ? '' : '您的空间已不足，请联系管理员扩展空间'
+          }
+          this.upload.uploading.push(file)
+          if (flag) {
+            this.splitFileBlock(current, uploadedCount + i)
+          }
         }
-        this.upload.uploading.push(file)
-        this.splitFileBlock(current, uploadedCount + i)
-      }
+      })
     },
     // 切分文件块
     splitFileBlock (file, fileIndex) {
@@ -227,11 +238,13 @@ export default {
     },
     // 文件合并
     mergeRequest (identifier, fileIndex) {
-      http.req(this.mergeUrl, http.methods.post, {
-        identifier
-      }).then(response => {
+      http.req(this.mergeUrl, http.methods.post, { identifier }).then(response => {
         this.upload.uploaded.push({ fileIndex, file: response })
         this.updateFileUploadProcess(fileIndex, true)
+        // 这里会向父级组件发送消息，以关闭上传文件的模态框
+        this.emit('on-upload-change')
+        // 这里会向 FileView 发送消息，以刷新文件列表，并向 LoginUserAction 组件发送消息，以刷新账户空间使用率
+        emitter.emit('on-flush')
       })
     },
     // 切分文件名
@@ -344,6 +357,13 @@ export default {
         .item-name {
           margin-left: 32px;
           width: calc(100% - 48px - 32px - 200px - 28px);
+          display: flex;
+          align-items: center;
+          .item-msg {
+            margin-left: 10px;
+            color: #959595;
+            font-size: 12px;
+          }
         }
         .item-size {
           width: 200px;

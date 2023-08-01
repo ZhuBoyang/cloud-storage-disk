@@ -5,7 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.resultcode.AppResultCode;
-import online.yangcloud.model.ao.file.FileUploader;
+import online.yangcloud.model.request.file.FileUploader;
 import online.yangcloud.utils.ExceptionTools;
 import online.yangcloud.utils.IdTools;
 

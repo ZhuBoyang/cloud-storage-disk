@@ -1,6 +1,7 @@
 package online.yangcloud.service.meta.impl;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.constants.AppConstants;
 import online.yangcloud.enumration.YesOrNoEnum;
 import online.yangcloud.mapper.UserMapper;
@@ -8,11 +9,12 @@ import online.yangcloud.model.User;
 import online.yangcloud.service.meta.UserMetaService;
 import online.yangcloud.utils.ExceptionTools;
 import online.yangcloud.utils.RedisTools;
+import online.yangcloud.utils.SystemTools;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author zhuboyang
@@ -24,7 +26,7 @@ public class UserMetaServiceImpl implements UserMetaService {
 
     @Resource
     private UserMapper userMapper;
-    
+
     @Resource
     private RedisTools redisTools;
 
@@ -37,25 +39,21 @@ public class UserMetaServiceImpl implements UserMetaService {
     }
 
     @Override
-    public void increaseUsedSpaceSize(User user, Long increaseSize) {
+    public void updateSpaceSize(User user, Long spaceSize) {
         // 增加空间使用量
-        long usedSpaceSize = user.getUsedSpaceSize() + increaseSize;
+        long usedSpaceSize = user.getUsedSpaceSize() + spaceSize;
         user.setUsedSpaceSize(usedSpaceSize);
 
         // 修改 redis 中已登录的账户信息中的空间使用量，并单独计时。2 分钟内无上传文件操作或退出登录操作，即更新数据库中的账户数据
-        String key = AppConstants.User.SPACE_UPDATE + user.getId() + StrUtil.UNDERLINE + usedSpaceSize;
-        redisTools.expire(key, Duration.ofMinutes(2));
-    }
+        String key = AppConstants.User.SPACE_UPDATE + user.getId() + StrUtil.COLON + usedSpaceSize;
+        redisTools.expire(key, StrUtil.EMPTY, 2, TimeUnit.MINUTES);
 
-    @Override
-    public void decreaseUsedSpaceSize(User user, Long decreaseSize) {
-        // 减少空间使用量
-        long usedSpaceSize = user.getUsedSpaceSize() - decreaseSize;
-        user.setUsedSpaceSize(usedSpaceSize);
-
-        // 修改 redis 中已登录的账户信息中的空间使用量，并单独计时。2 分钟内无删除文件操作或退出登录操作，即更新数据库中的账户数据
-        String key = AppConstants.User.SPACE_UPDATE + user.getId() + StrUtil.UNDERLINE + usedSpaceSize;
-        redisTools.expire(key, Duration.ofMinutes(2));
+        // 更新 redis 中的登录信息
+        redisTools.expire(AppConstants.User.LOGIN_TOKEN + SystemTools.getHeaders().getAuthorization(),
+                JSONUtil.toJsonStr(user),
+                AppConstants.User.LOGIN_SESSION_EXPIRE_TIME,
+                TimeUnit.MINUTES
+        );
     }
 
     @Override
