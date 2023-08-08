@@ -3,6 +3,8 @@ package online.yangcloud.service;
 import online.yangcloud.model.User;
 import online.yangcloud.model.request.user.UserEnter;
 import online.yangcloud.model.request.user.UserRegister;
+import online.yangcloud.model.request.user.UserUpdater;
+import online.yangcloud.model.view.user.UserView;
 
 import java.util.List;
 
@@ -34,5 +36,14 @@ public interface UserService {
      * @param user 更新的账户
      */
     void updateUserSpace(List<String> keys, User user);
+
+    /**
+     * 修改账户资料
+     *
+     * @param updater 要修改的资料
+     * @param user    当前登录的账户
+     * @return 修改后的账户资料
+     */
+    UserView updateUserInfo(UserUpdater updater, User user);
 
 }

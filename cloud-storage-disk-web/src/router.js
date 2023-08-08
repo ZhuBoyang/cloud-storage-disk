@@ -45,6 +45,21 @@ const routes = [
         ]
       }
     ]
+  },
+  {
+    path: '/center',
+    component: () => import('./view/UserCenterView.vue'),
+    redirect: '/center/user',
+    children: [
+      {
+        path: '/center/user',
+        component: () => import('./view/UserSelfView.vue')
+      },
+      {
+        path: '/center/password',
+        component: () => import('./view/UserPasswordView.vue')
+      }
+    ]
   }
 ]
 

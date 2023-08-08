@@ -4,6 +4,9 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReUtil;
 import online.yangcloud.common.constants.AppConstants;
 
+import java.util.Calendar;
+import java.util.Date;
+
 /**
  * 数据校验工具类
  *
@@ -41,6 +44,43 @@ public class ValidateTools {
         if (ObjectUtil.isNull(obj)) {
             ExceptionTools.noDataLogger();
         }
+    }
+
+    /**
+     * 根据生日计算年龄
+     *
+     * @param birthday 生日
+     * @return 年龄
+     */
+    public static int calculateAge(Date birthday) {
+        Calendar cal = Calendar.getInstance();
+        // 出生日期晚于当前时间，无法计算
+        if (cal.before(birthday)) {
+            ExceptionTools.businessLogger("The birthDay is before Now.It's unbelievable!");
+        }
+        // 当前年份
+        int yearNow = cal.get(Calendar.YEAR);
+        // 当前月份
+        int monthNow = cal.get(Calendar.MONTH);
+        // 当前日期
+        int dayOfMonthNow = cal.get(Calendar.DAY_OF_MONTH);
+        cal.setTime(birthday);
+        int yearBirth = cal.get(Calendar.YEAR);
+        int monthBirth = cal.get(Calendar.MONTH);
+        int dayOfMonthBirth = cal.get(Calendar.DAY_OF_MONTH);
+        int age = yearNow - yearBirth; //计算整岁数
+        if (monthNow <= monthBirth) {
+            if (monthNow == monthBirth) {
+                if (dayOfMonthNow < dayOfMonthBirth) {
+                    // 当前日期在生日之前，年龄减一
+                    age--;
+                }
+            } else {
+                // 当前月份在生日之前，年龄减一
+                age--;
+            }
+        }
+        return age;
     }
 
 }

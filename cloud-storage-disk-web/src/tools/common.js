@@ -61,22 +61,33 @@ const formatNum = (size, n) => {
 const jumpUrl = (url, router) => {
   router.push(url)
 }
-// 格式化时间 yyyy-MM-dd HH:mm::ss
-const formatDateTime = (timestamp) => {
-  if (timestamp === undefined || timestamp === null || timestamp === 0) {
+// 解析时间
+const analysisDateTime = timestamp => {
+  if (timestamp === undefined || timestamp === null || timestamp === 0 || typeof timestamp === 'boolean') {
     return '未知'
   }
-  const date = new Date(parseInt(timestamp))
-  const years = date.getFullYear()
-  const months = date.getMonth() + 1
-  const days = date.getDate()
-  const hours = date.getHours()
-  const minutes = date.getMinutes()
-  const seconds = date.getSeconds()
+  const date = new Date(typeof timestamp === 'number' ? timestamp : timestamp.indexOf('-') > 0 ? timestamp : parseInt(timestamp))
+  return {
+    years: date.getFullYear(),
+    months: date.getMonth() + 1,
+    days: date.getDate(),
+    hours: date.getHours(),
+    minutes: date.getMinutes(),
+    seconds: date.getSeconds()
+  }
+}
+// 格式化时间 yyyy-MM-dd HH:mm::ss
+const formatDateTime = (timestamp) => {
+  const { years, months, days, hours, minutes, seconds } = analysisDateTime(timestamp)
   return `${years}-${months < 10 ? '0' + months : months}-${days < 10 ? '0' + days : days} ` +
     `${hours < 10 ? '0' + hours : hours}:` +
     `${minutes < 10 ? '0' + minutes : minutes}:` +
     `${seconds < 10 ? '0' + seconds : seconds}`
+}
+// 格式化时间 yyyy-MM-dd
+const formatDate = (timestamp) => {
+  const { years, months, days } = analysisDateTime(timestamp)
+  return `${years}-${months < 10 ? '0' + months : months}-${days < 10 ? '0' + days : days}`
 }
 
 // 读取本地文件函数
@@ -115,6 +126,7 @@ const common = {
   formatSizeInPerson,
   jumpUrl,
   formatDateTime,
+  formatDate,
   readLocalFile,
   notify,
   setUrlQuery

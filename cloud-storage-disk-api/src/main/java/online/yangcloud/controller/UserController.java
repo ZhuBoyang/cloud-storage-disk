@@ -10,6 +10,7 @@ import online.yangcloud.common.resultcode.AppResultCode;
 import online.yangcloud.model.User;
 import online.yangcloud.model.request.user.UserEnter;
 import online.yangcloud.model.request.user.UserRegister;
+import online.yangcloud.model.request.user.UserUpdater;
 import online.yangcloud.model.view.file.FileMetadataView;
 import online.yangcloud.model.view.user.LoginView;
 import online.yangcloud.model.view.user.UserView;
@@ -84,6 +85,25 @@ public class UserController {
         redisTools.expire(AppConstants.User.LOGIN_TOKEN + SystemTools.getHeaders().getAuthorization(),
                 JSONUtil.toJsonStr(user),
                 1,
+                TimeUnit.SECONDS
+        );
+        return ResultData.success(Boolean.TRUE);
+    }
+
+    /**
+     * 修改账户资料
+     *
+     * @param updater 要修改的内容
+     * @param user    当前登录用户
+     * @return 账户资料
+     */
+    @SessionValid
+    @PostMapping("/update")
+    public ResultData updateInfo(@Valid @RequestBody UserUpdater updater, User user) {
+        UserView view = userService.updateUserInfo(updater, user);
+        redisTools.expire(AppConstants.User.LOGIN_TOKEN + SystemTools.getHeaders().getAuthorization(),
+                JSONUtil.toJsonStr(view),
+                AppConstants.User.LOGIN_SESSION_EXPIRE_TIME,
                 TimeUnit.SECONDS
         );
         return ResultData.success(Boolean.TRUE);

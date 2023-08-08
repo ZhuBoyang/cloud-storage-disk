@@ -25,3 +25,11 @@ html, body, #app {
     align-items: center;
     justify-content: center;
 }
+
+/* 全局过渡动画*/
+.component-fade-enter-active, .component-fade-leave-active {
+    transition: opacity .3s ease;
+}
+.component-fade-enter, .component-fade-leave-to {
+    opacity: 0;
+}

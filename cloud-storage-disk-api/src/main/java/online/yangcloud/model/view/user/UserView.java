@@ -66,6 +66,7 @@ public class UserView {
                 .setAvatar(user.getAvatar())
                 .setBirthday(user.getBirthday())
                 .setAge(user.getAge())
+                .setGender(user.getGender())
                 .setPhone(user.getPhone())
                 .setTotalSpaceSize(user.getTotalSpaceSize())
                 .setUsedSpaceSize(user.getUsedSpaceSize());

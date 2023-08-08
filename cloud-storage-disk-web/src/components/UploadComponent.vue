@@ -116,6 +116,8 @@ export default {
     closeUploadModal () {
       this.upload.uploading = []
       this.hideModalVisible = false
+      // 这里会向父级组件发送消息，以关闭上传文件的模态框
+      this.emit('on-upload-change')
     },
     // 最小化上传文件的窗口
     hideUploadModal () {
@@ -133,7 +135,9 @@ export default {
 
       // 先判断用户剩余空间是否还允许上传文件，将不允许上传的文件进行标明警告
       const sizes = []
-      files.forEach(o => sizes.push(o.size))
+      for (let i = 0; i < files.length; i++) {
+        sizes.push(files[i].size)
+      }
       http.reqUrl.file.checkSize({ sizes: sizes.join(',') }).then(response => {
         const uploadedCount = this.upload.uploading.length
         for (let i = 0; i < files.length; i++) {
@@ -241,8 +245,6 @@ export default {
       http.req(this.mergeUrl, http.methods.post, { identifier }).then(response => {
         this.upload.uploaded.push({ fileIndex, file: response })
         this.updateFileUploadProcess(fileIndex, true)
-        // 这里会向父级组件发送消息，以关闭上传文件的模态框
-        this.emit('on-upload-change')
         // 这里会向 FileView 发送消息，以刷新文件列表，并向 LoginUserAction 组件发送消息，以刷新账户空间使用率
         emitter.emit('on-flush')
       })

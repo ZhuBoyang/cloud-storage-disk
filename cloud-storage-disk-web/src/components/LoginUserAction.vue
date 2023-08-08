@@ -1,9 +1,6 @@
 <template>
   <div class="login-user-action">
-    <div class="user-box"
-         @mouseenter="userInfoBox = true"
-         @mouseleave="userInfoBox = false"
-    >
+    <div class="user-box" @mouseenter="userInfoBox = true" @mouseleave="userInfoBox = false">
       <div class="user-info-btn">
         <div class="user-avatar row-col-center">
           <span v-if="user.nickName !== ''">{{ user.nickName.substring(0, 1) }}</span>
@@ -22,7 +19,7 @@
       <div class="user-info-actions"
            :class="[{'is-show': userInfoBox}]"
       >
-        <div class="actions-item">设置</div>
+        <div class="actions-item" @click="router.push('/center')">设置</div>
         <div class="actions-item" @click="logout">退出登录</div>
       </div>
     </div>

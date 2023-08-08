@@ -1,5 +1,6 @@
 package online.yangcloud.service.impl;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -10,6 +11,7 @@ import online.yangcloud.model.User;
 import online.yangcloud.model.request.user.UserEnter;
 import online.yangcloud.model.request.user.UserRegister;
 import online.yangcloud.model.business.email.EmailCodeInfo;
+import online.yangcloud.model.request.user.UserUpdater;
 import online.yangcloud.model.view.user.UserView;
 import online.yangcloud.service.FileService;
 import online.yangcloud.service.UserService;
@@ -115,6 +117,32 @@ public class UserServiceImpl implements UserService {
         }
         user.setUsedSpaceSize(user.getUsedSpaceSize() + total);
         userMetaService.updateUser(user);
+    }
+
+    @Override
+    public UserView updateUserInfo(UserUpdater updater, User user) {
+        boolean flag = Boolean.FALSE;
+        if (StrUtil.isNotBlank(updater.getNickName())) {
+            user.setNickName(updater.getNickName());
+            flag = Boolean.TRUE;
+        }
+        if (ObjectUtil.isNotNull(updater.getBirthday()) && updater.getBirthday() > 0) {
+            user.setBirthday(updater.getBirthday());
+            user.setAge(ValidateTools.calculateAge(DateUtil.date(updater.getBirthday())));
+            flag = Boolean.TRUE;
+        }
+        if (ObjectUtil.isNotNull(updater.getGender()) && updater.getGender() > 0) {
+            user.setGender(updater.getGender());
+            flag = Boolean.TRUE;
+        }
+        if (StrUtil.isNotBlank(updater.getPhone())) {
+            user.setPhone(updater.getPhone());
+            flag = Boolean.TRUE;
+        }
+        if (flag) {
+            userMetaService.updateUser(user);
+        }
+        return UserView.convert(user);
     }
 
 }
