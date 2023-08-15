@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.33, for macos11.7 (x86_64)
 --
--- Host: 127.0.0.1    Database: cloud_storage_disk
+-- Host: 127.0.0.1    Database: cloud-storage-disk
 -- ------------------------------------------------------
 -- Server version	8.0.33
 
@@ -23,9 +23,9 @@ DROP TABLE IF EXISTS `block_metadata`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `block_metadata` (
-  `id` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件块 id',
-  `hash` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件块 hash',
-  `path` varchar(1000) COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件块存储路径',
+  `id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件块 id',
+  `hash` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件块 hash',
+  `path` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件块存储路径',
   `size` bigint NOT NULL COMMENT '文件块大小',
   `create_time` bigint NOT NULL,
   `update_time` bigint NOT NULL,
@@ -43,9 +43,9 @@ DROP TABLE IF EXISTS `file_block`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `file_block` (
-  `id` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '关联 id',
-  `file_id` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件 id',
-  `block_id` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件块 id',
+  `id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '关联 id',
+  `file_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件 id',
+  `block_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件块 id',
   `index` smallint NOT NULL COMMENT '文件块序号',
   `count` smallint NOT NULL COMMENT '文件块数量',
   `sharding_size` bigint NOT NULL COMMENT '分片大小',
@@ -67,18 +67,18 @@ DROP TABLE IF EXISTS `file_metadata`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `file_metadata` (
-  `id` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件 id',
-  `pid` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '上级文件 id',
-  `name` varchar(1000) COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件名',
-  `path` varchar(1000) COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件存储路径',
-  `hash` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件 hash',
+  `id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件 id',
+  `pid` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '上级文件 id',
+  `name` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件名',
+  `path` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件存储路径',
+  `hash` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件 hash',
   `type` tinyint NOT NULL COMMENT '文件类型：0.文件；1.文件夹',
-  `ext` varchar(10) COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件后缀名',
+  `ext` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件后缀名',
   `size` bigint NOT NULL COMMENT '文件大小',
   `upload_time` bigint NOT NULL COMMENT '上传时间',
-  `ancestors` text COLLATE utf8mb4_general_ci NOT NULL COMMENT '祖级文件 id 列表',
+  `ancestors` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '祖级文件 id 列表',
   `is_delete` tinyint DEFAULT '0',
-  `user_id` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件操作人 id',
+  `user_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '文件操作人 id',
   `create_time` bigint NOT NULL,
   `update_time` bigint NOT NULL,
   PRIMARY KEY (`id`),
@@ -94,15 +94,15 @@ DROP TABLE IF EXISTS `user`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user` (
-  `id` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '用户 id',
-  `nick_name` varchar(50) COLLATE utf8mb4_general_ci DEFAULT '' COMMENT '昵称',
-  `email` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT '邮箱',
-  `password` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '账户密码',
-  `avatar` varchar(1024) COLLATE utf8mb4_general_ci NOT NULL COMMENT '头像地址',
+  `id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '用户 id',
+  `nick_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '' COMMENT '昵称',
+  `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '邮箱',
+  `password` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '账户密码',
+  `avatar` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '头像地址',
   `birthday` bigint DEFAULT '0' COMMENT '出生日期',
   `age` smallint DEFAULT '0' COMMENT '年龄',
-  `gender` tinyint DEFAULT '0' COMMENT '性别',
-  `phone` varchar(13) COLLATE utf8mb4_general_ci DEFAULT '' COMMENT '联系方式',
+  `gender` tinyint DEFAULT (-(1)) COMMENT '性别',
+  `phone` varchar(13) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '' COMMENT '联系方式',
   `total_space_size` bigint DEFAULT '0' COMMENT '账户总空间',
   `used_space_size` bigint DEFAULT '0' COMMENT '账户已用空间',
   `create_time` bigint NOT NULL,
@@ -122,4 +122,4 @@ CREATE TABLE `user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-07-25  9:03:40
+-- Dump completed on 2023-08-15 15:51:55
