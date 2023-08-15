@@ -1,8 +1,4 @@
-<<<<<<< HEAD:cloud-storage-disk-api/src/main/java/online/yangcloud/model/request/user/UserUpdater.java
-package online.yangcloud.model.request.user;
-=======
 package online.yangcloud.common.model.request.user;
->>>>>>> bcef78c048d219fbbe5466f823075af553acd94b:cloud-storage-disk-api/common/src/main/java/online/yangcloud/common/model/request/user/UserUpdater.java
 
 /**
  * @author zhuboyang

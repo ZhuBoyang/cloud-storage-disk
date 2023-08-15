@@ -6,22 +6,6 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.json.JSONUtil;
-<<<<<<< HEAD:cloud-storage-disk-api/src/main/java/online/yangcloud/service/impl/UserServiceImpl.java
-import online.yangcloud.common.constants.AppConstants;
-import online.yangcloud.model.User;
-import online.yangcloud.model.request.user.UserEnter;
-import online.yangcloud.model.request.user.UserRegister;
-import online.yangcloud.model.business.email.EmailCodeInfo;
-import online.yangcloud.model.request.user.UserUpdater;
-import online.yangcloud.model.view.user.UserView;
-import online.yangcloud.service.FileService;
-import online.yangcloud.service.UserService;
-import online.yangcloud.service.meta.UserMetaService;
-import online.yangcloud.utils.ExceptionTools;
-import online.yangcloud.utils.IdTools;
-import online.yangcloud.utils.RedisTools;
-import online.yangcloud.utils.ValidateTools;
-=======
 import online.yangcloud.common.common.constants.AppConstants;
 import online.yangcloud.common.model.User;
 import online.yangcloud.common.model.business.email.EmailCodeInfo;
@@ -36,7 +20,6 @@ import online.yangcloud.common.utils.ValidateTools;
 import online.yangcloud.web.service.FileService;
 import online.yangcloud.web.service.UserService;
 import online.yangcloud.web.service.meta.UserMetaService;
->>>>>>> bcef78c048d219fbbe5466f823075af553acd94b:cloud-storage-disk-api/web/src/main/java/online/yangcloud/web/service/impl/UserServiceImpl.java
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

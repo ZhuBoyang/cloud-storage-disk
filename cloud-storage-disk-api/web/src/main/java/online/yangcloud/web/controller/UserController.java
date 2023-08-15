@@ -3,23 +3,6 @@ package online.yangcloud.web.controller;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
-<<<<<<< HEAD:cloud-storage-disk-api/src/main/java/online/yangcloud/controller/UserController.java
-import online.yangcloud.annotation.SessionValid;
-import online.yangcloud.common.ResultData;
-import online.yangcloud.common.constants.AppConstants;
-import online.yangcloud.common.resultcode.AppResultCode;
-import online.yangcloud.model.User;
-import online.yangcloud.model.request.user.UserEnter;
-import online.yangcloud.model.request.user.UserRegister;
-import online.yangcloud.model.request.user.UserUpdater;
-import online.yangcloud.model.view.file.FileMetadataView;
-import online.yangcloud.model.view.user.LoginView;
-import online.yangcloud.model.view.user.UserView;
-import online.yangcloud.service.FileService;
-import online.yangcloud.service.UserService;
-import online.yangcloud.utils.RedisTools;
-import online.yangcloud.utils.SystemTools;
-=======
 import online.yangcloud.common.annotation.SessionValid;
 import online.yangcloud.common.common.ResultData;
 import online.yangcloud.common.common.constants.AppConstants;
@@ -35,7 +18,6 @@ import online.yangcloud.common.utils.RedisTools;
 import online.yangcloud.common.utils.SystemTools;
 import online.yangcloud.web.service.FileService;
 import online.yangcloud.web.service.UserService;
->>>>>>> bcef78c048d219fbbe5466f823075af553acd94b:cloud-storage-disk-api/web/src/main/java/online/yangcloud/web/controller/UserController.java
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
