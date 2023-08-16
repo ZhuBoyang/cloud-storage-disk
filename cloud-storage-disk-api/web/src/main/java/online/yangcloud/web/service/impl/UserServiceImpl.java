@@ -1,6 +1,7 @@
 package online.yangcloud.web.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
@@ -13,10 +14,7 @@ import online.yangcloud.common.model.request.user.UserEnter;
 import online.yangcloud.common.model.request.user.UserInitializer;
 import online.yangcloud.common.model.request.user.UserUpdater;
 import online.yangcloud.common.model.view.user.UserView;
-import online.yangcloud.common.utils.ExceptionTools;
-import online.yangcloud.common.utils.IdTools;
-import online.yangcloud.common.utils.RedisTools;
-import online.yangcloud.common.utils.ValidateTools;
+import online.yangcloud.common.utils.*;
 import online.yangcloud.web.service.FileService;
 import online.yangcloud.web.service.UserService;
 import online.yangcloud.web.service.meta.UserMetaService;
@@ -129,7 +127,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserView updateUserInfo(UserUpdater updater, User user) {
+        String oldAvatar = user.getAvatar();
         boolean flag = Boolean.FALSE;
+        if (StrUtil.isNotBlank(updater.getAvatar())) {
+            user.setAvatar(updater.getAvatar());
+            flag = Boolean.TRUE;
+        }
         if (StrUtil.isNotBlank(updater.getNickName())) {
             user.setNickName(updater.getNickName());
             flag = Boolean.TRUE;
@@ -149,6 +152,9 @@ public class UserServiceImpl implements UserService {
         }
         if (flag) {
             userMetaService.updateUser(user);
+            if (StrUtil.isNotBlank(updater.getAvatar())) {
+                FileUtil.del(SystemTools.systemPath() + oldAvatar);
+            }
         }
         return UserView.convert(user);
     }

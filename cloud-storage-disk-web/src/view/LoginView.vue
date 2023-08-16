@@ -91,7 +91,7 @@ export default {
       http.reqUrl.user.login({ email: this.form.email, password }).then(response => {
         localStorage.setItem('t', response.token)
         localStorage.setItem('id', response.id)
-        this.router.push('/index')
+        this.router.push('/dashboard')
       })
     }
   }

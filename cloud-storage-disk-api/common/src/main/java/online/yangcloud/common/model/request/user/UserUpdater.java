@@ -7,6 +7,11 @@ package online.yangcloud.common.model.request.user;
 public class UserUpdater {
 
     /**
+     * 头像
+     */
+    private String avatar;
+
+    /**
      * 昵称
      */
     private String nickName;
@@ -25,6 +30,14 @@ public class UserUpdater {
      * 手机号
      */
     private String phone;
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
 
     public String getNickName() {
         return nickName;
@@ -61,6 +74,7 @@ public class UserUpdater {
     @Override
     public String toString() {
         return "UserUpdater["
+                + " avatar=" + avatar + ","
                 + " nickName=" + nickName + ","
                 + " birthday=" + birthday + ","
                 + " gender=" + gender + ","

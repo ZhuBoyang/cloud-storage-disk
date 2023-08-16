@@ -105,10 +105,12 @@ public interface AppConstants {
     interface Uploader {
         // 文件块上传缓存
         String FILE_BLOCK_UPLOAD_PREFIX = "file_block_upload:";
+        // 总上传目录
+        String UPLOAD = "upload" + File.separator;
         // 文件上传目录
-        String FILE_UPLOAD_PATH = "upload" + File.separator + "file" + File.separator;
+        String FILE_UPLOAD = UPLOAD + "file" + File.separator;
         // 文件块上传目录
-        String BLOCK_UPLOAD_PATH = "upload" + File.separator + "block" + File.separator;
+        String BLOCK_UPLOAD = UPLOAD + "block" + File.separator;
         // 临时文件存放目录
         String TMP_PATH = "tmp" + File.separator;
     }

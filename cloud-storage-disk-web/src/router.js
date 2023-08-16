@@ -3,12 +3,13 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 const routes = [
   {
     path: '/',
+    component: () => import('./App.vue'),
     redirect: '/home'
   },
   {
     // 引导页
     path: '/home',
-    component: () => import('./App.vue')
+    component: () => import('./view/HomeView.vue')
   },
   {
     // 账户初始化
@@ -23,11 +24,6 @@ const routes = [
   {
     path: '/reset',
     component: () => import('./view/ResetPwdView.vue')
-  },
-  {
-    path: '/index',
-    component: () => import('./view/HomeView.vue'),
-    redirect: '/dashboard'
   },
   {
     path: '/dashboard',

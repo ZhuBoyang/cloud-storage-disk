@@ -23,8 +23,8 @@
         <div class="user-information">
           <div class="username">{{ identifyProperty(user.nickName) }}</div>
           <div class="user-id-form">
-            <div class="form-label">ID Number</div>
-            <div class="form-content"></div>
+            <div class="form-label">账户创建时间</div>
+            <div class="form-content">{{ globalProperties.common.formatDateTime(user.createTime) }}</div>
           </div>
         </div>
         <div class="user-menu">
@@ -39,7 +39,7 @@
                 <div class="form-content">{{ globalProperties.common.formatSizeInPerson(user.usedSpaceSize) }}</div>
               </div>
             </div>
-            <div class="space-statistics-chart">图表</div>
+<!--            <div class="space-statistics-chart">图表</div>-->
           </div>
           <div class="menu-box">
             <div class="menu-item"
@@ -57,8 +57,30 @@
           </div>
         </div>
       </div>
-      <div class="detail-box">
-        <router-view/>
+      <div class="center-container">
+        <div class="detail-background-avatar-box">
+          <div class="background-avatar-image">
+            <img :src="apiConfig().iconBaseUrl + 'center/user_default_background.jpg'" alt=""/>
+          </div>
+          <!--      <div class="background-avatar-action row-col-center">点击上传背景图</div>-->
+          <!--      <input type="file" ref="backgroundUploader"/>-->
+        </div>
+        <div class="detail-information">
+          <div class="user-avatar-box">
+            <div class="avatar-image-box">
+              <div class="avatar-image">
+                <img :src="getAvatar()" :alt="'username'"/>
+              </div>
+              <div class="avatar-upload" @click="openChooseAvatar">点击上传头像</div>
+              <input type="file" ref="avatarUploader" @change="uploadAvatar"/>
+            </div>
+          </div>
+          <div class="user-info-box">
+            <div class="user-name">{{ identifyProperty(user.nickName) }}</div>
+            <div class="user-email">{{ identifyProperty(user.email) }}</div>
+          </div>
+        </div>
+        <router-view class="center-container-view"/>
       </div>
     </div>
   </div>
@@ -82,9 +104,11 @@ export default {
         { key: 'password', name: '修改密码' }
       ],
       user: {
+        avatar: '',
         nickName: '',
         totalSpaceSize: 0,
-        usedSpaceSize: 0
+        usedSpaceSize: 0,
+        createTime: 0
       }
     })
     return {
@@ -127,6 +151,34 @@ export default {
       }
       this.currentRoute = key
       this.router.push(key)
+    },
+    // 选择新头像
+    openChooseAvatar () {
+      this.$refs.avatarUploader.value = ''
+      this.$refs.avatarUploader.click()
+    },
+    // 选择文件并上传
+    uploadAvatar (event) {
+      const avatarFile = event.target.files[0]
+
+      const avatarData = new FormData()
+      avatarData.append('file', avatarFile)
+      avatarData.append('name', avatarFile.name)
+
+      const header = { 'Content-Type': 'multipart/form-data' }
+      http.req(http.url.file.simpleUpload, http.methods.form, avatarData, header).then(response => {
+        if (response) {
+          this.form.avatar = response
+          this.updateInfo()
+        }
+      })
+    },
+    // 获取用户头像
+    getAvatar () {
+      if (this.user.avatar === '') {
+        return apiConfig().iconBaseUrl + 'center/user_default_avatar.jpg'
+      }
+      return apiConfig().apiBaseUrl + this.user.avatar
     },
     identifyProperty (value) {
       if (typeof value === 'string') {
@@ -280,13 +332,105 @@ export default {
         }
       }
     }
-    .detail-box {
+    .center-container {
       margin-left: 30px;
       padding: 20px;
       width: calc(100% - 240px - 30px - 40px);
       height: calc(100% - 40px);
       background-color: #ffffff;
       border-radius: 10px;
+      .detail-background-avatar-box {
+        position: relative;
+        width: 100%;
+        height: 130px;
+        background-color: #2C51E7;
+        border-radius: 10px;
+        cursor: pointer;
+        overflow: hidden;
+        .background-avatar-image {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: #efefef;
+          img {
+            width: 100%;
+            height: 100%;
+          }
+        }
+        .background-avatar-action {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 20px;
+          color: #ffffff;
+          font-size: 12px;
+          background-color: rgba(0, 0, 0, .1);
+        }
+      }
+      .detail-information {
+        position: relative;
+        width: 100%;
+        height: 70px;
+        .user-avatar-box {
+          position: absolute;
+          top: -40px;
+          left: 40px;
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          overflow: hidden;
+          .avatar-image-box {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            .avatar-image {
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              img {
+                width: 100%;
+                height: 100%;
+              }
+            }
+            .avatar-upload {
+              position: absolute;
+              bottom: 0;
+              left: 0;
+              width: 100%;
+              height: 30px;
+              color: #ffffff;
+              font-size: 12px;
+              text-align: center;
+              background-color: rgba(0, 0, 0, .2);
+              cursor: pointer;
+            }
+          }
+        }
+        .user-info-box {
+          position: absolute;
+          top: 10px;
+          left: 170px;
+          .user-name {
+            margin-bottom: 5px;
+            color: #2E57F8;
+            font-size: 20px;
+          }
+          .user-email {
+            color: #68768B;
+            font-size: 14px;
+          }
+        }
+      }
+      .center-container-view {
+        width: 100%;
+        height: calc(100% - 130px - 70px);
+        overflow-y: auto;
+      }
     }
   }
 }

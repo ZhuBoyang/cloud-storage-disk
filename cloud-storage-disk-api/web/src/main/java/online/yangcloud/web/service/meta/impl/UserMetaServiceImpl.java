@@ -1,5 +1,6 @@
 package online.yangcloud.web.service.meta.impl;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.common.AppConstants;
@@ -58,6 +59,7 @@ public class UserMetaServiceImpl implements UserMetaService {
 
     @Override
     public void updateUser(User user) {
+        user.setUpdateTime(DateUtil.date().getTime());
         int updateResult = userMapper.updateById(user);
         if (updateResult == 0) {
             ExceptionTools.businessLogger();

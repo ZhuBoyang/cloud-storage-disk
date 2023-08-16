@@ -41,13 +41,6 @@ service.interceptors.request.use(config => {
   return Promise.reject(error)
 })
 
-const modules = {
-  email: 'email/', // 邮件
-  file: 'file/', // 文件相关
-  user: 'user/', // 用户相关
-  systemSpace: 'space/' // 系统空间
-}
-
 const methods = {
   get: 'get',
   post: 'post',
@@ -75,11 +68,19 @@ const req = function (url, method, data, headers) {
   }
 }
 
+const modules = {
+  email: 'email/', // 邮件
+  file: 'file/', // 文件相关
+  user: 'user/', // 用户相关
+  systemSpace: 'space/' // 系统空间
+}
+
 const url = {
   file: {
     checkExist: modules.file + 'check_exist', // 检查文件块是否已入库
     uploadBlocks: modules.file + 'upload', // 上传文件块
     mergeFile: modules.file + 'merge', // 文件合并
+    simpleUpload: modules.file + 'simple_upload', // 上传简单文件
     download: modules.file + 'download/' // 文件下载
   }
 }

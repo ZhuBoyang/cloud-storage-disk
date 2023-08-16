@@ -98,7 +98,7 @@ public class FileServiceImpl implements FileService {
 
             // 如果检测到文件块还不存在，就说明还没有上传过，那么先进行落地
             if (ObjectUtil.isNull(block)) {
-                String uploadPath = SystemTools.systemPath() + AppConstants.Uploader.BLOCK_UPLOAD_PATH;
+                String uploadPath = SystemTools.systemPath() + AppConstants.Uploader.BLOCK_UPLOAD;
                 if (!FileUtil.exist(uploadPath)) {
                     FileUtil.mkdir(uploadPath);
                 }
@@ -151,7 +151,7 @@ public class FileServiceImpl implements FileService {
         List<String> blockPaths = fileBlocks.stream()
                 .map(o -> SystemTools.systemPath() + blocksPathMap.get(o.getBlockId()))
                 .collect(Collectors.toList());
-        String filePath = SystemTools.systemPath() + AppConstants.Uploader.FILE_UPLOAD_PATH + blockUploaderList.get(0).getIdentifier();
+        String filePath = SystemTools.systemPath() + AppConstants.Uploader.FILE_UPLOAD + blockUploaderList.get(0).getIdentifier();
         FileTools.combineFile(filePath, blockPaths);
         String fileHash = SecureUtil.md5(Files.newInputStream(FileUtil.file(filePath).toPath()));
         if (FileTools.isPic(blockUploaderList.get(0).getExt())) {

@@ -1,21 +1,28 @@
 package online.yangcloud.web.controller;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import online.yangcloud.common.annotation.SessionValid;
-import online.yangcloud.common.common.ResultData;
+import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.common.AppResultCode;
+import online.yangcloud.common.common.ResultData;
 import online.yangcloud.common.model.User;
 import online.yangcloud.common.model.request.BatchOperator;
 import online.yangcloud.common.model.request.file.*;
 import online.yangcloud.common.model.request.user.BreadsLooker;
 import online.yangcloud.common.model.view.PagerView;
 import online.yangcloud.common.model.view.file.FileMetadataView;
+import online.yangcloud.common.utils.ExceptionTools;
+import online.yangcloud.common.utils.IdTools;
+import online.yangcloud.common.utils.SystemTools;
 import online.yangcloud.web.service.FileService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,6 +98,30 @@ public class FileController {
     @PostMapping("/merge")
     public ResultData merge(@Valid @RequestBody FileMerger merger, User user) throws IOException {
         return ResultData.success(fileService.fileMerge(merger.getIdentifier(), user));
+    }
+
+    /**
+     * 上传简单文件
+     *
+     * @param file 文件
+     * @return 文件目录
+     * @throws IOException IOException
+     */
+    @SessionValid
+    @PostMapping("/simple_upload")
+    public ResultData simpleUpload(@RequestParam("file") MultipartFile file) throws IOException {
+        if (ObjectUtil.isNull(file)) {
+            ExceptionTools.paramLogger();
+        }
+        String name = file.getOriginalFilename();
+        if (StrUtil.isBlank(name)) {
+            ExceptionTools.paramLogger();
+        }
+        String fileName = IdTools.fastSimpleUuid();
+        String suffix = name.substring(name.lastIndexOf(StrUtil.DOT));
+        String filePath = AppConstants.Uploader.UPLOAD + fileName + suffix;
+        file.transferTo(new File(SystemTools.systemPath() + filePath));
+        return ResultData.success(filePath);
     }
 
     /**

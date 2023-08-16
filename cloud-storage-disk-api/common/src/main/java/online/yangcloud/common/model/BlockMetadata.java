@@ -46,7 +46,7 @@ public class BlockMetadata extends BaseParameter {
         return new BlockMetadata()
                 .setId(IdTools.fastSimpleUuid())
                 .setHash(hash)
-                .setPath(AppConstants.Uploader.BLOCK_UPLOAD_PATH + hash)
+                .setPath(AppConstants.Uploader.BLOCK_UPLOAD + hash)
                 .setSize(blockSize);
     }
 

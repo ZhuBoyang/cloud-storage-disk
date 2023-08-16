@@ -58,6 +58,11 @@ public class UserView {
      */
     private Long usedSpaceSize;
 
+    /**
+     * 账号创建时间
+     */
+    private Long createTime;
+
     public static UserView convert(User user) {
         return new UserView()
                 .setId(user.getId())
@@ -69,7 +74,8 @@ public class UserView {
                 .setGender(user.getGender())
                 .setPhone(user.getPhone())
                 .setTotalSpaceSize(user.getTotalSpaceSize())
-                .setUsedSpaceSize(user.getUsedSpaceSize());
+                .setUsedSpaceSize(user.getUsedSpaceSize())
+                .setCreateTime(user.getCreateTime());
     }
 
     public String getId() {
@@ -162,6 +168,15 @@ public class UserView {
         return this;
     }
 
+    public Long getCreateTime() {
+        return createTime;
+    }
+
+    public UserView setCreateTime(Long createTime) {
+        this.createTime = createTime;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "UserView["
@@ -174,7 +189,8 @@ public class UserView {
                 + " gender=" + gender + ","
                 + " phone=" + phone + ","
                 + " totalSpaceSize=" + totalSpaceSize + ","
-                + " usedSpaceSize=" + usedSpaceSize
+                + " usedSpaceSize=" + usedSpaceSize + ","
+                + " createTime=" + createTime
                 + " ]";
     }
 }

@@ -1,25 +1,5 @@
 <template>
   <div class="user-self">
-    <div class="detail-background-avatar-box">
-      <div class="background-avatar-image">
-        <img :src="apiConfig().iconBaseUrl + 'center/user_default_background.jpg'" alt=""/>
-      </div>
-      <div class="background-avatar-action row-col-center">点击上传背景图</div>
-    </div>
-    <div class="detail-information">
-      <div class="user-avatar-box">
-        <div class="avatar-image-box">
-          <div class="avatar-image">
-            <img :src="apiConfig().iconBaseUrl + 'center/user_default_avatar.jpg'" :alt="'username'"/>
-          </div>
-          <div class="avatar-upload">点击上传头像</div>
-        </div>
-      </div>
-      <div class="user-info-box">
-        <div class="user-name">{{ identifyProperty(user.nickName) }}</div>
-        <div class="user-email">{{ identifyProperty(user.email) }}</div>
-      </div>
-    </div>
     <div class="detail-form">
       <a-form :model="user" label-align="left">
         <a-form-item label="用户名">
@@ -96,6 +76,7 @@ export default {
       modelVisible: false,
       form: {
         id: '',
+        avatar: '',
         property: '',
         nickName: '',
         birthday: 0,
@@ -176,6 +157,7 @@ export default {
     cancelUpdate () {
       this.form = {
         id: '',
+        avatar: '',
         property: '',
         nickName: '',
         birthday: 0,
@@ -196,99 +178,9 @@ export default {
 
 <style scoped lang="scss">
 .user-self {
-  width: 100%;
-  height: 100%;
-  .detail-background-avatar-box {
-    position: relative;
-    width: 100%;
-    height: 130px;
-    background-color: #2C51E7;
-    border-radius: 10px;
-    cursor: pointer;
-    overflow: hidden;
-    .background-avatar-image {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: #efefef;
-      img {
-        width: 100%;
-        height: 100%;
-      }
-    }
-    .background-avatar-action {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 20px;
-      color: #ffffff;
-      font-size: 12px;
-      background-color: rgba(0, 0, 0, .1);
-    }
-  }
-  .detail-information {
-    position: relative;
-    width: 100%;
-    height: 70px;
-    .user-avatar-box {
-      position: absolute;
-      top: -40px;
-      left: 40px;
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      overflow: hidden;
-      .avatar-image-box {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        .avatar-image {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          img {
-            width: 100%;
-            height: 100%;
-          }
-        }
-        .avatar-upload {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          height: 30px;
-          color: #ffffff;
-          font-size: 12px;
-          text-align: center;
-          background-color: rgba(0, 0, 0, .2);
-          cursor: pointer;
-        }
-      }
-    }
-    .user-info-box {
-      position: absolute;
-      top: 10px;
-      left: 170px;
-      .user-name {
-        margin-bottom: 5px;
-        color: #2E57F8;
-        font-size: 20px;
-      }
-      .user-email {
-        color: #68768B;
-        font-size: 14px;
-      }
-    }
-  }
   .detail-form {
     margin-top: 20px;
     margin-left: 50px;
-    height: calc(100% - 130px - 70px - 20px);
     overflow-y: auto;
     .edit-btn {
       margin-left: 10px;

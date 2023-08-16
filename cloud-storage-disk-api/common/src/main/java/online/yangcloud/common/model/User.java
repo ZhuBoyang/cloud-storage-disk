@@ -88,7 +88,7 @@ public class User extends BaseParameter {
                 .setAvatar(CharSequenceUtil.EMPTY)
                 .setBirthday(0L)
                 .setAge(0)
-                .setGender(0)
+                .setGender(-1)
                 .setPhone(CharSequenceUtil.EMPTY)
                 .setTotalSpaceSize(AppConstants.Account.TOTAL_SPACE_SIZE)
                 .setUsedSpaceSize(0L);
