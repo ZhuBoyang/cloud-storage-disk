@@ -3,7 +3,7 @@ package online.yangcloud.web.controller;
 import cn.hutool.core.util.StrUtil;
 import online.yangcloud.common.annotation.SessionValid;
 import online.yangcloud.common.common.ResultData;
-import online.yangcloud.common.common.resultcode.AppResultCode;
+import online.yangcloud.common.common.AppResultCode;
 import online.yangcloud.common.model.User;
 import online.yangcloud.common.model.request.BatchOperator;
 import online.yangcloud.common.model.request.file.*;

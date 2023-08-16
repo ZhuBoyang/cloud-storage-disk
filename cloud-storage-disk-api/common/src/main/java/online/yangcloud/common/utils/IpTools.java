@@ -1,7 +1,7 @@
 package online.yangcloud.common.utils;
 
 import cn.hutool.core.util.StrUtil;
-import online.yangcloud.common.common.constants.AppConstants;
+import online.yangcloud.common.common.AppConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

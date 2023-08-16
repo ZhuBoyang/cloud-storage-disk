@@ -15,7 +15,8 @@
       <div class="page-box">
         <div class="form-title">登录你的账户</div>
         <div class="form-account-register">还没有账号？
-          <a-button type="text" shape="round" @click="globalProperties.common.jumpUrl('/register', router)">注册</a-button>
+          <a-button type="text" shape="round" @click="globalProperties.common.jumpUrl('/register', router)">注册
+          </a-button>
         </div>
         <a-form :model="form" layout="vertical">
           <a-form-item field="email" label="邮箱">
@@ -26,7 +27,8 @@
           </a-form-item>
           <a-form-item>
             <div class="account-fix">
-              <a-button type="text" shape="round" @click="globalProperties.common.jumpUrl('/reset', router)">忘记密码？</a-button>
+              <a-button type="text" shape="round" @click="globalProperties.common.jumpUrl('/reset', router)">忘记密码？
+              </a-button>
             </div>
           </a-form-item>
           <a-form-item>
@@ -44,6 +46,7 @@ import { useRouter } from 'vue-router'
 import http from '../api/http.js'
 import apiConfig from '../api/apiConfig.js'
 import common from '../tools/common.js'
+import md5 from 'js-md5'
 
 export default {
   name: 'LoginView',
@@ -66,19 +69,28 @@ export default {
     apiConfig,
     // 登录
     login () {
-      const { email, password } = this.form
-      if (email.trim() === '') {
+      // 参数校验
+      if (this.form.email.trim() === '') {
         common.notify.warning('请输入邮箱')
         return
       }
-      if (password.trim() === '') {
+      if (this.form.password.trim() === '') {
         common.notify.warning('请输入密码')
         return
       }
-      http.reqUrl.user.login({ email, password }).then(response => {
-        const { token, id } = response
-        localStorage.setItem('t', token)
-        localStorage.setItem('id', id)
+
+      // 对密码进行 md5 加密，防止向接口传输中出现明文
+      const passwordEncryptCount = Math.floor(Math.random() * 10)
+      let password = this.form.password.trim()
+      for (let i = 0; i < passwordEncryptCount; i++) {
+        password = md5(password)
+      }
+      password = passwordEncryptCount + password
+
+      // 请求
+      http.reqUrl.user.login({ email: this.form.email, password }).then(response => {
+        localStorage.setItem('t', response.token)
+        localStorage.setItem('id', response.id)
         this.router.push('/index')
       })
     }

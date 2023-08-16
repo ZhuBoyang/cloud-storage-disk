@@ -3,7 +3,7 @@ package online.yangcloud.common.aspect;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.annotation.SessionValid;
-import online.yangcloud.common.common.constants.AppConstants;
+import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.utils.ExceptionTools;
 import online.yangcloud.common.utils.RedisTools;
 import online.yangcloud.common.utils.SystemTools;
@@ -11,6 +11,7 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,9 +71,9 @@ public class ServletLogAspect {
         long end = System.currentTimeMillis();
         long takeTime = end - begin;
 
-        if (takeTime >= 0 && takeTime < AppConstants.NORMAL_TIMING) {
+        if (takeTime >= 0 && takeTime < AppConstants.Consuming.NORMAL_TIMING) {
             logger.info("====== {}.{} 执行结束，耗时：{} 毫秒 =======", clazz, methodName, takeTime);
-        } else if (takeTime >= AppConstants.NORMAL_TIMING && takeTime < AppConstants.WARN_TIMING) {
+        } else if (takeTime >= AppConstants.Consuming.NORMAL_TIMING && takeTime < AppConstants.Consuming.WARN_TIMING) {
             logger.warn("====== {}.{} 执行结束，耗时：{} 毫秒 =======", clazz, methodName, takeTime);
         } else {
             logger.error("====== {}.{} 执行结束，耗时：{} 毫秒 =======", clazz, methodName, takeTime);
@@ -118,7 +119,7 @@ public class ServletLogAspect {
                     if (StrUtil.isBlank(sessionId)) {
                         ExceptionTools.paramLogger();
                     } else {
-                        String tokenInfo = redisTools.get(AppConstants.User.LOGIN_TOKEN + sessionId);
+                        String tokenInfo = redisTools.get(AppConstants.Account.LOGIN_TOKEN + sessionId);
                         if (StrUtil.isBlank(tokenInfo)) {
                             ExceptionTools.businessLogger();
                         }
@@ -138,6 +139,21 @@ public class ServletLogAspect {
     }
 
     /**
+     * 阻止重复请求
+     *
+     * @param joinPoint 断点
+     */
+    @Around("@annotation(online.yangcloud.common.annotation.RepeatRequest)")
+    public Object preventRepeatRequest(ProceedingJoinPoint joinPoint) throws Throwable {
+        String key = "repeat_request";
+        Boolean flag = redisTools.setIfAbsent(key, StrUtil.EMPTY);
+        if (!flag) {
+            ExceptionTools.businessLogger("操作太快了，系统反应不过来了");
+        }
+        return joinPoint.proceed();
+    }
+
+    /**
      * 对请求进行拦截，并检测 token 是否已过期。已过期则不予通行；未过期则对 token 时效进行续期，并予以通过
      *
      * @param isNeedValid 是否需要检测
@@ -149,16 +165,16 @@ public class ServletLogAspect {
         String sessionId = SystemTools.getHeaders().getAuthorization();
         if (StrUtil.isNotBlank(sessionId)) {
             logger.info("session id [{}]", sessionId);
-            String userInfoJson = redisTools.get(AppConstants.User.LOGIN_TOKEN + sessionId);
+            String userInfoJson = redisTools.get(AppConstants.Account.LOGIN_TOKEN + sessionId);
             if (StrUtil.isNotBlank(userInfoJson)) {
-                long expireTime = redisTools.getExpireTime(AppConstants.User.LOGIN_TOKEN + sessionId);
+                long expireTime = redisTools.getExpireTime(AppConstants.Account.LOGIN_TOKEN + sessionId);
                 // 当session还剩5分钟过期的时候，再次请求就会对session进行续期
-                if (expireTime < AppConstants.User.LOGIN_SESSION_EXPIRE_TIME
-                        && expireTime != AppConstants.User.ACCOUNT_EXPIRED_STATUS
-                        && expireTime != AppConstants.User.ACCOUNT_NOT_EXIST_STATUS) {
+                if (expireTime < AppConstants.Account.LOGIN_SESSION_EXPIRE_TIME
+                        && expireTime != AppConstants.Account.ACCOUNT_EXPIRED_STATUS
+                        && expireTime != AppConstants.Account.ACCOUNT_NOT_EXIST_STATUS) {
                     logger.info("The login status of account [{}] is about to expire. Now it starts to renew. The renewal period is [{}]s",
-                            userInfoJson, AppConstants.User.LOGIN_SESSION_EXPIRE_TIME);
-                    redisTools.expire(AppConstants.User.LOGIN_TOKEN + sessionId, userInfoJson, AppConstants.User.LOGIN_SESSION_EXPIRE_TIME);
+                            userInfoJson, AppConstants.Account.LOGIN_SESSION_EXPIRE_TIME);
+                    redisTools.expire(AppConstants.Account.LOGIN_TOKEN + sessionId, userInfoJson, AppConstants.Account.LOGIN_SESSION_EXPIRE_TIME);
                 }
             } else {
                 ExceptionTools.noAuthExp("Login has expired, please go to login");

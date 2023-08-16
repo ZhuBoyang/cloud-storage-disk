@@ -2,7 +2,7 @@ package online.yangcloud.web.service;
 
 import online.yangcloud.common.model.User;
 import online.yangcloud.common.model.request.user.UserEnter;
-import online.yangcloud.common.model.request.user.UserRegister;
+import online.yangcloud.common.model.request.user.UserInitializer;
 import online.yangcloud.common.model.request.user.UserUpdater;
 import online.yangcloud.common.model.view.user.UserView;
 
@@ -15,11 +15,11 @@ import java.util.List;
 public interface UserService {
 
     /**
-     * 注册账户
+     * 初始化账户信息
      *
-     * @param register 账户邮箱和密码（加密过的）
+     * @param initializer 账户邮箱和密码（加密过的）
      */
-    void register(UserRegister register);
+    void initialize(UserInitializer initializer);
 
     /**
      * 用户登录

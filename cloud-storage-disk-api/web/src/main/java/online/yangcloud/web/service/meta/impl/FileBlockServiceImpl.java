@@ -1,6 +1,6 @@
 package online.yangcloud.web.service.meta.impl;
 
-import online.yangcloud.common.common.constants.AppConstants;
+import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.enumration.YesOrNoEnum;
 import online.yangcloud.common.mapper.FileBlockMapper;
 import online.yangcloud.common.model.FileBlock;

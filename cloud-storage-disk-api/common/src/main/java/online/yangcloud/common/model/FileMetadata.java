@@ -3,9 +3,10 @@ package online.yangcloud.common.model;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
-import online.yangcloud.common.common.constants.AppConstants;
+import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.enumration.FileTypeEnum;
 import online.yangcloud.common.model.request.file.FileUploader;
 import online.yangcloud.common.utils.IdTools;
@@ -148,7 +149,7 @@ public class FileMetadata extends BaseParameter {
     public static int calculateFileSuffixNumber(List<FileMetadata> files, String fileName) {
         int fileNumber = 0;
         List<Integer> numbers = new ArrayList<>();
-        if (files.size() > 0) {
+        if (!files.isEmpty()) {
             for (FileMetadata file : files) {
                 String name = file.getName();
                 if (name.equals(fileName)) {
@@ -167,15 +168,15 @@ public class FileMetadata extends BaseParameter {
             }
         }
         Collections.sort(numbers);
-        return numbers.size() == 0 ? fileNumber : numbers.get(numbers.size() - 1) + 1;
+        return numbers.isEmpty() ? fileNumber : numbers.get(numbers.size() - 1) + 1;
     }
 
     public List<String> queryAncestors() {
-        return CharSequenceUtil.split(ancestors, AppConstants.FileMetadata.ANCESTOR_SEPARATOR);
+        return CharSequenceUtil.split(ancestors, StrUtil.UNDERLINE);
     }
 
     public List<String> addIdInAncestors() {
-        List<String> ancestors = CharSequenceUtil.split(this.ancestors, AppConstants.FileMetadata.ANCESTOR_SEPARATOR);
+        List<String> ancestors = CharSequenceUtil.split(this.ancestors, StrUtil.UNDERLINE);
         ancestors.add(this.id);
         return ancestors;
     }
@@ -185,7 +186,7 @@ public class FileMetadata extends BaseParameter {
         for (int i = 0; i < ancestors.size(); i++) {
             sbr.append(ancestors.get(i));
             if (i != ancestors.size() - 1) {
-                sbr.append(AppConstants.FileMetadata.ANCESTOR_SEPARATOR);
+                sbr.append(StrUtil.UNDERLINE);
             }
         }
         this.ancestors = sbr.toString();

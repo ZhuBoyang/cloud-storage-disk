@@ -3,16 +3,22 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 const routes = [
   {
     path: '/',
-    component: () => import('./App.vue'),
-    redirect: '/login'
+    redirect: '/home'
   },
   {
+    // 引导页
+    path: '/home',
+    component: () => import('./App.vue')
+  },
+  {
+    // 账户初始化
+    path: '/initial',
+    component: () => import('./view/InitialView.vue')
+  },
+  {
+    // 登录
     path: '/login',
     component: () => import('./view/LoginView.vue')
-  },
-  {
-    path: '/register',
-    component: () => import('./view/RegisterView.vue')
   },
   {
     path: '/reset',
@@ -21,28 +27,27 @@ const routes = [
   {
     path: '/index',
     component: () => import('./view/HomeView.vue'),
+    redirect: '/dashboard'
+  },
+  {
+    path: '/dashboard',
+    component: () => import('./view/DashboardView.vue'),
     children: [
       {
-        path: '/dashboard',
-        component: () => import('./view/DashboardView.vue'),
-        children: [
-          {
-            path: '/dashboard/files',
-            component: () => import('./view/FileView.vue')
-          },
-          {
-            path: '/dashboard/trash',
-            component: () => import('./view/TrashView.vue')
-          },
-          {
-            path: '/dashboard/transformer',
-            component: () => import('./view/TransformerView.vue')
-          },
-          {
-            path: '/dashboard/application',
-            component: () => import('./view/ApplicationView.vue')
-          }
-        ]
+        path: '/dashboard/files',
+        component: () => import('./view/FileView.vue')
+      },
+      {
+        path: '/dashboard/trash',
+        component: () => import('./view/TrashView.vue')
+      },
+      {
+        path: '/dashboard/transformer',
+        component: () => import('./view/TransformerView.vue')
+      },
+      {
+        path: '/dashboard/application',
+        component: () => import('./view/ApplicationView.vue')
       }
     ]
   },

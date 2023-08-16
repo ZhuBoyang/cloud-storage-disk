@@ -1,7 +1,5 @@
 package online.yangcloud.common.common;
 
-import online.yangcloud.common.common.resultcode.AppResultCode;
-
 /**
  * @author zhuboyang
  * @since 2021/9/8 07:50

@@ -1,6 +1,6 @@
 package online.yangcloud.common.utils;
 
-import online.yangcloud.common.common.resultcode.AppResultCode;
+import online.yangcloud.common.common.AppResultCode;
 import online.yangcloud.common.exception.BusinessException;
 import online.yangcloud.common.exception.DuplicateSubmissionException;
 import online.yangcloud.common.exception.NoAuthException;

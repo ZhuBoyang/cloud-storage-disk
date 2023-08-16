@@ -9,8 +9,8 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.json.JSONUtil;
-import online.yangcloud.common.common.constants.AppConstants;
-import online.yangcloud.common.common.resultcode.AppResultCode;
+import online.yangcloud.common.common.AppConstants;
+import online.yangcloud.common.common.AppResultCode;
 import online.yangcloud.common.enumration.FileTypeEnum;
 import online.yangcloud.common.enumration.YesOrNoEnum;
 import online.yangcloud.common.model.BlockMetadata;
@@ -193,7 +193,7 @@ public class FileServiceImpl implements FileService {
         FileMetadata parent = fileMetadataService.queryById(pid, userId);
 
         // 拼接文件夹名，并入库
-        name = fileNumber == 0 ? name : name + AppConstants.LEFT_BRACKET + fileNumber + AppConstants.RIGHT_BRACKET;
+        name = fileNumber == 0 ? name : name + AppConstants.Special.LEFT_BRACKET + fileNumber + AppConstants.Special.RIGHT_BRACKET;
         FileMetadata file = FileMetadata.initialDir(pid, name, parent.queryAncestors(), userId);
         fileMetadataService.insertWidthPrimaryKey(file);
         return FileMetadataView.convert(file);
@@ -515,7 +515,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public String calculateName(String pid, String name, Integer fileType) {
         Integer fileNumber = calculateSuffixNumber(pid, name, fileType);
-        return fileNumber == 0 ? name : name + AppConstants.LEFT_BRACKET + fileNumber + AppConstants.RIGHT_BRACKET;
+        return fileNumber == 0 ? name : name + AppConstants.Special.LEFT_BRACKET + fileNumber + AppConstants.Special.RIGHT_BRACKET;
     }
 
     @Override

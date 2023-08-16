@@ -4,7 +4,7 @@ spring:
     name: cloud-storage-disk
   # active profile
   profiles:
-    active: dev
+    active: prod
   # database driver
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver

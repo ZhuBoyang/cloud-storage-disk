@@ -105,6 +105,16 @@ public class RedisTools {
     }
 
     /**
+     * 使用 setIfAbsent 进行设置，防止并发问题
+     *
+     * @param key   redisKey
+     * @param value redisValue
+     */
+    public Boolean setIfAbsent(String key, String value) {
+        return setIfAbsent(key, value, 2, TimeUnit.SECONDS);
+    }
+
+    /**
      * 根据redisKey获取过期时间
      *
      * @param redisKey redisKey

@@ -1,6 +1,6 @@
 import axios from 'axios'
 import apiConfig from './apiConfig.js'
-import { Notification } from '@arco-design/web-vue'
+import common from '../tools/common.js'
 
 const service = axios.create({
   baseURL: apiConfig().apiBaseUrl,
@@ -15,25 +15,16 @@ service.interceptors.response.use(config => {
   const { code, message } = response
   if (code === 200) {
     if (message !== '') {
-      Notification.success({
-        title: message,
-        content: ''
-      })
+      common.notify.success(message)
     }
     return response.data
   } else if (code >= 10000) {
     if (code === 11000) {
-      Notification.error({
-        title: message,
-        content: ''
-      })
+      common.notify.error(message)
       const { protocol, host } = window.location
       window.location.href = `${protocol}//${host}/login`
     } else {
-      Notification.error({
-        title: message,
-        content: ''
-      })
+      common.notify.error(message)
       return Promise.reject(response)
     }
   }
@@ -94,11 +85,9 @@ const url = {
 }
 
 const reqUrl = {
-  email: {
-    sendRegCoder: email => req(modules.email + 'register', methods.post, { email })
-  },
   user: {
-    register: obj => req(modules.user + 'register', methods.post, obj),
+    hasInitialed: obj => req(modules.user + 'has_initial', methods.post, obj),
+    initial: obj => req(modules.user + 'initial', methods.post, obj),
     login: obj => req(modules.user + 'login', methods.post, obj),
     logout: () => req(modules.user + 'logout', methods.post),
     update: obj => req(modules.user + 'update', methods.post, obj),

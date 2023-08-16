@@ -102,7 +102,9 @@ const readLocalFile = (fileUrl) => {
 }
 
 const notify = {
-  warning: msg => { Notification.warning({ title: '警告', content: msg }) }
+  warning: msg => { Notification.warning({ title: '警告', content: msg }) },
+  success: msg => { Notification.success({ title: '操作成功', content: msg }) },
+  error: msg => { Notification.error({ title: '操作失败', content: msg }) }
 }
 
 // 重写浏览器地址中的 query 参数

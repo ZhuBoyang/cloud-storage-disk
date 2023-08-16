@@ -4,7 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import online.yangcloud.common.common.constants.AppConstants;
+import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.enumration.FileTypeEnum;
 import online.yangcloud.common.enumration.YesOrNoEnum;
 import online.yangcloud.common.mapper.FileMetadataMapper;
@@ -175,7 +175,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
     public List<FileMetadata> queryLikePrefix(String pid, String fileName, FileTypeEnum type) {
         return fileMetadataMapper.listEntity(fileMetadataMapper.query()
                 .where.pid().eq(pid)
-                .and.name().like(fileName.trim() + AppConstants.PERCENT)
+                .and.name().like(fileName.trim() + AppConstants.Special.PERCENT)
                 .and.type().eq(type.code())
                 .and.isDelete().eq(YesOrNoEnum.NO.code()).end());
     }
@@ -213,7 +213,7 @@ public class FileMetadataServiceImpl implements FileMetadataService {
             query.where.pid().eq(pid);
         }
         if (CharSequenceUtil.isNotBlank(name)) {
-            query.where.name().like(name.trim().replaceAll(CharSequenceUtil.EMPTY, AppConstants.PERCENT));
+            query.where.name().like(name.trim().replaceAll(CharSequenceUtil.EMPTY, AppConstants.Special.PERCENT));
         }
         if (isOnlyDir) {
             query.where.type().eq(FileTypeEnum.DIR.code());

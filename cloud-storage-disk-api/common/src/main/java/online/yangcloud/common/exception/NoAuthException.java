@@ -1,7 +1,7 @@
 package online.yangcloud.common.exception;
 
 import online.yangcloud.common.common.ResultCode;
-import online.yangcloud.common.common.resultcode.UserResultCode;
+import online.yangcloud.common.common.UserResultCode;
 import online.yangcloud.common.enumration.SuperEnum;
 
 /**

@@ -1,16 +1,16 @@
 package online.yangcloud.web.service.impl;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.json.JSONUtil;
-import online.yangcloud.common.common.constants.AppConstants;
+import online.yangcloud.common.common.AppConstants;
+import online.yangcloud.common.common.AppProperties;
 import online.yangcloud.common.model.User;
-import online.yangcloud.common.model.business.email.EmailCodeInfo;
 import online.yangcloud.common.model.request.user.UserEnter;
-import online.yangcloud.common.model.request.user.UserRegister;
+import online.yangcloud.common.model.request.user.UserInitializer;
 import online.yangcloud.common.model.request.user.UserUpdater;
 import online.yangcloud.common.model.view.user.UserView;
 import online.yangcloud.common.utils.ExceptionTools;
@@ -20,7 +20,6 @@ import online.yangcloud.common.utils.ValidateTools;
 import online.yangcloud.web.service.FileService;
 import online.yangcloud.web.service.UserService;
 import online.yangcloud.web.service.meta.UserMetaService;
-import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,36 +46,42 @@ public class UserServiceImpl implements UserService {
     @Resource
     private RedisTools redisTools;
 
-    @Resource
-    private RedissonClient redissonClient;
-
     @Override
-    public void register(UserRegister register) {
-        // 检测邮箱验证码是否合法
-        String coderInfo = redisTools.get(AppConstants.Email.REGISTER_EMAIL_REDIS_KEY + register.getEmail());
-        if (CharSequenceUtil.isBlank(coderInfo)) {
-            ExceptionTools.businessLogger("验证码已过期，请重新发送");
-        }
-        EmailCodeInfo coderObj = JSONUtil.toBean(coderInfo, EmailCodeInfo.class);
-        if (!coderObj.getEmailCode().equals(register.getCode())) {
-            ExceptionTools.businessLogger("验证码错误，请重新输入");
+    public void initialize(UserInitializer initializer) {
+        // 检测是否已完成账户信息初始化
+        if (AppProperties.accountHasInitial) {
+            ExceptionTools.businessLogger("已完成账户初始化，请前往登录");
         }
 
-        // 检测邮箱是否已被注册
-        User user = userMetaService.queryUserByEmail(register.getEmail());
-        if (ObjectUtil.isNotNull(user)) {
-            ExceptionTools.businessLogger("邮箱已被注册");
+        // 校验邮箱格式是否合法
+        if (!ReUtil.isMatch(AppConstants.Regex.EMAIL_REGULAR, initializer.getEmail())) {
+            ExceptionTools.businessLogger("邮箱不合法，请查证后重新输入");
         }
 
-        // 记录用户账户信息至库中
-        user = User.initial(register.getEmail(), register.getPassword());
-        userMetaService.insertUser(user);
+        // 完成指定次数对密码的 md5 加密
+        int lastCount = AppConstants.Account.ENCRYPT_COUNT - Integer.parseInt(initializer.getPassword().substring(0, 1));
+        String password = StrUtil.sub(initializer.getPassword(), 1, initializer.getPassword().length());
+        password = ValidateTools.encryptInCount(password, lastCount);
+
+        // 完成指定次数对重复密码的 md5 加密
+        lastCount = AppConstants.Account.ENCRYPT_COUNT - Integer.parseInt(initializer.getRepeat().substring(0, 1));
+        String repeat = StrUtil.sub(initializer.getRepeat(), 1, initializer.getRepeat().length());
+        repeat = ValidateTools.encryptInCount(repeat, lastCount);
+
+        // 对比密码是否一致
+        if (!password.equals(repeat)) {
+            ExceptionTools.businessLogger("两次输入不一致，请重新输入");
+        }
+
+        // 初始化用户账户信息
+        User account = User.initial(initializer.getEmail(), password);
+        userMetaService.insertUser(account);
 
         // 创建用户的文件根目录
-        fileService.initialUserRoot(user.getId());
+        fileService.initialUserRoot(account.getId());
 
-        // 删除 redis 中的邮箱验证码
-        redisTools.delete(AppConstants.Email.REGISTER_EMAIL_REDIS_KEY + register.getEmail());
+        // 修改是否已完成初始化的标志
+        AppProperties.accountHasInitial = Boolean.TRUE;
     }
 
     @Override
@@ -86,16 +91,19 @@ public class UserServiceImpl implements UserService {
         ValidateTools.validObjIsNotFound(user);
 
         // 检测密码是否正确
-        if (!user.getPassword().equals(SecureUtil.md5(enter.getPassword()))) {
+        int encryptCount = AppConstants.Account.ENCRYPT_COUNT - Integer.parseInt(enter.getPassword().substring(0, 1));
+        String password = StrUtil.sub(enter.getPassword(), 1, enter.getPassword().length());
+        password = ValidateTools.encryptInCount(password, encryptCount);
+        if (!user.getPassword().equals(password)) {
             ExceptionTools.businessLogger("邮箱或密码错误");
         }
 
         // 将用户信息存入 redis，生成会话 session，并返回
         String sessionId = IdTools.fastSimpleUuid();
         String userInfo = JSONUtil.toJsonStr(UserView.convert(user));
-        redisTools.expire(AppConstants.User.LOGIN_TOKEN + sessionId,
+        redisTools.expire(AppConstants.Account.LOGIN_TOKEN + sessionId,
                 userInfo,
-                AppConstants.User.LOGIN_SESSION_EXPIRE_TIME,
+                AppConstants.Account.LOGIN_SESSION_EXPIRE_TIME,
                 TimeUnit.MINUTES
         );
         return sessionId;

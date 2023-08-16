@@ -2,7 +2,7 @@ package online.yangcloud.common.utils;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.sun.management.OperatingSystemMXBean;
-import online.yangcloud.common.common.constants.AppConstants;
+import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.model.business.HeadersParameters;
 import online.yangcloud.common.model.view.DiskInfoView;
 import online.yangcloud.common.model.view.MemoryInfoView;
@@ -110,7 +110,7 @@ public class SystemTools {
         }
         // get the request
         HttpServletRequest request = requestAttributes.getRequest();
-        return new HeadersParameters().setAuthorization(request.getHeader(AppConstants.User.AUTHORIZATION));
+        return new HeadersParameters().setAuthorization(request.getHeader(AppConstants.Account.AUTHORIZATION));
     }
 
 }

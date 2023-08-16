@@ -1,4 +1,4 @@
-package online.yangcloud.common.common.resultcode;
+package online.yangcloud.common.common;
 
 import online.yangcloud.common.common.ResultCode;
 
@@ -37,10 +37,6 @@ public interface AppResultCode {
          * 网盘空间不足，无法完成操作！请增加磁盘存储。
          */
         String DISK_SIZE_NOT_ENOUGH = "磁盘空间不足";
-        /**
-         * 没有权限执行
-         */
-        String NO_AUTH_PROCESS = "没有权限执行此操作";
     }
 
     /**
@@ -71,7 +67,7 @@ public interface AppResultCode {
      */
     ResultCode INVALID_PARAM_VALUE = ResultCode.newInstance(10004, Msg.INVALID_PARAM_VALUE);
     /**
-     * 请求method错误
+     * 请求 method 错误
      */
     ResultCode HTTP_REQUEST_METHOD_NOT_SUPPORTED = ResultCode.newInstance(10005, Msg.HTTP_REQUEST_METHOD_NOT_SUPPORTED);
 }

@@ -2,7 +2,8 @@ package online.yangcloud.common.utils;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReUtil;
-import online.yangcloud.common.common.constants.AppConstants;
+import cn.hutool.crypto.SecureUtil;
+import online.yangcloud.common.common.AppConstants;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -22,7 +23,7 @@ public class ValidateTools {
      * @return result
      */
     public static boolean validEmail(String email) {
-        return ReUtil.isMatch(AppConstants.Email.EMAIL_REGULAR, email);
+        return ReUtil.isMatch(AppConstants.Regex.EMAIL_REGULAR, email);
     }
 
     /**
@@ -32,7 +33,7 @@ public class ValidateTools {
      * @return result
      */
     public static boolean validPhone(String phone) {
-        return ReUtil.isMatch(AppConstants.PHONE_REGULAR, phone);
+        return ReUtil.isMatch(AppConstants.Regex.PHONE_REGULAR, phone);
     }
 
     /**
@@ -81,6 +82,20 @@ public class ValidateTools {
             }
         }
         return age;
+    }
+
+    /**
+     * 对字符串进行指定次数的加密
+     *
+     * @param str   待加密字符串
+     * @param count 加密次数
+     * @return 解密后字符串
+     */
+    public static String encryptInCount(String str, Integer count) {
+        for (int i = 0; i < count; i++) {
+            str = SecureUtil.md5(str);
+        }
+        return str;
     }
 
 }

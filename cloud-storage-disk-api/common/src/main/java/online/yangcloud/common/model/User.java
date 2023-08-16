@@ -1,11 +1,12 @@
 package online.yangcloud.common.model;
 
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.annotation.TokenEntity;
-import online.yangcloud.common.common.constants.AppConstants;
+import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.utils.IdTools;
 
 /**
@@ -81,15 +82,15 @@ public class User extends BaseParameter {
     public static User initial(String email, String password) {
         return new User()
                 .setId(IdTools.fastSimpleUuid())
-                .setNickName(email)
+                .setNickName(email.substring(0, email.indexOf(StrUtil.AT)))
                 .setEmail(email)
-                .setPassword(SecureUtil.md5(password))
+                .setPassword(password)
                 .setAvatar(CharSequenceUtil.EMPTY)
                 .setBirthday(0L)
                 .setAge(0)
                 .setGender(0)
                 .setPhone(CharSequenceUtil.EMPTY)
-                .setTotalSpaceSize(AppConstants.User.TOTAL_SPACE_SIZE)
+                .setTotalSpaceSize(AppConstants.Account.TOTAL_SPACE_SIZE)
                 .setUsedSpaceSize(0L);
     }
 

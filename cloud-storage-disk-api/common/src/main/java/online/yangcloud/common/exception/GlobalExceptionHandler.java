@@ -1,8 +1,8 @@
 package online.yangcloud.common.exception;
 
 import online.yangcloud.common.common.ResultData;
-import online.yangcloud.common.common.resultcode.AppResultCode;
-import online.yangcloud.common.common.resultcode.UserResultCode;
+import online.yangcloud.common.common.AppResultCode;
+import online.yangcloud.common.common.UserResultCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ControllerAdvice;

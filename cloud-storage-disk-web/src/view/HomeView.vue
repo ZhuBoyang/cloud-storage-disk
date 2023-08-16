@@ -5,14 +5,8 @@
 </template>
 
 <script>
-import { useRouter } from 'vue-router'
-
 export default {
-  name: 'HomePage',
-  setup () {
-    const router = useRouter()
-    router.push('/dashboard')
-  }
+  name: 'HomePage'
 }
 </script>
 
