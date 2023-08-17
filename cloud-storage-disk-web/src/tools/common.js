@@ -1,5 +1,6 @@
 import apiConfig from '../api/apiConfig.js'
 import { Notification } from '@arco-design/web-vue'
+import md5 from 'js-md5'
 
 const identifyFileAvatar = (file) => {
   const { ext, type } = file
@@ -123,6 +124,17 @@ const setUrlQuery = (router, key, value, defaultValue) => {
   }
 }
 
+// 密码加密
+const encrypt = (str, count) => {
+  if (count === undefined || count === null || count < 1) {
+    return md5(str)
+  }
+  for (let i = 0; i < count; i++) {
+    str = md5(str)
+  }
+  return count + str
+}
+
 const common = {
   identifyFileAvatar,
   formatSizeInPerson,
@@ -131,7 +143,8 @@ const common = {
   formatDate,
   readLocalFile,
   notify,
-  setUrlQuery
+  setUrlQuery,
+  encrypt
 }
 
 export default common

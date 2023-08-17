@@ -19,7 +19,7 @@
       <div class="user-info-actions"
            :class="[{'is-show': userInfoBox}]"
       >
-        <div class="actions-item" @click="router.push('/center')">设置</div>
+        <div class="actions-item" @click="toUserCenter">设置</div>
         <div class="actions-item" @click="logout">退出登录</div>
       </div>
     </div>
@@ -79,6 +79,13 @@ export default {
           localStorage.removeItem('t')
           this.router.push('/login')
         }
+      })
+    },
+    // 跳转到个人中心
+    toUserCenter () {
+      http.reqUrl.user.info().then(response => {
+        localStorage.setItem('info', JSON.stringify(response))
+        this.router.push('/center')
       })
     }
   }

@@ -5,6 +5,7 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import online.yangcloud.common.common.AppConstants;
+import online.yangcloud.common.common.AppProperties;
 import online.yangcloud.common.enumration.FileTypeEnum;
 import online.yangcloud.common.enumration.YesOrNoEnum;
 import online.yangcloud.common.mapper.FileMetadataMapper;
@@ -203,15 +204,17 @@ public class FileMetadataServiceImpl implements FileMetadataService {
         FileMetadataQuery query = fileMetadataMapper.query()
                 .where.isDelete().eq(YesOrNoEnum.NO.code()).and.userId().eq(userId).end()
                 .orderBy.uploadTime().asc().name().asc().end();
-        if (CharSequenceUtil.isNotBlank(pid)) {
-            // 如果要查询的父级文件 id 为 '_'，那说明要查询的是根目录下的
-            if (StrUtil.UNDERLINE.equals(pid)) {
+        // 如果要查询的父级文件 id 为 '_'，那说明要查询的是根目录下的
+        if (StrUtil.UNDERLINE.equals(pid)) {
+            if (StrUtil.isBlank(AppProperties.ROOT_DIR_ID)) {
                 FileMetadata root = fileMetadataMapper.findOne(fileMetadataMapper.query()
                         .where.pid().eq(CharSequenceUtil.EMPTY).and.isDelete().eq(YesOrNoEnum.NO.code()).end());
                 pid = root.getId();
+            } else {
+                pid = AppProperties.ROOT_DIR_ID;
             }
-            query.where.pid().eq(pid);
         }
+        query.where.pid().eq(pid);
         if (CharSequenceUtil.isNotBlank(name)) {
             query.where.name().like(name.trim().replaceAll(CharSequenceUtil.EMPTY, AppConstants.Special.PERCENT));
         }

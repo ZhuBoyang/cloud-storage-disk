@@ -1,6 +1,7 @@
 package online.yangcloud.web.service;
 
 import online.yangcloud.common.model.User;
+import online.yangcloud.common.model.request.user.PasswordUpdater;
 import online.yangcloud.common.model.request.user.UserEnter;
 import online.yangcloud.common.model.request.user.UserInitializer;
 import online.yangcloud.common.model.request.user.UserUpdater;
@@ -45,5 +46,14 @@ public interface UserService {
      * @return 修改后的账户资料
      */
     UserView updateUserInfo(UserUpdater updater, User user);
+
+    /**
+     * 修改账户密码
+     *
+     * @param updater 新密码
+     * @param user    当前登录的用户
+     * @return 修改后的账户资料
+     */
+    UserView updatePassword(PasswordUpdater updater, User user);
 
 }

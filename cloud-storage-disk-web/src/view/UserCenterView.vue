@@ -39,7 +39,7 @@
                 <div class="form-content">{{ globalProperties.common.formatSizeInPerson(user.usedSpaceSize) }}</div>
               </div>
             </div>
-<!--            <div class="space-statistics-chart">图表</div>-->
+            <!--            <div class="space-statistics-chart">图表</div>-->
           </div>
           <div class="menu-box">
             <div class="menu-item"
@@ -91,6 +91,7 @@ import { getCurrentInstance, reactive, toRefs } from 'vue'
 import { useRouter } from 'vue-router'
 import apiConfig from '../api/apiConfig.js'
 import http from '../api/http.js'
+import emitter from '../tools/emitter.js'
 
 export default {
   name: 'UserCenterView',
@@ -105,10 +106,17 @@ export default {
       ],
       user: {
         avatar: '',
+        email: '',
         nickName: '',
         totalSpaceSize: 0,
         usedSpaceSize: 0,
         createTime: 0
+      }
+    })
+    emitter.on('update-info', info => {
+      console.log(info)
+      for (const key in dataList.user) {
+        dataList.user[key] = info[key]
       }
     })
     return {
@@ -136,11 +144,10 @@ export default {
     },
     // 查询账户信息
     queryAccountInfo () {
-      http.reqUrl.user.info().then(response => {
-        for (const key in this.user) {
-          this.user[key] = response[key]
-        }
-      })
+      const info = JSON.parse(localStorage.getItem('info'))
+      for (const key in this.user) {
+        this.user[key] = info[key]
+      }
     },
     // 切换导航
     changeMenu (o) {
@@ -159,16 +166,19 @@ export default {
     },
     // 选择文件并上传
     uploadAvatar (event) {
+      // 获取选中的文件
       const avatarFile = event.target.files[0]
 
+      // 封装请求参数
       const avatarData = new FormData()
       avatarData.append('file', avatarFile)
       avatarData.append('name', avatarFile.name)
 
+      // 发起请求
       const header = { 'Content-Type': 'multipart/form-data' }
       http.req(http.url.file.simpleUpload, http.methods.form, avatarData, header).then(response => {
         if (response) {
-          this.form.avatar = response
+          this.user.avatar = response
           this.updateInfo()
         }
       })

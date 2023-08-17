@@ -10,6 +10,7 @@ import online.yangcloud.common.common.AppProperties;
 import online.yangcloud.common.common.AppResultCode;
 import online.yangcloud.common.common.ResultData;
 import online.yangcloud.common.model.User;
+import online.yangcloud.common.model.request.user.PasswordUpdater;
 import online.yangcloud.common.model.request.user.UserEnter;
 import online.yangcloud.common.model.request.user.UserInitializer;
 import online.yangcloud.common.model.request.user.UserUpdater;
@@ -53,7 +54,7 @@ public class UserController {
      */
     @PostMapping("/has_initial")
     public ResultData accountHasInitialed() {
-        return ResultData.success(AppProperties.accountHasInitial);
+        return ResultData.success(AppProperties.ACCOUNT_HAS_INITIAL);
     }
 
     /**
@@ -119,7 +120,27 @@ public class UserController {
                 AppConstants.Account.LOGIN_SESSION_EXPIRE_TIME,
                 TimeUnit.SECONDS
         );
-        return ResultData.success(Boolean.TRUE);
+        return ResultData.success(view);
+    }
+
+    /**
+     * 修改账户密码
+     *
+     * @param updater 新的密码
+     * @param user    当前登录的账户
+     * @return result
+     */
+    @SessionValid
+    @PostMapping("/password_update")
+    public ResultData passwordUpdate(@Valid @RequestBody PasswordUpdater updater, User user) {
+        UserView view = userService.updatePassword(updater, user);
+        // 更新 redis 中的登录信息，设置 1s 后过期
+        redisTools.expire(AppConstants.Account.LOGIN_TOKEN + SystemTools.getHeaders().getAuthorization(),
+                JSONUtil.toJsonStr(view),
+                1,
+                TimeUnit.SECONDS
+        );
+        return ResultData.success(AppResultCode.SUCCESS.clone("密码修改成功，请重新登录"), Boolean.TRUE);
     }
 
     /**

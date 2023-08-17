@@ -36,6 +36,7 @@ export default {
   }
   .file {
     width: calc(100% - 258px - 450px);
+    height: 100vh;
   }
   .action {
     width: 450px;

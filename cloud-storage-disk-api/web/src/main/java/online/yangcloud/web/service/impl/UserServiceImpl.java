@@ -5,11 +5,11 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.SecureUtil;
 import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.common.AppProperties;
 import online.yangcloud.common.model.User;
+import online.yangcloud.common.model.request.user.PasswordUpdater;
 import online.yangcloud.common.model.request.user.UserEnter;
 import online.yangcloud.common.model.request.user.UserInitializer;
 import online.yangcloud.common.model.request.user.UserUpdater;
@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void initialize(UserInitializer initializer) {
         // 检测是否已完成账户信息初始化
-        if (AppProperties.accountHasInitial) {
+        if (AppProperties.ACCOUNT_HAS_INITIAL) {
             ExceptionTools.businessLogger("已完成账户初始化，请前往登录");
         }
 
@@ -79,7 +79,7 @@ public class UserServiceImpl implements UserService {
         fileService.initialUserRoot(account.getId());
 
         // 修改是否已完成初始化的标志
-        AppProperties.accountHasInitial = Boolean.TRUE;
+        AppProperties.ACCOUNT_HAS_INITIAL = Boolean.TRUE;
     }
 
     @Override
@@ -156,6 +156,29 @@ public class UserServiceImpl implements UserService {
                 FileUtil.del(SystemTools.systemPath() + oldAvatar);
             }
         }
+        return UserView.convert(user);
+    }
+
+    @Override
+    public UserView updatePassword(PasswordUpdater updater, User user) {
+        // 完成对新密码的指定次数的加密
+        int encryptCount = AppConstants.Account.ENCRYPT_COUNT - Integer.parseInt(updater.getPassword().substring(0, 1));
+        String password = updater.getPassword().substring(1);
+        password = ValidateTools.encryptInCount(password, encryptCount);
+
+        // 完成对再次输入密码的指定次数的加密
+        encryptCount = AppConstants.Account.ENCRYPT_COUNT - Integer.parseInt(updater.getRepeat().substring(0, 1));
+        String repeat = updater.getRepeat().substring(1);
+        repeat = ValidateTools.encryptInCount(repeat, encryptCount);
+
+        // 校验两次密码是否一致
+        if (!password.equals(repeat)) {
+            ExceptionTools.businessLogger("两次密码输入不一致");
+        }
+
+        // 更新账户信息
+        user.setPassword(password);
+        userMetaService.updateUser(user);
         return UserView.convert(user);
     }
 

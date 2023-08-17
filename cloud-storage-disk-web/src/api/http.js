@@ -92,6 +92,7 @@ const reqUrl = {
     login: obj => req(modules.user + 'login', methods.post, obj),
     logout: () => req(modules.user + 'logout', methods.post),
     update: obj => req(modules.user + 'update', methods.post, obj),
+    passwordUpdate: obj => req(modules.user + 'password_update', methods.post, obj),
     reset: obj => req(modules.user + 'reset', methods.post, obj), // 重置用户账户密码
     info: () => req(modules.user + 'info', methods.get)
   },

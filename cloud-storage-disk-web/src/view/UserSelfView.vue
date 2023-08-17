@@ -55,6 +55,7 @@ import { getCurrentInstance, reactive, toRefs } from 'vue'
 import common from '../tools/common.js'
 import type from '../tools/type.js'
 import http from '../api/http.js'
+import emitter from '../tools/emitter.js'
 
 export default {
   name: 'UserSelfView',
@@ -97,11 +98,10 @@ export default {
     apiConfig,
     // 查询账户信息
     queryAccountInfo () {
-      http.reqUrl.user.info().then(response => {
-        for (const key in this.user) {
-          this.user[key] = response[key]
-        }
-      })
+      const info = JSON.parse(localStorage.getItem('info'))
+      for (const key in this.user) {
+        this.user[key] = info[key]
+      }
     },
     // 显示修改资料的窗口
     displayModal (property) {
@@ -147,10 +147,10 @@ export default {
     // 提交修改的资料
     updateInfo () {
       http.reqUrl.user.update(this.form).then(response => {
-        if (response) {
-          this.cancelUpdate()
-          this.queryAccountInfo()
-        }
+        localStorage.setItem('info', JSON.stringify(response))
+        this.cancelUpdate()
+        this.queryAccountInfo()
+        emitter.emit('update-info', response)
       })
     },
     // 取消修改资料
@@ -181,7 +181,6 @@ export default {
   .detail-form {
     margin-top: 20px;
     margin-left: 50px;
-    overflow-y: auto;
     .edit-btn {
       margin-left: 10px;
     }
