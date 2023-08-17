@@ -76,8 +76,7 @@
         </template>
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
-        <div class="actions-item row-col-center" v-if="actions.indexOf('remove') > -1"
-             @click="batchRemove.visible = true">
+        <div class="actions-item row-col-center" v-if="actions.indexOf('remove') > -1" @click="openBatchRemoveModal">
           <img :src="apiConfig().iconBaseUrl + 'icons/trash_black.png'" alt="删除"/>
         </div>
         <template #content>
@@ -85,8 +84,7 @@
         </template>
       </a-trigger>
       <a-trigger position="top" auto-fit-position :unmount-on-close="false">
-        <div class="actions-item row-col-center" v-if="actions.indexOf('rollback') > -1"
-             @click="rollback.visible = true">
+        <div class="actions-item row-col-center" v-if="actions.indexOf('rollback') > -1" @click="openRollbackModal">
           <img :src="apiConfig().iconBaseUrl + 'icons/rollback.png'" alt="恢复"/>
         </div>
         <template #content>
@@ -105,7 +103,7 @@
     <!-- 删除文件 -->
     <a-modal :visible="remove.visible"
              @ok="confirmRemoveFile"
-             @cancel="remove.visible = false"
+             @cancel="clearRemoveInfo"
              @close="clearRemoveInfo"
     >
       <template #title>删除文件</template>
@@ -114,8 +112,8 @@
     <!-- 批量删除文件 -->
     <a-modal :visible="batchRemove.visible"
              @ok="batchRemoveFiles"
-             @cancel="batchRemove.visible = false"
-             @close="clearRemoveInfo"
+             @cancel="clearSelected"
+             @close="clearSelected"
     >
       <template #title>批量删除文件</template>
       <div>文件删除将不可恢复，是否确定删除？</div>
@@ -123,7 +121,7 @@
     <!-- 重命名文件 -->
     <a-modal :visible="rename.visible"
              @ok="confirmRename"
-             @cancel="rename.visible = false"
+             @cancel="cancelRename"
              @close="cancelRename"
     >
       <template #title>重命名文件</template>
@@ -136,7 +134,7 @@
     <!-- 还原文件 -->
     <a-modal :visible="rollback.visible"
              @ok="rollbackFiles"
-             @cancel="rollback.visible = false"
+             @cancel="cancelRollback"
              @close="cancelRollback"
     >
       <template #title>还原文件</template>
@@ -371,11 +369,16 @@ export default {
         }
       })
     },
+    // 弹出批量删除的弹窗
+    openBatchRemoveModal () {
+      this.batchRemove.visible = true
+    },
     // 清除删除文件的预留 id
     clearRemoveInfo () {
       this.remove.fileId = 0
       this.remove.fileName = ''
       this.remove.index = -1
+      this.remove.visible = false
     },
     // 确定批量删除文件
     batchRemoveFiles () {
@@ -409,6 +412,11 @@ export default {
     cancelRename () {
       this.rename.form.id = ''
       this.rename.form.name = ''
+      this.rename.visible = false
+    },
+    // 打开还原文件的窗口
+    openRollbackModal () {
+      this.rollback.visible = true
     },
     // 还原文件
     rollbackFiles () {
