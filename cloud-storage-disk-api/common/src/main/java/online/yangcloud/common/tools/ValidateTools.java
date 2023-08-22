@@ -1,4 +1,4 @@
-package online.yangcloud.common.utils;
+package online.yangcloud.common.tools;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReUtil;

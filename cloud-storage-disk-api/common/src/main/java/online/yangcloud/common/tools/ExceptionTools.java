@@ -1,4 +1,4 @@
-package online.yangcloud.common.utils;
+package online.yangcloud.common.tools;
 
 import online.yangcloud.common.common.AppResultCode;
 import online.yangcloud.common.exception.BusinessException;

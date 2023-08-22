@@ -1,4 +1,4 @@
-package online.yangcloud.common.utils;
+package online.yangcloud.common.tools;
 
 import java.text.DateFormat;
 import java.text.ParseException;

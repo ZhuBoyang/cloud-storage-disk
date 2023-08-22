@@ -6,8 +6,8 @@ import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.common.AppResultCode;
 import online.yangcloud.common.model.request.file.FileUploader;
-import online.yangcloud.common.utils.ExceptionTools;
-import online.yangcloud.common.utils.IdTools;
+import online.yangcloud.common.tools.ExceptionTools;
+import online.yangcloud.common.tools.IdTools;
 
 /**
  * @author zhuboyang

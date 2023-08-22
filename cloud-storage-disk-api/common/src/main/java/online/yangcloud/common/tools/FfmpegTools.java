@@ -1,4 +1,4 @@
-package online.yangcloud.ffmpeg;
+package online.yangcloud.common.tools;
 
 import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.StrUtil;
