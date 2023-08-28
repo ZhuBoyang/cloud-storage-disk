@@ -70,51 +70,11 @@
 
 - `Vue 3.2.45`
 
-## 部署步骤
+## 部署方案
 
-① 拉取项目代码到本地（注，拉取的时候，记得在你想存放的文件夹里拉取）
+### `Docker`部署方式
 
-```bash
-git clone https://gitee.com/yang_cloud/cloud-storage-disk.git
-```
-
-② 进入后端项目`jar`包所在目录
-
-```bash
-cd cloud-storage-disk/cloud-storage-disk-api/target/
-```
-
-③ 启动后端项目
-
-```bash
-java -jar cloud-storage-disk-api.jar
-```
-
-④ 再另起一个终端，进入项目根目录
-
-⑤ 进入前端根目录
-
-```bash
-cd cloud-storage-disk-web/
-```
-
-⑥ 安装依赖
-
-```bash
-npm install
-```
-
-⑦ 启动前端项目
-
-```bash
-npm run dev
-```
-
-⑧ 打开浏览器访问
-
-```bash
-http://127.0.0.1:5173/
-```
+[Docker 部署方式](https://gitee.com/yang_cloud/cloud-storage-disk/blob/master/Docker%E9%83%A8%E7%BD%B2.md)
 
 ## 系统截图
 
