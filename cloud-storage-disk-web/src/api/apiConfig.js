@@ -1,15 +1,14 @@
+const apiPort = 8100
+
 const apiConfig = () => {
-  const nodeEnv = process.env.VITE_USER_NODE_ENV
-  if (nodeEnv === 'development') {
-    return {
-      apiBaseUrl: 'http://localhost:8100/',
-      iconBaseUrl: 'http://localhost:8100/'
-    }
+  const envMode = import.meta.env.MODE
+  if (envMode === 'dev') {
+    return { apiBaseUrl: `http://localhost:${apiPort}/`, iconBaseUrl: `http://localhost:${apiPort}/` }
   }
-  return {
-    apiBaseUrl: window.origin + '/pan/',
-    iconBaseUrl: window.origin + '/pan/'
+  if (envMode === 'prod') {
+    return { apiBaseUrl: `${window.origin}/pan/`, iconBaseUrl: `${window.origin}/pan/` }
   }
+  return { apiBaseUrl: '', iconBaseUrl: '' }
 }
 
 export default apiConfig

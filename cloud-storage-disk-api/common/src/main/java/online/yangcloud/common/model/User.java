@@ -2,12 +2,11 @@ package online.yangcloud.common.model;
 
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.SecureUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.annotation.TokenEntity;
 import online.yangcloud.common.common.AppConstants;
-import online.yangcloud.common.utils.IdTools;
+import online.yangcloud.common.tools.IdTools;
 
 /**
  * 用户模型

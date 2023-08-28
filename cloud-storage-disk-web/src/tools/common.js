@@ -85,21 +85,11 @@ const formatDateTime = (timestamp) => {
     `${minutes < 10 ? '0' + minutes : minutes}:` +
     `${seconds < 10 ? '0' + seconds : seconds}`
 }
+
 // 格式化时间 yyyy-MM-dd
 const formatDate = (timestamp) => {
   const { years, months, days } = analysisDateTime(timestamp)
   return `${years}-${months < 10 ? '0' + months : months}-${days < 10 ? '0' + days : days}`
-}
-
-// 读取本地文件函数
-const readLocalFile = (fileUrl) => {
-  // eslint-disable-next-line no-undef
-  const xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP')
-  const okStatus = document.location.protocol === 'file' ? 0 : 200
-  xhr.open('GET', fileUrl, false)
-  xhr.overrideMimeType('text/html;charset=utf-8')
-  xhr.send(null)
-  return xhr.status === okStatus ? xhr.responseText : null
 }
 
 const notify = {
@@ -141,7 +131,6 @@ const common = {
   jumpUrl,
   formatDateTime,
   formatDate,
-  readLocalFile,
   notify,
   setUrlQuery,
   encrypt

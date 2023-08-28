@@ -3,7 +3,7 @@ package online.yangcloud.common.model;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.common.AppConstants;
-import online.yangcloud.common.utils.IdTools;
+import online.yangcloud.common.tools.IdTools;
 
 /**
  * 文件块元数据

@@ -1,6 +1,6 @@
 package online.yangcloud.common.model.view;
 
-import online.yangcloud.common.utils.ByteTools;
+import online.yangcloud.common.tools.ByteTools;
 
 /**
  * @author zhuboyang

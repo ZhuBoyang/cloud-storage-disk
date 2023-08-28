@@ -1,6 +1,6 @@
 package online.yangcloud.common.config;
 
-import online.yangcloud.common.utils.SystemTools;
+import online.yangcloud.common.tools.SystemTools;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
