@@ -4,12 +4,14 @@
   "version": "1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --mode dev",
     "build": "vite build --mode prod",
     "preview": "vite preview"
   },
   "dependencies": {
     "axios": "^1.2.1",
+    "dplayer": "^1.27.1",
+    "hls.js": "^1.4.10",
     "js-md5": "^0.7.3",
     "mitt": "^3.0.0",
     "nanoid": "^4.0.2",

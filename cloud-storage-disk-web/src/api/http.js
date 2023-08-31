@@ -108,7 +108,8 @@ const reqUrl = {
     pager: obj => req(modules.file + 'pager', methods.get, obj),
     dirs: obj => req(modules.file + 'dirs', methods.post, obj),
     trash: obj => req(modules.file + 'trash', methods.post, obj), // 查询回收站的文件列表
-    playUrl: obj => req(modules.file + 'play_url', methods.post, obj) // 获取文件播放地址
+    playUrl: obj => req(modules.file + 'play_url', methods.post, obj), // 获取文件播放地址
+    videos: obj => req(modules.file + 'videos', methods.post, obj) // 查询目录下所有的视频文件
   }
 }
 

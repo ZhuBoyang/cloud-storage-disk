@@ -182,6 +182,24 @@ public interface FileService {
     Boolean validDuplicatedName(String id, String pid, String name, Integer fileType);
 
     /**
+     * 将视频片段合并为完整的视频，并存放至临时文件夹中
+     *
+     * @param id     视频 id
+     * @param userId 文件所属人
+     * @return 文件元数据
+     */
+    FileMetadataView combineToTmp(String id, String userId);
+
+    /**
+     * 查询指定目录下所有的视频文件
+     *
+     * @param pid    目录的文件 id
+     * @param userId 文件所属人
+     * @return 文件列表
+     */
+    List<FileMetadataView> queryVideosUnderDir(String pid, String userId);
+
+    /**
      * 文件下载
      *
      * @param id       文件 id

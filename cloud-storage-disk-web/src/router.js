@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
   {
@@ -20,6 +20,10 @@ const routes = [
     // 登录
     path: '/login',
     component: () => import('./view/LoginView.vue')
+  },
+  {
+    path: '/player',
+    component: () => import('./components/VideoPlayer.vue')
   },
   {
     path: '/reset',
@@ -65,7 +69,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes
 })
 

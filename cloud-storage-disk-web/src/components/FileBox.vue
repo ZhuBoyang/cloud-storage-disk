@@ -259,9 +259,7 @@ export default {
     // 点击文件
     clickFile (record) {
       const { id, name, type } = record
-      if (type === 1) {
-        this.emit('on-select', { id, name, type })
-      }
+      this.emit('on-select', { id, name, type })
     },
     // 隐藏文件信息弹窗
     hideDrawer (record) {

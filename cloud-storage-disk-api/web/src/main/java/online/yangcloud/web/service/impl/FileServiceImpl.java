@@ -526,6 +526,46 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    public FileMetadataView combineToTmp(String id, String userId) {
+        // 查询视频文件元数据
+        FileMetadata video = fileMetadataService.queryById(id, userId);
+        if (ObjectUtil.isNull(video)) {
+            ExceptionTools.noDataLogger();
+        }
+        
+        // 构建临时文件的存放目录地址
+        String path = AppConstants.Uploader.TMP_PATH + video.getId() + StrUtil.UNDERLINE + video.getName() + video.getExt();
+        String target = SystemTools.systemPath() + path;
+        if (FileUtil.exist(target)) {
+            return FileMetadataView.convert(video.setPath(path));
+        }
+
+        // 查询视频文件的文件块存放地址
+        List<FileBlock> fileBlocks = fileBlockService.queryBlocks(video.getId());
+        List<String> fileBlocksIds = fileBlocks.stream()
+                .sorted(Comparator.comparingInt(FileBlock::getIndex))
+                .map(FileBlock::getBlockId)
+                .collect(Collectors.toList());
+        List<BlockMetadata> blocks = blockMetadataService.queryListByIds(fileBlocksIds);
+        Map<String, String> blockPathMap = blocks.stream().collect(Collectors.toMap(BlockMetadata::getId, BlockMetadata::getPath));
+
+        // 合并视频文件，并存放至临时文件夹
+        List<String> blockPaths = fileBlocksIds.stream()
+                .map(o -> SystemTools.systemPath() + blockPathMap.get(o))
+                .collect(Collectors.toList());
+        FileTools.combineFile(target, blockPaths);
+
+        // 返回文件元数据
+        return FileMetadataView.convert(video.setPath(path));
+    }
+
+    @Override
+    public List<FileMetadataView> queryVideosUnderDir(String pid, String userId) {
+        List<FileMetadata> files = fileMetadataService.queryListByPid(pid, userId);
+        return files.stream().map(FileMetadataView::convert).collect(Collectors.toList());
+    }
+
+    @Override
     public void download(String id, HttpServletResponse response) {
         // 校验文件是否存在
         FileMetadata file = fileMetadataService.queryById(id);

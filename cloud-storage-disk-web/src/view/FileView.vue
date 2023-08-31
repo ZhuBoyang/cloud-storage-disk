@@ -35,6 +35,7 @@
         <a-pagination v-model:current="pager.pageIndex" v-model:page-size="pager.pageSize" :total="pager.total" @change="changePage"/>
       </div>
     </div>
+    <video-player :url="play.url" :list="play.list" @on-close="closePlayer"/>
   </div>
 </template>
 
@@ -47,11 +48,13 @@ import http from '../api/http.js'
 import common from '../tools/common.js'
 
 const FileBox = defineAsyncComponent(() => import('../components/FileBox.vue'))
+const VideoPlayer = defineAsyncComponent(() => import('../components/VideoPlayer.vue'))
 
 export default {
   name: 'FileView',
   components: {
-    FileBox
+    FileBox,
+    VideoPlayer
   },
   setup: function () {
     const router = useRouter()
@@ -63,6 +66,10 @@ export default {
         pageSize: 10, // 每页显示的数据量
         total: 0, // 总量
         name: '' // 搜索的关键词
+      },
+      play: {
+        url: '', // 要播放的视频
+        list: [] // 当前目录下所有的视频
       }
     })
     // 查询文件面包屑导航数据
@@ -132,19 +139,14 @@ export default {
     selectChange (record) {
       const { id, name, type } = record
       if (type === 0) {
-        // if (commonType.isVideo(ext)) {
-        //   this.router.push({
-        //     path: 'player',
-        //     query: {
-        //       id
-        //     }
-        //   })
-        // }
-        return
+        http.reqUrl.file.playUrl({ id }).then(response => {
+          this.play.url = apiConfig().apiBaseUrl + response
+        })
+      } else {
+        this.breads.push({ id, name })
+        common.setUrlQuery(this.router, 'router', this.breads[this.breads.length - 1].id)
+        this.queryFiles(id)
       }
-      this.breads.push({ id, name })
-      common.setUrlQuery(this.router, 'router', this.breads[this.breads.length - 1].id)
-      this.queryFiles(id)
     },
     // 切换页面
     changePage (pageIndex) {
@@ -164,6 +166,11 @@ export default {
         this.files[fileIndex] = record.file
         this.queryFiles()
       }
+    },
+    // 关闭视频播放器
+    closePlayer () {
+      this.play.url = ''
+      this.play.list = []
     }
   }
 }

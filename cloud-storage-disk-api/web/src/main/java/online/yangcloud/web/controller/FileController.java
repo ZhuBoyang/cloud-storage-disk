@@ -8,6 +8,7 @@ import online.yangcloud.common.common.AppResultCode;
 import online.yangcloud.common.common.ResultData;
 import online.yangcloud.common.model.User;
 import online.yangcloud.common.model.request.BatchOperator;
+import online.yangcloud.common.model.request.IdRequest;
 import online.yangcloud.common.model.request.file.*;
 import online.yangcloud.common.model.request.user.BreadsLooker;
 import online.yangcloud.common.model.view.PagerView;
@@ -258,6 +259,34 @@ public class FileController {
     @PostMapping("/trash")
     public ResultData queryTrashFiles(@Valid @RequestBody TrashQuery query, User user) {
         return ResultData.success(fileService.queryDeletedFiles(query, user.getId()));
+    }
+
+    /**
+     * 获取视频的播放地址，以及所在目录下所有的视频文件元数据
+     *
+     * @param request 视频 id
+     * @param user    当前登录的用户
+     * @return 播放地址+视频文件元数据
+     */
+    @SessionValid
+    @PostMapping("/play_url")
+    public ResultData queryVideoPlayUrl(@Valid @RequestBody IdRequest request, User user) {
+        FileMetadataView video = fileService.combineToTmp(request.getId(), user.getId());
+        return ResultData.success(video.getPath());
+    }
+
+    /**
+     * 查询指定目录下所有的视频
+     *
+     * @param request 目录的文件 id
+     * @param user    当前登录的用户
+     * @return 视频列表
+     */
+    @SessionValid
+    @PostMapping("/videos")
+    public ResultData queryVideos(@Valid @RequestBody IdRequest request, User user) {
+        List<FileMetadataView> videos = fileService.queryVideosUnderDir(request.getId(), user.getId());
+        return ResultData.success(videos);
     }
 
     /**
