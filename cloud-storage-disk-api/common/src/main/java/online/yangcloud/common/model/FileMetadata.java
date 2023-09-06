@@ -20,7 +20,7 @@ import java.util.function.Function;
  * @author zhuboyang
  * @since 2022年12月31 21:20:20
  */
-@FluentMybatis
+@FluentMybatis(table = "file_metadata")
 public class FileMetadata extends BaseParameter {
 
     /**

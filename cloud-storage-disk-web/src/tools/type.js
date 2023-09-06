@@ -210,7 +210,7 @@ const type = {
    * 是否是视频
    */
   isVideo (ext) {
-    return ext === 'avi' || ext === 'mov' || ext === 'rmvb' || ext === 'rm' || ext === 'flv' || ext === 'mp4' || ext === '3gp'
+    return ext === '.avi' || ext === '.mov' || ext === '.rmvb' || ext === '.rm' || ext === '.flv' || ext === '.mp4' || ext === '.3gp'
   },
 
   /**

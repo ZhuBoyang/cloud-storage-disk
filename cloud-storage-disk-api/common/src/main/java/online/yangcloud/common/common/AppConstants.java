@@ -42,15 +42,19 @@ public interface AppConstants {
     }
 
     /**
-     * 邮箱相关
+     * 数据表
      */
-    interface Email {
-        // 邮箱验证码过期时间（时间单位：m）
-        Integer EMAIL_CODE_EXPIRED_TIME = 5;
-        // 用于注册的邮箱验证码的 redis key
-        String REGISTER_EMAIL_REDIS_KEY = "register_email_code:";
-        // 用于重置密码的邮箱验证码的 redis key
-        String RESET_PASSWORD_REDIS_KEY = "reset_password:";
+    interface Table {
+        // 用户表
+        String USER = "User";
+        // 文件元数据表
+        String FILE_METADATA = "FileMetadata";
+        // 文件块元数据表
+        String BLOCK_METADATA = "BlockMetadata";
+        // 文件与文件块关联表
+        String FILE_BLOCK = "FileBlock";
+        // 视频元数据表
+        String VIDEO_METADATA = "VideoMetadata";
     }
 
     /**
@@ -113,6 +117,8 @@ public interface AppConstants {
         String BLOCK_UPLOAD = UPLOAD + "block" + File.separator;
         // 临时文件存放目录
         String TMP_PATH = "tmp" + File.separator;
+        // 缩略图存放目录
+        String SNAPSHOT = "snapshot" + Special.SEPARATOR;
     }
 
 }

@@ -144,7 +144,7 @@
                          :operation-name="dirSelector.action"
                          @on-change="operationResult"
     />
-    <file-info-drawer :file="movie.file" @on-hide="hideDrawer" @on-play="playVideo"></file-info-drawer>
+    <file-info-drawer :file="movie.file" @on-hide="hideDrawer"></file-info-drawer>
   </div>
 </template>
 
@@ -258,22 +258,12 @@ export default {
     },
     // 点击文件
     clickFile (record) {
-      const { id, name, type } = record
-      this.emit('on-select', { id, name, type })
+      const { id, name, type, ext } = record
+      this.emit('on-select', { id, name, type, ext })
     },
     // 隐藏文件信息弹窗
     hideDrawer (record) {
       this.movie.file = record
-    },
-    // 播放视频
-    playVideo (fileId) {
-      http.reqUrl.file.playUrl({ fileId }).then(response => {
-        const { path, extend } = response
-        const { width, height } = this.calculatePlayerSize(extend)
-        this.movie.src = apiConfig.apiBaseUrl + path
-        this.movie.width = width
-        this.movie.height = height
-      })
     },
     // 计算视频播放器显示的尺寸
     calculatePlayerSize (size) {

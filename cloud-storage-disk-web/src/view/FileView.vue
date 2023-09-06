@@ -35,7 +35,7 @@
         <a-pagination v-model:current="pager.pageIndex" v-model:page-size="pager.pageSize" :total="pager.total" @change="changePage"/>
       </div>
     </div>
-    <video-player :url="play.url" :list="play.list" @on-close="closePlayer"/>
+    <video-player :url="play.url" :video-id="play.videoId" :play-list="play.playList" @on-close="closePlayer"/>
   </div>
 </template>
 
@@ -46,6 +46,7 @@ import { useRouter } from 'vue-router'
 import apiConfig from '../api/apiConfig.js'
 import http from '../api/http.js'
 import common from '../tools/common.js'
+import type from '../tools/type.js'
 
 const FileBox = defineAsyncComponent(() => import('../components/FileBox.vue'))
 const VideoPlayer = defineAsyncComponent(() => import('../components/VideoPlayer.vue'))
@@ -68,8 +69,9 @@ export default {
         name: '' // 搜索的关键词
       },
       play: {
-        url: '', // 要播放的视频
-        list: [] // 当前目录下所有的视频
+        url: http.url.file.playUrl, // 获取视频播放地址的接口
+        videoId: '', // 要播放的视频 id
+        playList: [] // 播放列表
       }
     })
     // 查询文件面包屑导航数据
@@ -137,13 +139,17 @@ export default {
     },
     // 选择文件
     selectChange (record) {
-      const { id, name, type } = record
-      if (type === 0) {
-        http.reqUrl.file.playUrl({ id }).then(response => {
-          this.play.url = apiConfig().apiBaseUrl + response
-        })
+      const { id, name, type: fileType, ext } = record
+      if (fileType === 0) {
+        if (type.isVideo(ext)) {
+          this.play.videoId = id
+          http.reqUrl.file.videos({ id: this.breads[this.breads.length - 1].id }).then(response => {
+            this.play.playList = response
+          })
+        }
       } else {
-        this.breads.push({ id, name })
+        const bread = { id, name }
+        this.breads.push(bread)
         common.setUrlQuery(this.router, 'router', this.breads[this.breads.length - 1].id)
         this.queryFiles(id)
       }
@@ -169,8 +175,8 @@ export default {
     },
     // 关闭视频播放器
     closePlayer () {
-      this.play.url = ''
-      this.play.list = []
+      this.play.videoId = ''
+      this.play.playList = []
     }
   }
 }

@@ -1,8 +1,14 @@
 package online.yangcloud.common.tools;
 
 import cn.hutool.core.text.StrBuilder;
+import cn.hutool.core.util.RuntimeUtil;
 import cn.hutool.core.util.StrUtil;
+import online.yangcloud.common.model.VideoMetadata;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +17,65 @@ import java.util.List;
  * @since 2023年07月29 12:06:34
  */
 public class FfmpegTools {
+
+    private static final Logger logger = LoggerFactory.getLogger(FfmpegTools.class);
+
+    public static VideoMetadata getVideoInfo(File file) {
+        VideoMetadata videoInfo = new VideoMetadata();
+        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(file)) {
+            // 启动 FFmpeg
+            grabber.start();
+
+            // 读取视频帧数
+            videoInfo.setTotalFrames(grabber.getLengthInVideoFrames());
+
+            // 读取视频帧率
+            videoInfo.setFrameRate(grabber.getVideoFrameRate());
+
+            // 读取视频秒数
+            videoInfo.setDuration(grabber.getLengthInTime() / 1000000.00);
+
+            // 读取视频宽度
+            videoInfo.setWidth(grabber.getImageWidth());
+
+            // 读取视频高度
+            videoInfo.setHeight(grabber.getImageHeight());
+
+            videoInfo.setAudioChannel(grabber.getAudioChannels());
+
+            videoInfo.setVideoCode(grabber.getVideoCodecName());
+
+            videoInfo.setAudioCode(grabber.getAudioCodecName());
+
+            videoInfo.setSampleRate(grabber.getSampleRate());
+
+            grabber.stop();
+            grabber.release();
+            return videoInfo;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return videoInfo;
+    }
+
+    /**
+     * 截取视频的第一帧作为缩略图
+     *
+     * @param videoPath  视频存储路径
+     * @param screenshot 截图存储路径
+     */
+    public static void splitFirstPicture(String videoPath, String screenshot) {
+        StrBuilder command = StrBuilder.create()
+                .append("ffmpeg ")
+                .append("-i ")
+                .append(videoPath)
+                .append(" -vframes")
+                .append(" 1")
+                .append(" -threads")
+                .append(" 1 ")
+                .append(screenshot);
+        RuntimeUtil.exec(command.toString());
+    }
 
     /**
      * ffmpeg 命令

@@ -3,10 +3,13 @@
   <div class="video" v-show="visible">
     <div class="player-box" ref="player" id="player"></div>
     <div class="box-layer" @click="playAndPause"></div>
-    <div class="box-close-action">
+    <div class="box-loading" v-show="controls.isLoading">
+      <icon-loading class="box-loading-icon"/>
+    </div>
+    <div class="box-close-action" :class="[{'is-show': controls.closeActionIsShow}]">
       <img :src="apiConfig().iconBaseUrl + 'video/close.png'" alt="close" @click="closePlayer"/>
     </div>
-    <div class="box-controls">
+    <div class="box-controls" :class="[{'is-show': controls.controlIsShow}]">
       <div class="controls-left">
         <div class="control-item control-play" v-if="controls.paused">
           <img :src="apiConfig().iconBaseUrl + 'video/play.png'" alt="play" @click="playAndPause"/>
@@ -30,21 +33,45 @@
       <div class="controls-right">事件控制</div>
     </div>
   </div>
+  <div class="video-list" v-show="visible">
+    <div class="video-item" v-for="o in playList" :key="o.id">
+      <div class="video-avatar">
+        <img :src="apiConfig().iconBaseUrl + 'video/play.png'" alt="avatar"/>
+        <div class="video-upload-time">{{ globalProperties.common.formatDate(o.uploadTime) }}</div>
+      </div>
+      <div class="video-info">
+        <div class="video-name">{{ o.name }}</div>
+        <div class="video-duration">{{ o.duration }}</div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
 import DPlayer from 'dplayer'
 import apiConfig from '../api/apiConfig.js'
-import { reactive, toRefs, watch } from 'vue'
+import { getCurrentInstance, reactive, toRefs, watch } from 'vue'
+import http from '../api/http.js'
+import { IconLoading } from '@arco-design/web-vue/es/icon'
 
 export default {
   name: 'VideoPlayer',
+  components: {
+    IconLoading
+  },
   props: {
+    // 视频播放地址查询接口
     url: {
       type: String,
       default: ''
     },
-    list: {
+    // 视频文件 id
+    videoId: {
+      type: String,
+      default: ''
+    },
+    // 播放列表
+    playList: {
       type: Array,
       default: () => {
         return []
@@ -53,32 +80,53 @@ export default {
   },
   emits: ['on-close'],
   setup (props, context) {
+    const { globalProperties } = getCurrentInstance().appContext.config
     const { emit } = context
     const dataList = reactive({
-      // 是否显示播放器
-      visible: false,
-      // 播放器
-      dp: null,
-      // 控制
-      controls: {
-        paused: true // 是否暂停
+      visible: false, // 是否显示播放器
+      dp: null, // 播放器实体
+      controls: { // 控制栏
+        isLoading: true, // 视频是否正在加载中
+        paused: true, // 是否暂停
+        controlIsShow: true, // 是否显示控制栏
+        closeActionIsShow: true // 是否显示关闭按钮
       }
     })
-    watch(() => props.url, url => {
-      if (url === '') {
-        dataList.visible = false
-        dataList.controls.paused = true
-        dataList.dp.pause()
+    // 根据视频 id 获取视频播放地址
+    const playUrl = id => {
+      http.req(props.url, http.methods.post, { id }).then(url => {
+        setTimeout(() => {
+          videoInit(apiConfig().apiBaseUrl + url)
+        }, 5000)
+      })
+    }
+    // 初始化并播放视频
+    const videoInit = url => {
+      dataList.dp.switchVideo({ url })
+      dataList.dp.play()
+      dataList.controls.isLoading = false
+      dataList.controls.paused = false
+    }
+    // 停止播放视频，并关闭视频播放器
+    const videoClose = () => {
+      dataList.controls.paused = true
+      dataList.visible = false
+      dataList.dp.switchVideo({ url: '' })
+      dataList.controls.isLoading = true
+    }
+    watch(() => props.videoId, videoId => {
+      if (videoId === '') {
+        videoClose()
       } else {
         dataList.visible = true
-        dataList.dp.switchVideo({ url })
-        dataList.dp.play()
-        dataList.controls.paused = false
+        playUrl(videoId)
       }
     })
     return {
+      globalProperties,
       emit,
-      ...toRefs(dataList)
+      ...toRefs(dataList),
+      videoClose
     }
   },
   mounted () {
@@ -126,7 +174,7 @@ export default {
     },
     // 播放与暂停
     playAndPause () {
-      if (this.dp === null) {
+      if (this.dp === null || this.videoId.trim() === '') {
         return
       }
       if (this.controls.paused) {
@@ -152,6 +200,16 @@ export default {
         currentTime = this.dp.video.duration
       }
       this.dp.video.currentTime = currentTime
+    },
+    // 鼠标滑入播放器区域
+    mouseInPlayer () {
+      this.controls.controlIsShow = true
+      this.controls.closeActionIsShow = true
+    },
+    // 鼠标画出播放器区域
+    mouseOutPlayer () {
+      this.controls.controlIsShow = false
+      this.controls.closeActionIsShow = false
     }
   }
 }
@@ -173,8 +231,11 @@ export default {
   left: 50%;
   width: 50%;
   height: 80vh;
-  z-index: 3;
+  z-index: 4;
   transform: translate(-50%, -50%);
+  border-radius: 20px;
+  box-shadow: 0 0 10px #0e0e0e;
+  overflow: hidden;
   .player-box {
     position: absolute;
     top: 0;
@@ -189,10 +250,33 @@ export default {
     width: 100%;
     height: 100%;
   }
-  .box-close-action {
+  .box-loading {
     position: absolute;
     top: 0;
-    right: -40px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #000000;
+    .box-loading-icon {
+      color: #ffffff;
+      font-size: 40px;
+    }
+  }
+  .box-close-action {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #8a8a8a;
+    opacity: 0;
+    transition: all .3s;
+    &.is-show {
+      opacity: 1;
+      transition: all .3s;
+    }
     img {
       width: 30px;
       height: 30px;
@@ -201,20 +285,26 @@ export default {
   }
   .box-controls {
     position: absolute;
-    bottom: 0;
+    bottom: -50px;
     left: 0;
     padding: 0 10px;
     width: calc(100% - 20px);
     height: 50px;
-    color: #ffffff;
-    font-size: 20px;
-    background-color: rgba(0, 0, 0, .4);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    color: #ffffff;
+    font-size: 20px;
+    background-color: rgba(0, 0, 0, .4);
+    transition: all .3s;
+    &.is-show {
+      bottom: 0;
+      transition: all .3s;
+    }
     .controls-left {
       display: flex;
       & > .control-item {
+        margin: 0 5px;
         width: 25px;
         height: 25px;
         img {
@@ -223,6 +313,66 @@ export default {
           filter: invert(100%);
           cursor: pointer;;
         }
+      }
+    }
+  }
+}
+.video-list {
+  position: fixed;
+  top: 50%;
+  left: calc(75% + 10px);
+  width: 300px;
+  height: 80vh;
+  background-color: #000000;
+  border-radius: 20px;
+  transform: translate(0, -50%);
+  z-index: 3;
+  .video-item {
+    display: flex;
+    height: 100px;
+    .video-avatar {
+      position: relative;
+      width: 100px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        filter: invert(100%);
+        cursor: pointer;
+      }
+      .video-upload-time {
+        position: absolute;
+        bottom: 4px;
+        right: 6px;
+        color: #ffffff;
+        font-size: 12px;
+        text-shadow: 0 0 10px #efefef;
+      }
+    }
+    .video-info {
+      margin: 0 10px;
+      width: calc(100% - 120px);
+      height: 100%;
+      .video-name {
+        margin-top: 15px;
+        width: 100%;
+        color: #ffffff;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        word-break: break-word;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+      .video-duration {
+        margin-top: 20px;
+        color: #8a8a8a;
       }
     }
   }

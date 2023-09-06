@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -105,24 +104,6 @@ public class UserServiceImpl implements UserService {
                 TimeUnit.MINUTES
         );
         return sessionId;
-    }
-
-    @Override
-    public void updateUserSpace(List<String> keys, User user) {
-        // 计算要变动的空间容量
-        long total = 0;
-        for (String key : keys) {
-            redisTools.delete(key);
-            total += Long.parseLong(key.substring(key.lastIndexOf(StrUtil.COLON) + 1));
-        }
-
-        // 修改用户账户的空间剩余量
-        if (ObjectUtil.isNull(user)) {
-            String userId = StrUtil.split(keys.get(0), StrUtil.COLON).get(1);
-            user = userMetaService.queryUserById(userId);
-        }
-        user.setUsedSpaceSize(user.getUsedSpaceSize() + total);
-        userMetaService.updateUser(user);
     }
 
     @Override

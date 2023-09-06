@@ -1,7 +1,6 @@
 package online.yangcloud.web.service.meta.impl;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.enumration.YesOrNoEnum;
@@ -44,10 +43,7 @@ public class UserMetaServiceImpl implements UserMetaService {
         // 增加空间使用量
         long usedSpaceSize = user.getUsedSpaceSize() + spaceSize;
         user.setUsedSpaceSize(usedSpaceSize);
-
-        // 修改 redis 中已登录的账户信息中的空间使用量，并单独计时。2 分钟内无上传文件操作或退出登录操作，即更新数据库中的账户数据
-        String key = AppConstants.Account.SPACE_UPDATE + user.getId() + StrUtil.COLON + usedSpaceSize;
-        redisTools.expire(key, StrUtil.EMPTY, 2, TimeUnit.MINUTES);
+        updateUser(user);
 
         // 更新 redis 中的登录信息
         redisTools.expire(AppConstants.Account.LOGIN_TOKEN + SystemTools.getHeaders().getAuthorization(),

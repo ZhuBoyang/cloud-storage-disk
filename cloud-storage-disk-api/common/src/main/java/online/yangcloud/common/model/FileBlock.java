@@ -13,7 +13,7 @@ import online.yangcloud.common.tools.IdTools;
  * @author zhuboyang
  * @since 2022年12月31 21:23:03
  */
-@FluentMybatis
+@FluentMybatis(table = "file_block")
 public class FileBlock extends BaseParameter {
 
     /**

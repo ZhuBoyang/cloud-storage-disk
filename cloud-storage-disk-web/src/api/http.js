@@ -81,7 +81,8 @@ const url = {
     uploadBlocks: modules.file + 'upload', // 上传文件块
     mergeFile: modules.file + 'merge', // 文件合并
     simpleUpload: modules.file + 'simple_upload', // 上传简单文件
-    download: modules.file + 'download/' // 文件下载
+    download: modules.file + 'download/', // 文件下载
+    playUrl: modules.file + 'play_url' // 获取视频播放地址
   }
 }
 
@@ -108,7 +109,6 @@ const reqUrl = {
     pager: obj => req(modules.file + 'pager', methods.get, obj),
     dirs: obj => req(modules.file + 'dirs', methods.post, obj),
     trash: obj => req(modules.file + 'trash', methods.post, obj), // 查询回收站的文件列表
-    playUrl: obj => req(modules.file + 'play_url', methods.post, obj), // 获取文件播放地址
     videos: obj => req(modules.file + 'videos', methods.post, obj) // 查询目录下所有的视频文件
   }
 }

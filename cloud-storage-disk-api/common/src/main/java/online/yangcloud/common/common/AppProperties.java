@@ -1,5 +1,7 @@
 package online.yangcloud.common.common;
 
+import cn.hutool.core.util.StrUtil;
+
 /**
  * 应用变量，可修改
  *
@@ -16,6 +18,6 @@ public class AppProperties {
     /**
      * 用户账户绑定的根目录文件 id
      */
-    public static String ROOT_DIR_ID = "";
+    public static String ROOT_DIR_ID = StrUtil.EMPTY;
 
 }

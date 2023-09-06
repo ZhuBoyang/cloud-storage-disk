@@ -90,11 +90,6 @@ public class UserController {
     @SessionValid
     @PostMapping("/logout")
     public ResultData logout(User user) {
-        // 更新用户账户空间变更
-        List<String> keys = redisTools.keys(AppConstants.Account.SPACE_UPDATE + user.getId());
-        if (ObjectUtil.isNotNull(keys) && keys.size() == 1) {
-            userService.updateUserSpace(keys, user);
-        }
         // 更新 redis 中的登录信息，设置 1s 后过期
         redisTools.expire(AppConstants.Account.LOGIN_TOKEN + SystemTools.getHeaders().getAuthorization(),
                 JSONUtil.toJsonStr(user),

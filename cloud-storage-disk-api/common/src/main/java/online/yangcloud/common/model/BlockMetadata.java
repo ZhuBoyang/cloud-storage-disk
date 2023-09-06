@@ -11,7 +11,7 @@ import online.yangcloud.common.tools.IdTools;
  * @author zhuboyang
  * @since 2023年01月01 21:52:34
  */
-@FluentMybatis
+@FluentMybatis(table = "block_metadata")
 public class BlockMetadata extends BaseParameter {
 
     /**

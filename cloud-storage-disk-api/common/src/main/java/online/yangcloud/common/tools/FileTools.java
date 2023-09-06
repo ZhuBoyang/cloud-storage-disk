@@ -34,7 +34,7 @@ public class FileTools {
     /**
      * 视频后缀
      */
-    public final static List<String> VIDEO_EXT = new ArrayList<>(Arrays.asList("avi", "mov", "rmvb", "rm", "flv", "mp4", "3gp"));
+    public final static List<String> VIDEO_EXT = new ArrayList<>(Arrays.asList(".avi", ".mov", ".rmvb", ".rm", ".flv", ".mp4", ".3gp"));
 
     /**
      * 文件合并

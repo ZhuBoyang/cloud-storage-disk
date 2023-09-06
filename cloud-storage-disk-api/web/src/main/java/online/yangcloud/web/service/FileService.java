@@ -1,5 +1,6 @@
 package online.yangcloud.web.service;
 
+import online.yangcloud.common.model.FileMetadata;
 import online.yangcloud.common.model.User;
 import online.yangcloud.common.model.request.file.DirLooker;
 import online.yangcloud.common.model.request.file.FileSearcher;
@@ -206,5 +207,13 @@ public interface FileService {
      * @param response 响应
      */
     void download(String id, HttpServletResponse response);
+
+    /**
+     * 识别并记录各文件的详细元数据
+     *
+     * @param metadata 文件元数据
+     * @param filePath 文件存储全路径
+     */
+    void recognizeVideoMetadata(FileMetadata metadata, String filePath);
 
 }

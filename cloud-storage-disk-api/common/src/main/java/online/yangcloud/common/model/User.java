@@ -14,7 +14,7 @@ import online.yangcloud.common.tools.IdTools;
  * @author zhuboyang
  * @since 2023年01月18 11:20:25
  */
-@FluentMybatis
+@FluentMybatis(table = "user")
 @TokenEntity
 public class User extends BaseParameter {
 

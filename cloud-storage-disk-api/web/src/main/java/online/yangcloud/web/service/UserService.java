@@ -31,14 +31,6 @@ public interface UserService {
     String enter(UserEnter enter);
 
     /**
-     * 更新用户账户空间
-     *
-     * @param keys 失效 redis key
-     * @param user 更新的账户
-     */
-    void updateUserSpace(List<String> keys, User user);
-
-    /**
      * 修改账户资料
      *
      * @param updater 要修改的资料

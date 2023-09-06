@@ -13,10 +13,7 @@ import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.common.AppResultCode;
 import online.yangcloud.common.enumration.FileTypeEnum;
 import online.yangcloud.common.enumration.YesOrNoEnum;
-import online.yangcloud.common.model.BlockMetadata;
-import online.yangcloud.common.model.FileBlock;
-import online.yangcloud.common.model.FileMetadata;
-import online.yangcloud.common.model.User;
+import online.yangcloud.common.model.*;
 import online.yangcloud.common.model.business.file.FileOperateValidator;
 import online.yangcloud.common.model.request.file.DirLooker;
 import online.yangcloud.common.model.request.file.FileSearcher;
@@ -27,10 +24,7 @@ import online.yangcloud.common.model.view.file.BreadsView;
 import online.yangcloud.common.model.view.file.FileMetadataView;
 import online.yangcloud.common.tools.*;
 import online.yangcloud.web.service.FileService;
-import online.yangcloud.web.service.meta.BlockMetadataService;
-import online.yangcloud.web.service.meta.FileBlockService;
-import online.yangcloud.web.service.meta.FileMetadataService;
-import online.yangcloud.web.service.meta.UserMetaService;
+import online.yangcloud.web.service.meta.*;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
@@ -67,12 +61,15 @@ public class FileServiceImpl implements FileService {
 
     @Resource
     private BlockMetadataService blockMetadataService;
-
+    
     @Resource
-    private RedisTools redisTools;
+    private VideoMetadataService videoMetadataService;
 
     @Resource
     private RedissonClient redissonClient;
+
+    @Resource
+    private RedisTools redisTools;
 
     @Override
     public Integer checkBlockExist(FileUploader uploader) {
@@ -151,22 +148,18 @@ public class FileServiceImpl implements FileService {
         List<String> blockPaths = fileBlocks.stream()
                 .map(o -> SystemTools.systemPath() + blocksPathMap.get(o.getBlockId()))
                 .collect(Collectors.toList());
-        String filePath = SystemTools.systemPath() + AppConstants.Uploader.FILE_UPLOAD + blockUploaderList.get(0).getIdentifier();
+        String filePath = SystemTools.systemPath() + AppConstants.Uploader.FILE_UPLOAD + fileId + blockUploaderList.get(0).getExt();
         FileTools.combineFile(filePath, blockPaths);
         String fileHash = SecureUtil.md5(Files.newInputStream(FileUtil.file(filePath).toPath()));
-        if (FileTools.isPic(blockUploaderList.get(0).getExt())) {
-            FileUtil.rename(FileUtil.file(filePath), fileHash, Boolean.TRUE);
-        }
-        // 如果是图片的话，就保留合并的文件，以便页面回显
-        if (!FileTools.isPic(blockUploaderList.get(0).getExt())) {
-            FileUtil.del(filePath);
-        }
 
         // 封装文件元数据并入库
         String name = calculateName(blockUploaderList.get(0).getId(), blockUploaderList.get(0).getFileName(), FileTypeEnum.FILE.code());
         FileMetadata parent = fileMetadataService.queryById(blockUploaderList.get(0).getId(), user.getId());
         FileMetadata file = FileMetadata.initial(fileId, name, fileHash, parent, blockUploaderList.get(0), user);
         fileMetadataService.insertWidthPrimaryKey(file);
+
+        // 记录各类型文件的详细元数据
+        recognizeVideoMetadata(file, filePath);
 
         // 增加空间使用量
         userMetaService.updateSpaceSize(user, file.getSize());
@@ -532,7 +525,7 @@ public class FileServiceImpl implements FileService {
         if (ObjectUtil.isNull(video)) {
             ExceptionTools.noDataLogger();
         }
-        
+
         // 构建临时文件的存放目录地址
         String path = AppConstants.Uploader.TMP_PATH + video.getId() + StrUtil.UNDERLINE + video.getName() + video.getExt();
         String target = SystemTools.systemPath() + path;
@@ -562,7 +555,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public List<FileMetadataView> queryVideosUnderDir(String pid, String userId) {
         List<FileMetadata> files = fileMetadataService.queryListByPid(pid, userId);
-        return files.stream().map(FileMetadataView::convert).collect(Collectors.toList());
+        return files.stream().sorted(Comparator.comparingLong(FileMetadata::getUploadTime)).map(FileMetadataView::convert).collect(Collectors.toList());
     }
 
     @Override
@@ -597,6 +590,27 @@ public class FileServiceImpl implements FileService {
 
         // 删除临时目录中的文件
         FileUtil.del(filePath + file.getHash());
+    }
+
+    @Override
+    public void recognizeVideoMetadata(FileMetadata metadata, String filePath) {
+        // 上传的文件是个视频
+        if (FileTools.isVideo(metadata.getExt())) {
+            // 截取视频的第一帧，用作缩略图
+            String thumbnail = AppConstants.Uploader.SNAPSHOT + metadata.getId() + ".png";
+            if (!FileUtil.exist(FileUtil.file(SystemTools.systemPath() + thumbnail).getParent())) {
+                FileUtil.mkdir(FileUtil.file(SystemTools.systemPath() + thumbnail).getParent());
+            }
+            FfmpegTools.splitFirstPicture(filePath, SystemTools.systemPath() + thumbnail);
+            // 获取视频详细信息
+            VideoMetadata video = FfmpegTools.getVideoInfo(FileUtil.file(filePath))
+                    .setId(IdTools.fastSimpleUuid())
+                    .setThumbnail(thumbnail)
+                    .setFileId(metadata.getId());
+            videoMetadataService.addVideoRecord(video);
+            // 删除整文件
+            FileUtil.del(filePath);
+        }
     }
 
 }
