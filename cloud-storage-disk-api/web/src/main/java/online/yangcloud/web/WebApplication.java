@@ -1,8 +1,6 @@
 package online.yangcloud.web;
 
 import cn.org.atool.fluent.mybatis.spring.MapperFactory;
-import online.yangcloud.common.tools.FfmpegTools;
-import online.yangcloud.common.tools.SystemTools;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

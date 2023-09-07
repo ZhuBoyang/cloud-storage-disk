@@ -5,6 +5,7 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
@@ -13,7 +14,10 @@ import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.common.AppResultCode;
 import online.yangcloud.common.enumration.FileTypeEnum;
 import online.yangcloud.common.enumration.YesOrNoEnum;
-import online.yangcloud.common.model.*;
+import online.yangcloud.common.model.BlockMetadata;
+import online.yangcloud.common.model.FileBlock;
+import online.yangcloud.common.model.FileMetadata;
+import online.yangcloud.common.model.User;
 import online.yangcloud.common.model.business.file.FileOperateValidator;
 import online.yangcloud.common.model.request.file.DirLooker;
 import online.yangcloud.common.model.request.file.FileSearcher;
@@ -24,7 +28,11 @@ import online.yangcloud.common.model.view.file.BreadsView;
 import online.yangcloud.common.model.view.file.FileMetadataView;
 import online.yangcloud.common.tools.*;
 import online.yangcloud.web.service.FileService;
-import online.yangcloud.web.service.meta.*;
+import online.yangcloud.web.service.ThumbnailService;
+import online.yangcloud.web.service.meta.BlockMetadataService;
+import online.yangcloud.web.service.meta.FileBlockService;
+import online.yangcloud.web.service.meta.FileMetadataService;
+import online.yangcloud.web.service.meta.UserMetaService;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
@@ -61,9 +69,9 @@ public class FileServiceImpl implements FileService {
 
     @Resource
     private BlockMetadataService blockMetadataService;
-    
+
     @Resource
-    private VideoMetadataService videoMetadataService;
+    private ThumbnailService thumbnailService;
 
     @Resource
     private RedissonClient redissonClient;
@@ -95,7 +103,7 @@ public class FileServiceImpl implements FileService {
 
             // 如果检测到文件块还不存在，就说明还没有上传过，那么先进行落地
             if (ObjectUtil.isNull(block)) {
-                String uploadPath = SystemTools.systemPath() + AppConstants.Uploader.BLOCK_UPLOAD;
+                String uploadPath = SystemTools.systemPath() + AppConstants.Uploader.BLOCK;
                 if (!FileUtil.exist(uploadPath)) {
                     FileUtil.mkdir(uploadPath);
                 }
@@ -148,7 +156,7 @@ public class FileServiceImpl implements FileService {
         List<String> blockPaths = fileBlocks.stream()
                 .map(o -> SystemTools.systemPath() + blocksPathMap.get(o.getBlockId()))
                 .collect(Collectors.toList());
-        String filePath = SystemTools.systemPath() + AppConstants.Uploader.FILE_UPLOAD + fileId + blockUploaderList.get(0).getExt();
+        String filePath = SystemTools.systemPath() + AppConstants.Uploader.FILE + fileId + blockUploaderList.get(0).getExt();
         FileTools.combineFile(filePath, blockPaths);
         String fileHash = SecureUtil.md5(Files.newInputStream(FileUtil.file(filePath).toPath()));
 
@@ -159,7 +167,7 @@ public class FileServiceImpl implements FileService {
         fileMetadataService.insertWidthPrimaryKey(file);
 
         // 记录各类型文件的详细元数据
-        recognizeVideoMetadata(file, filePath);
+        ThreadUtil.execute(() -> thumbnailService.thumbnail(file));
 
         // 增加空间使用量
         userMetaService.updateSpaceSize(user, file.getSize());
@@ -482,9 +490,27 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public PagerView<FileMetadataView> queryFiles(FileSearcher searcher, String userId) {
+        // 查询分页数据
         PagerView<FileMetadata> filePager = fileMetadataService.queryFilesInPager(searcher.getPid(), searcher.getName(), userId,
                 YesOrNoEnum.YES.is(searcher.getIsOnlyDir()), searcher.getPageIndex(), searcher.getPageSize());
-        List<FileMetadataView> views = filePager.getData().stream().map(FileMetadataView::convert).collect(Collectors.toList());
+        List<FileMetadata> files = filePager.getData();
+
+        // 各类文件 id 与缩略图的映射关系
+        Map<String, String> thumbnailReflectionMap = new HashMap<>(files.size());
+
+        // 检测当前页是否有视频文件
+        List<FileMetadata> videos = files.stream().filter(o -> FileTools.isVideo(o.getExt())).collect(Collectors.toList());
+        if (!videos.isEmpty()) {
+            thumbnailReflectionMap.putAll(thumbnailService.queryThumbnails(videos));
+        }
+
+        // 封装并返回展示数据列表
+        List<FileMetadataView> views = new ArrayList<>(files.size());
+        for (FileMetadata metadata : filePager.getData()) {
+            if (FileTools.isVideo(metadata.getExt())) {
+                views.add(FileMetadataView.convert(metadata).setThumbnail(thumbnailReflectionMap.get(metadata.getId())));
+            }
+        }
         return new PagerView<FileMetadataView>().setData(views).setTotal(filePager.getTotal());
     }
 
@@ -527,7 +553,7 @@ public class FileServiceImpl implements FileService {
         }
 
         // 构建临时文件的存放目录地址
-        String path = AppConstants.Uploader.TMP_PATH + video.getId() + StrUtil.UNDERLINE + video.getName() + video.getExt();
+        String path = AppConstants.Uploader.TMP + video.getId() + StrUtil.UNDERLINE + video.getName() + video.getExt();
         String target = SystemTools.systemPath() + path;
         if (FileUtil.exist(target)) {
             return FileMetadataView.convert(video.setPath(path));
@@ -582,7 +608,7 @@ public class FileServiceImpl implements FileService {
         List<String> storages = fileBlocks.stream()
                 .map(o -> SystemTools.systemPath() + blockStorageMap.get(o.getBlockId()))
                 .collect(Collectors.toList());
-        String filePath = SystemTools.systemPath() + AppConstants.Uploader.TMP_PATH;
+        String filePath = SystemTools.systemPath() + AppConstants.Uploader.TMP;
         FileTools.combineFile(filePath + file.getHash(), storages);
 
         // 下载文件
@@ -590,27 +616,6 @@ public class FileServiceImpl implements FileService {
 
         // 删除临时目录中的文件
         FileUtil.del(filePath + file.getHash());
-    }
-
-    @Override
-    public void recognizeVideoMetadata(FileMetadata metadata, String filePath) {
-        // 上传的文件是个视频
-        if (FileTools.isVideo(metadata.getExt())) {
-            // 截取视频的第一帧，用作缩略图
-            String thumbnail = AppConstants.Uploader.SNAPSHOT + metadata.getId() + ".png";
-            if (!FileUtil.exist(FileUtil.file(SystemTools.systemPath() + thumbnail).getParent())) {
-                FileUtil.mkdir(FileUtil.file(SystemTools.systemPath() + thumbnail).getParent());
-            }
-            FfmpegTools.splitFirstPicture(filePath, SystemTools.systemPath() + thumbnail);
-            // 获取视频详细信息
-            VideoMetadata video = FfmpegTools.getVideoInfo(FileUtil.file(filePath))
-                    .setId(IdTools.fastSimpleUuid())
-                    .setThumbnail(thumbnail)
-                    .setFileId(metadata.getId());
-            videoMetadataService.addVideoRecord(video);
-            // 删除整文件
-            FileUtil.del(filePath);
-        }
     }
 
 }

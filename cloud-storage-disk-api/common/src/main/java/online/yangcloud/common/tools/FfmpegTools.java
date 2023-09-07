@@ -1,6 +1,8 @@
 package online.yangcloud.common.tools;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.StrBuilder;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.RuntimeUtil;
 import cn.hutool.core.util.StrUtil;
 import online.yangcloud.common.model.VideoMetadata;
@@ -65,6 +67,7 @@ public class FfmpegTools {
      * @param screenshot 截图存储路径
      */
     public static void splitFirstPicture(String videoPath, String screenshot) {
+        // 执行 ffmpeg 命令截取指定视频的第一帧为缩略图
         StrBuilder command = StrBuilder.create()
                 .append("ffmpeg ")
                 .append("-i ")
@@ -75,6 +78,11 @@ public class FfmpegTools {
                 .append(" 1 ")
                 .append(screenshot);
         RuntimeUtil.exec(command.toString());
+
+        // 检测缩略图是否存在
+        while (!FileUtil.exist(screenshot)) {
+            ThreadUtil.safeSleep(100);
+        }
     }
 
     /**

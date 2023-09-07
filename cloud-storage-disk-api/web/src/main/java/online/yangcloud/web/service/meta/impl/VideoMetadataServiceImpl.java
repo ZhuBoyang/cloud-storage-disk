@@ -1,5 +1,7 @@
 package online.yangcloud.web.service.meta.impl;
 
+import cn.hutool.core.util.ObjectUtil;
+import online.yangcloud.common.enumration.YesOrNoEnum;
 import online.yangcloud.common.mapper.VideoMetadataMapper;
 import online.yangcloud.common.model.VideoMetadata;
 import online.yangcloud.common.tools.ExceptionTools;
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author zhuboyang
@@ -22,7 +25,23 @@ public class VideoMetadataServiceImpl implements VideoMetadataService {
     
     @Override
     public void addVideoRecord(VideoMetadata metadata) {
-        updateError(videoMetadataMapper.insert(metadata));
+        updateError(videoMetadataMapper.insertWithPk(metadata));
+    }
+
+    @Override
+    public VideoMetadata queryVideoByFileId(String id) {
+        return videoMetadataMapper.findOne(videoMetadataMapper.query()
+                .where.fileId().eq(id)
+                .and.isDelete().eq(YesOrNoEnum.NO.code())
+                .end());
+    }
+
+    @Override
+    public List<VideoMetadata> queryVideosByFileIds(List<String> fileIds) {
+        return videoMetadataMapper.listEntity(videoMetadataMapper.query()
+                .where.fileId().in(fileIds)
+                .and.isDelete().eq(YesOrNoEnum.NO.code())
+                .end());
     }
 
     private void updateError(int updateResult) {

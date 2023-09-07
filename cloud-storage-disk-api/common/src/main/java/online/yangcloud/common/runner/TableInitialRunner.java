@@ -4,6 +4,8 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import online.yangcloud.common.database.TableMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -26,6 +28,8 @@ import java.util.List;
  */
 @Component
 public class TableInitialRunner implements ApplicationRunner {
+    
+    private static final Logger logger = LoggerFactory.getLogger(TableInitialRunner.class);
 
     private static final String BASE_PACKAGE = "online.yangcloud.common.model";
     private static final String RESOURCE_PATTERN = "/*.class";
@@ -62,6 +66,7 @@ public class TableInitialRunner implements ApplicationRunner {
                 if (tablesName.contains(tableAnnotation.table())) {
                     continue;
                 }
+                logger.info("Table [{}] has not been created yet and is being created for initialization", tableAnnotation.table());
                 jdbcTemplate.execute(tableMapper.generateTableSql(name));
             }
         }

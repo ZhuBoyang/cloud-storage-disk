@@ -3,7 +3,10 @@ import { Notification } from '@arco-design/web-vue'
 import md5 from 'js-md5'
 
 const identifyFileAvatar = (file) => {
-  const { ext, type } = file
+  const { ext, type, thumbnail } = file
+  if (thumbnail !== undefined && thumbnail !== '' && thumbnail !== null) {
+    return apiConfig().apiBaseUrl + thumbnail
+  }
   if (type === 1) {
     return apiConfig().iconBaseUrl + 'file/directory.png'
   }

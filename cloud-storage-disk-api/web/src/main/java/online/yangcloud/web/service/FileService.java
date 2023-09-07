@@ -208,12 +208,4 @@ public interface FileService {
      */
     void download(String id, HttpServletResponse response);
 
-    /**
-     * 识别并记录各文件的详细元数据
-     *
-     * @param metadata 文件元数据
-     * @param filePath 文件存储全路径
-     */
-    void recognizeVideoMetadata(FileMetadata metadata, String filePath);
-
 }

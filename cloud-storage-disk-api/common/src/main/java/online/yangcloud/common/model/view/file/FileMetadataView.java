@@ -1,5 +1,6 @@
 package online.yangcloud.common.model.view.file;
 
+import cn.hutool.core.util.StrUtil;
 import online.yangcloud.common.model.FileMetadata;
 
 /**
@@ -57,6 +58,11 @@ public class FileMetadataView {
      * 用户 id
      */
     private String userId;
+
+    /**
+     * 文件缩略图
+     */
+    private String thumbnail = StrUtil.EMPTY;
 
     public static FileMetadataView convert(FileMetadata file) {
         return new FileMetadataView()
@@ -162,6 +168,15 @@ public class FileMetadataView {
         return this;
     }
 
+    public String getThumbnail() {
+        return thumbnail;
+    }
+
+    public FileMetadataView setThumbnail(String thumbnail) {
+        this.thumbnail = StrUtil.isBlank(thumbnail) ? StrUtil.EMPTY : thumbnail;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "FileMetadataView["
@@ -174,7 +189,8 @@ public class FileMetadataView {
                 + " ext=" + ext + ","
                 + " size=" + size + ","
                 + " uploadTime=" + uploadTime + ","
-                + " userId=" + userId
+                + " userId=" + userId + ","
+                + " thumbnail=" + thumbnail
                 + " ]";
     }
 }

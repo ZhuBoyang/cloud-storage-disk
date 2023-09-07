@@ -104,7 +104,7 @@ public class FileMetadata extends BaseParameter {
                 .setName(name)
                 .setHash(fileHash)
                 .setExt(uploader.getExt())
-                .setPath(AppConstants.Uploader.FILE_UPLOAD + fileHash)
+                .setPath(AppConstants.Uploader.FILE + fileHash)
                 .setType(FileTypeEnum.FILE.code())
                 .setSize(uploader.getFileSize())
                 .setterAncestors(ancestors)

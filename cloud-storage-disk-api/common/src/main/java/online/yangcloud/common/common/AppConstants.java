@@ -100,7 +100,7 @@ public interface AppConstants {
      */
     interface Batch {
         // 单次批量插入数据的最大数据量
-        Integer COUNT = 500;
+        int COUNT = 500;
     }
 
     /**
@@ -112,13 +112,21 @@ public interface AppConstants {
         // 总上传目录
         String UPLOAD = "upload" + File.separator;
         // 文件上传目录
-        String FILE_UPLOAD = UPLOAD + "file" + File.separator;
+        String FILE = UPLOAD + "file" + File.separator;
         // 文件块上传目录
-        String BLOCK_UPLOAD = UPLOAD + "block" + File.separator;
+        String BLOCK = UPLOAD + "block" + File.separator;
         // 临时文件存放目录
-        String TMP_PATH = "tmp" + File.separator;
+        String TMP = "tmp" + File.separator;
         // 缩略图存放目录
         String SNAPSHOT = "snapshot" + Special.SEPARATOR;
+    }
+
+    /**
+     * 页面展示图标
+     */
+    interface Icon {
+        // 默认宽度
+        float DEFAULT_WIDTH = 500f;
     }
 
 }
