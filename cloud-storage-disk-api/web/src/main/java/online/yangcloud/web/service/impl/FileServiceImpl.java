@@ -580,8 +580,24 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public List<FileMetadataView> queryVideosUnderDir(String pid, String userId) {
+        // 查询当前目录下所有的文件
         List<FileMetadata> files = fileMetadataService.queryListByPid(pid, userId);
-        return files.stream().sorted(Comparator.comparingLong(FileMetadata::getUploadTime)).map(FileMetadataView::convert).collect(Collectors.toList());
+
+        // 过滤掉非视频文件，并查询视频元数据
+        Map<String, String> reflectionMap = new HashMap<>(files.size());
+        files = files.stream().filter(o -> FileTools.isVideo(o.getExt()))
+                .sorted(Comparator.comparingLong(FileMetadata::getUploadTime))
+                .collect(Collectors.toList());
+        if (!files.isEmpty()) {
+            reflectionMap.putAll(thumbnailService.queryThumbnails(files));
+        }
+
+        // 封装文件展示数据
+        List<FileMetadataView> views = new ArrayList<>(files.size());
+        for (FileMetadata file : files) {
+            views.add(FileMetadataView.convert(file).setThumbnail(reflectionMap.get(file.getId())));
+        }
+        return views;
     }
 
     @Override

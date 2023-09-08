@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,13 +84,15 @@ public class ThumbnailServiceImpl implements ThumbnailService {
 
         // 查询各类文件元数据并封装映射
         Map<String, List<FileMetadata>> fileMap = files.stream().collect(Collectors.groupingBy(FileMetadata::getExt));
-        fileMap.forEach((ext, fileList) -> {
-            List<String> fileIds = fileList.stream().map(FileMetadata::getId).collect(Collectors.toList());
-            if (FileTools.isVideo(ext)) {
-                List<VideoMetadata> videos = videoMetadataService.queryVideosByFileIds(fileIds);
-                maps.putAll(videos.stream().collect(Collectors.toMap(VideoMetadata::getFileId, VideoMetadata::getThumbnail)));
-            }
-        });
+
+        // 整理视频文件的元数据映射
+        List<String> fileIds = new ArrayList<>();
+        FileTools.VIDEO_EXT.forEach(o -> fileIds.addAll(fileMap.get(o).stream().map(FileMetadata::getId).collect(Collectors.toList())));
+        if (!fileIds.isEmpty()) {
+            List<VideoMetadata> videos = videoMetadataService.queryVideosByFileIds(fileIds);
+            maps.putAll(videos.stream().collect(Collectors.toMap(VideoMetadata::getFileId, VideoMetadata::getThumbnail)));
+        }
+
         return maps;
     }
 
