@@ -45,7 +45,7 @@ import { getCurrentInstance, reactive } from 'vue'
 import apiConfig from '../../api/apiConfig.js'
 
 export default {
-  name: 'VideoPlayer',
+  name: 'VideoPlayers',
   props: {
     src: {
       type: String,

@@ -79,18 +79,23 @@ public class ThumbnailServiceImpl implements ThumbnailService {
     }
 
     @Override
-    public Map<String, String> queryThumbnails(List<FileMetadata> files) {
-        Map<String, String> maps = new HashMap<>(files.size());
+    public Map<String, VideoMetadata> queryThumbnails(List<FileMetadata> files) {
+        Map<String, VideoMetadata> maps = new HashMap<>(files.size());
 
         // 查询各类文件元数据并封装映射
         Map<String, List<FileMetadata>> fileMap = files.stream().collect(Collectors.groupingBy(FileMetadata::getExt));
 
         // 整理视频文件的元数据映射
         List<String> fileIds = new ArrayList<>();
-        FileTools.VIDEO_EXT.forEach(o -> fileIds.addAll(fileMap.get(o).stream().map(FileMetadata::getId).collect(Collectors.toList())));
+        for (String ext : FileTools.VIDEO_EXT) {
+            List<FileMetadata> videos = fileMap.get(ext);
+            if (ObjectUtil.isNotNull(videos) && !videos.isEmpty()) {
+                fileIds.addAll(videos.stream().map(FileMetadata::getId).collect(Collectors.toList()));
+            }
+        }
         if (!fileIds.isEmpty()) {
             List<VideoMetadata> videos = videoMetadataService.queryVideosByFileIds(fileIds);
-            maps.putAll(videos.stream().collect(Collectors.toMap(VideoMetadata::getFileId, VideoMetadata::getThumbnail)));
+            maps.putAll(videos.stream().collect(Collectors.toMap(VideoMetadata::getFileId, o -> o)));
         }
 
         return maps;

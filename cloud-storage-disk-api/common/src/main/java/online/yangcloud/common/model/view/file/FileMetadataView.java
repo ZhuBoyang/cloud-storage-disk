@@ -64,6 +64,11 @@ public class FileMetadataView {
      */
     private String thumbnail = StrUtil.EMPTY;
 
+    /**
+     * 文件时长（仅用于视频、音频文件）
+     */
+    private Double duration = 0D;
+
     public static FileMetadataView convert(FileMetadata file) {
         return new FileMetadataView()
                 .setId(file.getId())
@@ -173,7 +178,16 @@ public class FileMetadataView {
     }
 
     public FileMetadataView setThumbnail(String thumbnail) {
-        this.thumbnail = StrUtil.isBlank(thumbnail) ? StrUtil.EMPTY : thumbnail;
+        this.thumbnail = thumbnail;
+        return this;
+    }
+
+    public Double getDuration() {
+        return duration;
+    }
+
+    public FileMetadataView setDuration(Double duration) {
+        this.duration = duration;
         return this;
     }
 
@@ -190,7 +204,8 @@ public class FileMetadataView {
                 + " size=" + size + ","
                 + " uploadTime=" + uploadTime + ","
                 + " userId=" + userId + ","
-                + " thumbnail=" + thumbnail
+                + " thumbnail=" + thumbnail + ","
+                + " duration=" + duration
                 + " ]";
     }
 }

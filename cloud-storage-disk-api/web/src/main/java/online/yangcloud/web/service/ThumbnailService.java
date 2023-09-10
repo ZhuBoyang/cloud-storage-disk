@@ -1,6 +1,7 @@
 package online.yangcloud.web.service;
 
 import online.yangcloud.common.model.FileMetadata;
+import online.yangcloud.common.model.VideoMetadata;
 
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,6 @@ public interface ThumbnailService {
      * @param files 文件元数据列表
      * @return 缩略图地址列表
      */
-    Map<String, String> queryThumbnails(List<FileMetadata> files);
+    Map<String, VideoMetadata> queryThumbnails(List<FileMetadata> files);
 
 }

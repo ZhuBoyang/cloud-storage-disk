@@ -14,10 +14,7 @@ import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.common.AppResultCode;
 import online.yangcloud.common.enumration.FileTypeEnum;
 import online.yangcloud.common.enumration.YesOrNoEnum;
-import online.yangcloud.common.model.BlockMetadata;
-import online.yangcloud.common.model.FileBlock;
-import online.yangcloud.common.model.FileMetadata;
-import online.yangcloud.common.model.User;
+import online.yangcloud.common.model.*;
 import online.yangcloud.common.model.business.file.FileOperateValidator;
 import online.yangcloud.common.model.request.file.DirLooker;
 import online.yangcloud.common.model.request.file.FileSearcher;
@@ -496,7 +493,7 @@ public class FileServiceImpl implements FileService {
         List<FileMetadata> files = filePager.getData();
 
         // 各类文件 id 与缩略图的映射关系
-        Map<String, String> thumbnailReflectionMap = new HashMap<>(files.size());
+        Map<String, VideoMetadata> thumbnailReflectionMap = new HashMap<>(files.size());
 
         // 检测当前页是否有视频文件
         List<FileMetadata> videos = files.stream().filter(o -> FileTools.isVideo(o.getExt())).collect(Collectors.toList());
@@ -508,7 +505,8 @@ public class FileServiceImpl implements FileService {
         List<FileMetadataView> views = new ArrayList<>(files.size());
         for (FileMetadata metadata : filePager.getData()) {
             if (FileTools.isVideo(metadata.getExt())) {
-                views.add(FileMetadataView.convert(metadata).setThumbnail(thumbnailReflectionMap.get(metadata.getId())));
+                VideoMetadata video = thumbnailReflectionMap.get(metadata.getId());
+                views.add(FileMetadataView.convert(metadata).setThumbnail(video.getThumbnail()).setDuration(video.getDuration()));
             }
         }
         return new PagerView<FileMetadataView>().setData(views).setTotal(filePager.getTotal());
@@ -584,7 +582,7 @@ public class FileServiceImpl implements FileService {
         List<FileMetadata> files = fileMetadataService.queryListByPid(pid, userId);
 
         // 过滤掉非视频文件，并查询视频元数据
-        Map<String, String> reflectionMap = new HashMap<>(files.size());
+        Map<String, VideoMetadata> reflectionMap = new HashMap<>(files.size());
         files = files.stream().filter(o -> FileTools.isVideo(o.getExt()))
                 .sorted(Comparator.comparingLong(FileMetadata::getUploadTime))
                 .collect(Collectors.toList());
@@ -595,7 +593,8 @@ public class FileServiceImpl implements FileService {
         // 封装文件展示数据
         List<FileMetadataView> views = new ArrayList<>(files.size());
         for (FileMetadata file : files) {
-            views.add(FileMetadataView.convert(file).setThumbnail(reflectionMap.get(file.getId())));
+            VideoMetadata video = reflectionMap.get(file.getId());
+            views.add(FileMetadataView.convert(file).setThumbnail(video.getThumbnail()).setDuration(video.getDuration()));
         }
         return views;
     }

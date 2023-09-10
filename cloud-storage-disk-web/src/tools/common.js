@@ -1,6 +1,7 @@
 import apiConfig from '../api/apiConfig.js'
 import { Notification } from '@arco-design/web-vue'
 import md5 from 'js-md5'
+import type from './type.js'
 
 const identifyFileAvatar = (file) => {
   const { ext, type, thumbnail } = file
@@ -128,6 +129,23 @@ const encrypt = (str, count) => {
   return count + str
 }
 
+// 将数字转换为时间（将秒数转为 时:分:秒）
+const formatNumberToTime = time => {
+  if (!type.isNumber(time)) {
+    return ''
+  }
+  if (typeof time === 'string') {
+    time = parseInt(time)
+  }
+  let hour = Math.floor(time / 60 / 60 % 24)
+  let minute = Math.floor(time / 60 % 60)
+  let second = Math.floor(time % 60)
+  hour = hour < 10 ? '0' + hour : hour
+  minute = minute < 10 ? '0' + minute : minute
+  second = second < 10 ? '0' + second : second
+  return `${hour}:${minute}:${second}`
+}
+
 const common = {
   identifyFileAvatar,
   formatSizeInPerson,
@@ -136,7 +154,8 @@ const common = {
   formatDate,
   notify,
   setUrlQuery,
-  encrypt
+  encrypt,
+  formatNumberToTime
 }
 
 export default common
