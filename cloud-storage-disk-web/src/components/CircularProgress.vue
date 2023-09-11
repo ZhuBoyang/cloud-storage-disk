@@ -28,7 +28,7 @@
 
 <script>
 import { reactive } from 'vue'
-import typeUtil from '../../tools/type.js'
+import typeUtil from '../tools/type.js'
 
 export default {
   name: 'CircularProgress',

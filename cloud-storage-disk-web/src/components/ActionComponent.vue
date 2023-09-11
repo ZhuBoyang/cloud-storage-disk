@@ -56,7 +56,7 @@ import emitter from '../tools/emitter.js'
 
 const LoginUserAction = defineAsyncComponent(() => import('./LoginUserAction.vue'))
 const UploadFileList = defineAsyncComponent(() => import('./UploadComponent.vue'))
-const CircularProgress = defineAsyncComponent(() => import('../components/custom/CircularProgress.vue'))
+const CircularProgress = defineAsyncComponent(() => import('./CircularProgress.vue'))
 
 export default {
   name: 'ActionComponent',

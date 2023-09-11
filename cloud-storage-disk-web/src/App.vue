@@ -8,7 +8,12 @@
 
 <script>
 export default {
-  name: 'App'
+  name: 'App',
+  created () {
+    document.oncontextmenu = function () {
+      return false
+    }
+  }
 }
 </script>
 

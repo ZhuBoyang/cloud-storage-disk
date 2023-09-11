@@ -1,6 +1,12 @@
 <template>
   <div class="video-layer" v-show="visible"></div>
-  <div class="video" ref="video" id="video" v-show="visible" :class="[{'is-full': controls.webpageIsFull}]">
+  <div class="video"
+       id="video"
+       v-show="visible"
+       :class="[{'is-full': controls.webpageIsFull}]"
+       @mouseover="mouseInPlayer"
+       @mouseout="mouseOutPlayer"
+  >
     <div class="player-box" id="player"/>
     <div class="box-layer" @click="playAndPause"></div>
     <div class="box-loading" v-show="controls.isLoading">
@@ -11,7 +17,11 @@
     </div>
     <div class="box-controls" :class="[{'is-show': controls.controlIsShow}]">
       <div class="box-controls--process">
-        <a-slider v-model="process.currentTime" :max="process.duration" :format-tooltip="formatCurrentTime" @change="toPlayTime"/>
+        <a-slider v-model="process.currentTime"
+                  :max="process.duration"
+                  :format-tooltip="formatCurrentTime"
+                  @change="toPlayTime"
+        />
       </div>
       <div class="box-controls--box">
         <div class="controls-left">
@@ -25,7 +35,10 @@
             <img :src="apiConfig().iconBaseUrl + 'video/prev.png'" alt="prev" @click="switchPrevVideo"/>
           </div>
           <div class="control-item control-backward">
-            <img :src="apiConfig().iconBaseUrl + 'video/fast_backward.png'" alt="backward" @click="backwardFiveSeconds"/>
+            <img :src="apiConfig().iconBaseUrl + 'video/fast_backward.png'"
+                 alt="backward"
+                 @click="backwardFiveSeconds"
+            />
           </div>
           <div class="control-item control-forward">
             <img :src="apiConfig().iconBaseUrl + 'video/fast_forward.png'" alt="forward" @click="forwardFiveSeconds"/>
@@ -37,32 +50,69 @@
         <div class="controls-right">
           <div class="video-volume-control" @mouseover="showVolumeRegulator" @mouseout="hideVolumeRegulator">
             <div class="control-icon">
-              <img v-if="controls.muted" :src="apiConfig().iconBaseUrl + 'video/mute.png'" alt="volume" @click="muteOrNot"/>
-              <img v-else :src="apiConfig().iconBaseUrl + 'video/volume.png'" alt="volume" @click="muteOrNot"/>
+              <img v-if="controls.muted"
+                   :src="apiConfig().iconBaseUrl + 'video/mute.png'"
+                   alt="volume"
+                   @click="muteOrNot"
+              />
+              <img v-else
+                   :src="apiConfig().iconBaseUrl + 'video/volume.png'"
+                   alt="volume"
+                   @click="muteOrNot"
+              />
             </div>
             <div class="control-box" :class="[{'is-show': controls.muteIsShow}]">
               <div class="max-volume">100</div>
               <div class="control-box--process">
-                <a-slider direction="vertical" v-model:model-value="controls.volume" :min="0" :max="100" @change="changeVolume"/>
+                <a-slider direction="vertical"
+                          v-model:model-value="controls.volume"
+                          :min="0"
+                          :max="100"
+                          @change="changeVolume"
+                />
               </div>
             </div>
           </div>
           <div class="video-webpage-control" v-if="!controls.screenIsFull">
             <div class="control-icon">
-              <img v-if="controls.webpageIsFull" :src="apiConfig().iconBaseUrl + 'video/webpage_non_full.png'" alt="webpage" @click="outWebpageFull"/>
-              <img v-else :src="apiConfig().iconBaseUrl + 'video/webpage_full.png'" alt="webpage" @click="inWebpageFull"/>
+              <img v-if="controls.webpageIsFull"
+                   :src="apiConfig().iconBaseUrl + 'video/webpage_non_full.png'"
+                   alt="webpage"
+                   @click="outWebpageFull"
+              />
+              <img v-else
+                   :src="apiConfig().iconBaseUrl + 'video/webpage_full.png'"
+                   alt="webpage"
+                   @click="inWebpageFull"
+              />
             </div>
           </div>
           <div class="video-screen-control">
             <div class="control-icon">
-              <img v-if="controls.screenIsFull" :src="apiConfig().iconBaseUrl + 'video/screen_non_full.png'" alt="webpage" @click="outScreenFull"/>
-              <img v-else :src="apiConfig().iconBaseUrl + 'video/screen_full.png'" alt="webpage" @click="inScreenFull"/>
+              <img v-if="controls.screenIsFull"
+                   :src="apiConfig().iconBaseUrl + 'video/screen_non_full.png'"
+                   alt="webpage"
+                   @click="outScreenFull"
+              />
+              <img v-else
+                   :src="apiConfig().iconBaseUrl + 'video/screen_full.png'"
+                   alt="webpage"
+                   @click="inScreenFull"
+              />
             </div>
           </div>
           <div class="video-list-control" v-if="!controls.webpageIsFull && !controls.screenIsFull">
             <div class="control-icon">
-              <img v-if="controls.listIsShow" :src="apiConfig().iconBaseUrl + 'video/list_shrink.png'" alt="list" @click="showOrHideVideoList"/>
-              <img v-else :src="apiConfig().iconBaseUrl + 'video/list_unfold.png'" alt="list" @click="showOrHideVideoList"/>
+              <img v-if="controls.listIsShow"
+                   :src="apiConfig().iconBaseUrl + 'video/list_shrink.png'"
+                   alt="list"
+                   @click="showOrHideVideoList"
+              />
+              <img v-else
+                   :src="apiConfig().iconBaseUrl + 'video/list_unfold.png'"
+                   alt="list"
+                   @click="showOrHideVideoList"
+              />
             </div>
           </div>
         </div>
