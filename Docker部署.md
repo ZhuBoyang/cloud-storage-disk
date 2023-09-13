@@ -140,6 +140,15 @@ docker run --name cloud-storage-disk-api --network cloud-storage-disk -p 8100:81
 # 后端服务 Jar 包启动的端口号为 8100，开放的端口也为 8100
 ```
 
+#### 开放的目录
+
+```shell
+# 后端服务配置文件所在目录
+/opt/webapps/cloud-storage-disk/properties
+# 后端服务本地存储目录
+/opt/webapps/storage/cloud-storage-disk
+```
+
 ### 拉取创建云存储前端容器
 
 #### 拉取前端镜像
@@ -148,7 +157,7 @@ docker run --name cloud-storage-disk-api --network cloud-storage-disk -p 8100:81
 docker pull yangcloud/cloud-storage-disk-web:0.1
 ```
 
-#### 创建前端后期
+#### 创建前端容器
 
 ```
 docker run --name cloud-storage-disk-web --network cloud-storage-disk -p 80:80 -itd yangcloud/cloud-storage-disk-web:0.1
@@ -174,6 +183,13 @@ server {
         proxy_pass http://cloud-storage-disk-api:8100;
     }
 }
+```
+
+#### 开放的目录
+
+```shell
+# nginx 配置文件所在目录
+/usr/local/nginx/conf/vhost
 ```
 
 ### 访问网站

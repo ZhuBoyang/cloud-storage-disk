@@ -506,9 +506,11 @@ public class FileServiceImpl implements FileService {
         for (FileMetadata metadata : filePager.getData()) {
             if (FileTools.isVideo(metadata.getExt())) {
                 VideoMetadata video = thumbnailReflectionMap.get(metadata.getId());
+                FileMetadataView view = FileMetadataView.convert(metadata);
                 if (ObjectUtil.isNotNull(video)) {
-                    views.add(FileMetadataView.convert(metadata).setThumbnail(video.getThumbnail()).setDuration(video.getDuration()));
+                    video.setThumbnail(video.getThumbnail()).setDuration(video.getDuration());
                 }
+                views.add(view);
             }
         }
         return new PagerView<FileMetadataView>().setData(views).setTotal(filePager.getTotal());
