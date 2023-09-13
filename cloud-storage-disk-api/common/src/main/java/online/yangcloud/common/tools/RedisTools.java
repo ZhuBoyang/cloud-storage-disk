@@ -43,7 +43,7 @@ public class RedisTools {
      * @return 值
      */
     public String get(String redisKey) {
-        logger.info("获取redis key[{}]", redisKey);
+        logger.info("acquire redis key[{}]", redisKey);
         return redisTemplate.opsForValue().get(redisKey);
     }
 
@@ -64,7 +64,7 @@ public class RedisTools {
      * @param expireTime 过期时间
      */
     public void expire(String redisKey, Duration expireTime) {
-        logger.info("开始为redis key[{}] 设置过期时间[{}]", redisKey, expireTime);
+        logger.info("start to setter expire time [{}] for redis key [{}]", expireTime, redisKey);
         redisTemplate.expire(redisKey, expireTime);
     }
 
@@ -76,7 +76,7 @@ public class RedisTools {
      * @param seconds  过期时间
      */
     public void expire(String redisKey, String value, Integer seconds) {
-        logger.info("开始设置redis key[{}]，并添加过期时间[{}]", redisKey, seconds);
+        logger.info("start to setter expire time [{}] for redis key [{}]", seconds, redisKey);
         expire(redisKey, value, seconds, TimeUnit.SECONDS);
     }
 
@@ -123,7 +123,7 @@ public class RedisTools {
     public long getExpireTime(String redisKey) {
         Long expireTime = redisTemplate.getExpire(redisKey, TimeUnit.SECONDS);
         if (Optional.ofNullable(expireTime).isPresent()) {
-            logger.info("redis key[{}]还未过期，获取到redis key的过期时间[{}]", redisKey, expireTime);
+            logger.info("redis key [{}] is not expired，acquire the expire time of redis key [{}]", redisKey, expireTime);
             return expireTime;
         }
         logger.info("redis key[{}]已过期", redisKey);
@@ -136,7 +136,7 @@ public class RedisTools {
      * @param redisKey redisKey
      */
     public void delete(String redisKey) {
-        logger.info("删除redis[{}]", redisKey);
+        logger.info("delete redis [{}]", redisKey);
         redisTemplate.delete(redisKey);
     }
 
@@ -161,7 +161,7 @@ public class RedisTools {
      */
     public List<String> zSetRange(String redisKey, Double min, Double max) {
         Set<String> valueSet = redisTemplate.opsForZSet().rangeByScore(redisKey, min, max);
-        return ObjUtil.isNull(valueSet) || valueSet.size() == 0 ? Collections.emptyList() : new ArrayList<>(valueSet);
+        return ObjUtil.isNull(valueSet) || valueSet.isEmpty() ? Collections.emptyList() : new ArrayList<>(valueSet);
     }
 
     /**

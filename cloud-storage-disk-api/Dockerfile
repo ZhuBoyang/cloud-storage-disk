@@ -6,12 +6,12 @@ WORKDIR /opt/webapps/cloud-storage-disk/
 
 COPY ./web/target/cloud-storage-disk-api.jar /opt/webapps/cloud-storage-disk/cloud-storage-disk-api.jar
 
-RUN yum install -y vim wget gcc gcc-c++ cmake make nasm yasm; \
+RUN yum install -y vim wget gcc gcc-c++ cmake make nasm yasm unzip; \
     wget http://storage.yangcloud.online/pan/jdk-8u261-linux-x64.tar.gz; \
     tar -zxvf jdk-8u261-linux-x64.tar.gz; \
     mv -f jdk1.8.0_261 /usr/local/jdk1.8; \
-    wget http://storage.yangcloud.online/pan/properties.tar.gz; \
-    tar -zxvf properties.tar.gz; \
+    wget http://storage.yangcloud.online/pan/properties.zip; \
+    unzip properties.zip; \
     wget http://storage.yangcloud.online/pan/ffmpeg-6.0.tar.xz; \
     tar -xvf ffmpeg-6.0.tar.xz; \
     cd ffmpeg-6.0; \
