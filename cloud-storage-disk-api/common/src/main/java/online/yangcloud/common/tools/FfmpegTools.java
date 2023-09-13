@@ -1,16 +1,15 @@
 package online.yangcloud.common.tools;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.RuntimeUtil;
 import cn.hutool.core.util.StrUtil;
+import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.model.VideoMetadata;
-import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,44 +19,73 @@ import java.util.List;
  */
 public class FfmpegTools {
 
-    private static final Logger logger = LoggerFactory.getLogger(FfmpegTools.class);
+    /**
+     * 获取视频详细信息
+     *
+     * @param path 视频全路径
+     * @return 视频元数据
+     */
+    public static VideoMetadata getVideoInfo(String path) {
+        VideoMetadata video = VideoMetadata.initial();
 
-    public static VideoMetadata getVideoInfo(File file) {
-        VideoMetadata videoInfo = new VideoMetadata();
-        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(file)) {
-            // 启动 FFmpeg
-            grabber.start();
+        // 执行指令获取视频信息
+        Process exec = RuntimeUtil.exec(StrBuilder.create().append("ffmpeg").append(" -i ").append(path).toString());
+        List<String> contents = StrUtil.split(IoUtil.read(exec.getInputStream(), StandardCharsets.UTF_8), StrUtil.LF);
 
-            // 读取视频帧数
-            videoInfo.setTotalFrames(grabber.getLengthInVideoFrames());
-
-            // 读取视频帧率
-            videoInfo.setFrameRate(grabber.getVideoFrameRate());
-
-            // 读取视频秒数
-            videoInfo.setDuration(grabber.getLengthInTime() / 1000000.00);
-
-            // 读取视频宽度
-            videoInfo.setWidth(grabber.getImageWidth());
-
-            // 读取视频高度
-            videoInfo.setHeight(grabber.getImageHeight());
-
-            videoInfo.setAudioChannel(grabber.getAudioChannels());
-
-            videoInfo.setVideoCode(grabber.getVideoCodecName());
-
-            videoInfo.setAudioCode(grabber.getAudioCodecName());
-
-            videoInfo.setSampleRate(grabber.getSampleRate());
-
-            grabber.stop();
-            grabber.release();
-            return videoInfo;
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+        // 删除 ffmpeg 打印的无用的信息
+        boolean flag = Boolean.FALSE;
+        for (int i = 0; i < contents.size(); i++) {
+            if (contents.get(i).startsWith("Input")) {
+                flag = Boolean.TRUE;
+            }
+            if (!flag) {
+                contents.remove(i);
+                i--;
+            }
         }
-        return videoInfo;
+
+        // 解析视频信息
+        for (String v : contents) {
+            // 这一行有 ‘总时长’、‘比特率’
+            if (v.contains("Duration") && v.contains("bitrate")) {
+                List<String> parts = StrUtil.split(v, StrUtil.COMMA);
+                for (String part : parts) {
+                    String label = part.substring(0, part.indexOf(StrUtil.COLON));
+                    String content = part.substring(part.indexOf(StrUtil.COLON) + 1);
+                    if (label.contains("Duration")) {
+                        video.setDuration(TimeTools.convert(content));
+                    }
+                    if (label.contains("bitrate")) {
+                        video.setBitrate(content.trim());
+                    }
+                }
+            }
+            // 这一行有 ‘视频编码’、‘视频分辨率’，或许也会有 ’音频编码‘
+            if (v.contains("Stream") && (v.contains("Video") || v.contains("Audio"))) {
+                v = v.substring(v.indexOf(StrUtil.COLON) + 1);
+                List<String> parts = StrUtil.split(v, StrUtil.COMMA);
+                for (String part : parts) {
+                    // 分辨率
+                    if (part.contains("SAR") && part.contains("DAR")) {
+                        String content = part.substring(0, part.indexOf(StrUtil.BRACKET_START));
+                        List<String> resolutions = StrUtil.split(content, "x");
+                        video.setWidth(Integer.parseInt(resolutions.get(0).trim()));
+                        video.setHeight(Integer.parseInt(resolutions.get(1).trim()));
+                    }
+                    // 视频编码
+                    if (part.contains("Video")) {
+                        part = part.substring(part.lastIndexOf(StrUtil.COLON));
+                        video.setVideoCode(part.substring(1, part.indexOf(AppConstants.Special.BRACKET_LEFT)).trim());
+                    }
+                    // 音频编码
+                    if (part.contains("Audio")) {
+                        part = part.substring(part.lastIndexOf(StrUtil.COLON));
+                        video.setAudioCode(part.substring(part.indexOf(StrUtil.COLON) + 1, part.indexOf(AppConstants.Special.BRACKET_LEFT)).trim());
+                    }
+                }
+            }
+        }
+        return video;
     }
 
     /**

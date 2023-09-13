@@ -27,19 +27,24 @@ public class VideoMetadata extends BaseParameter {
     private String thumbnail;
 
     /**
-     * 总帧数
-     **/
-    private int totalFrames;
+     * 总时长
+     */
+    private Double duration;
 
     /**
-     * 帧率
-     **/
-    private double frameRate;
+     * 比特率
+     */
+    private String bitrate;
 
     /**
-     * 时长
-     **/
-    private double duration;
+     * 分辨率-宽
+     */
+    private Integer width;
+
+    /**
+     * 分辨率-高
+     */
+    private Integer height;
 
     /**
      * 视频编码
@@ -51,25 +56,9 @@ public class VideoMetadata extends BaseParameter {
      */
     private String audioCode;
 
-    /**
-     * 视频宽度
-     */
-    private int width;
-
-    /**
-     * 视频高度
-     */
-    private int height;
-
-    /**
-     * 音频通道
-     */
-    private int audioChannel;
-
-    /**
-     * 音频采样率
-     */
-    private Integer sampleRate;
+    public static VideoMetadata initial() {
+        return new VideoMetadata();
+    }
 
     public String getId() {
         return id;
@@ -98,30 +87,39 @@ public class VideoMetadata extends BaseParameter {
         return this;
     }
 
-    public int getTotalFrames() {
-        return totalFrames;
-    }
-
-    public VideoMetadata setTotalFrames(int totalFrames) {
-        this.totalFrames = totalFrames;
-        return this;
-    }
-
-    public double getFrameRate() {
-        return frameRate;
-    }
-
-    public VideoMetadata setFrameRate(double frameRate) {
-        this.frameRate = frameRate;
-        return this;
-    }
-
-    public double getDuration() {
+    public Double getDuration() {
         return duration;
     }
 
-    public VideoMetadata setDuration(double duration) {
+    public VideoMetadata setDuration(Double duration) {
         this.duration = duration;
+        return this;
+    }
+
+    public String getBitrate() {
+        return bitrate;
+    }
+
+    public VideoMetadata setBitrate(String bitrate) {
+        this.bitrate = bitrate;
+        return this;
+    }
+
+    public Integer getWidth() {
+        return width;
+    }
+
+    public VideoMetadata setWidth(Integer width) {
+        this.width = width;
+        return this;
+    }
+
+    public Integer getHeight() {
+        return height;
+    }
+
+    public VideoMetadata setHeight(Integer height) {
+        this.height = height;
         return this;
     }
 
@@ -143,57 +141,18 @@ public class VideoMetadata extends BaseParameter {
         return this;
     }
 
-    public int getWidth() {
-        return width;
-    }
-
-    public VideoMetadata setWidth(int width) {
-        this.width = width;
-        return this;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
-    public VideoMetadata setHeight(int height) {
-        this.height = height;
-        return this;
-    }
-
-    public int getAudioChannel() {
-        return audioChannel;
-    }
-
-    public VideoMetadata setAudioChannel(int audioChannel) {
-        this.audioChannel = audioChannel;
-        return this;
-    }
-
-    public Integer getSampleRate() {
-        return sampleRate;
-    }
-
-    public VideoMetadata setSampleRate(Integer sampleRate) {
-        this.sampleRate = sampleRate;
-        return this;
-    }
-
     @Override
     public String toString() {
         return "VideoMetadata["
                 + " id=" + id + ","
                 + " fileId=" + fileId + ","
                 + " thumbnail=" + thumbnail + ","
-                + " totalFrames=" + totalFrames + ","
-                + " frameRate=" + frameRate + ","
                 + " duration=" + duration + ","
-                + " videoCode=" + videoCode + ","
-                + " audioCode=" + audioCode + ","
+                + " bitrate=" + bitrate + ","
                 + " width=" + width + ","
                 + " height=" + height + ","
-                + " audioChannel=" + audioChannel + ","
-                + " sampleRate=" + sampleRate
+                + " videoCode=" + videoCode + ","
+                + " audioCode=" + audioCode
                 + " ]"
                 + " "
                 + super.toString();

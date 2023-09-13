@@ -1,6 +1,5 @@
 package online.yangcloud.web.service.meta.impl;
 
-import cn.hutool.core.util.ObjectUtil;
 import online.yangcloud.common.enumration.YesOrNoEnum;
 import online.yangcloud.common.mapper.VideoMetadataMapper;
 import online.yangcloud.common.model.VideoMetadata;
@@ -19,10 +18,10 @@ import java.util.List;
 @Service
 @Transactional(rollbackFor = Exception.class)
 public class VideoMetadataServiceImpl implements VideoMetadataService {
-    
+
     @Resource
     private VideoMetadataMapper videoMetadataMapper;
-    
+
     @Override
     public void addVideoRecord(VideoMetadata metadata) {
         updateError(videoMetadataMapper.insertWithPk(metadata));
@@ -49,5 +48,5 @@ public class VideoMetadataServiceImpl implements VideoMetadataService {
             ExceptionTools.businessLogger();
         }
     }
-    
+
 }

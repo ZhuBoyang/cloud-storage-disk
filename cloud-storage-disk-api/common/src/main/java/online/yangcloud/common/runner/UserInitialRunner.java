@@ -9,6 +9,7 @@ import online.yangcloud.common.model.FileMetadata;
 import online.yangcloud.common.model.User;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -17,6 +18,7 @@ import javax.annotation.Resource;
  * @author zhuboyang
  * @since 2023年08月15 16:32:41
  */
+@Order(3)
 @Component
 public class UserInitialRunner implements ApplicationRunner {
 

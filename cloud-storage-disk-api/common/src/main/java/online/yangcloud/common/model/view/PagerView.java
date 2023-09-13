@@ -23,7 +23,7 @@ public class PagerView<T> {
     public static <T> PagerView<T> initial(Integer total, List<T> data) {
         return new PagerView<T>().setTotal(total).setData(data);
     }
-    
+
     public Integer getTotal() {
         return total;
     }

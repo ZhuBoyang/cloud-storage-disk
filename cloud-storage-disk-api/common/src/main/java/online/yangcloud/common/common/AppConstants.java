@@ -19,6 +19,8 @@ public interface AppConstants {
         String EQUAL = "=";
         String LEFT_BRACKET = "（";
         String RIGHT_BRACKET = "）";
+        String BRACKET_LEFT = "(";
+        String BRACKET_RIGHT = ")";
         // 各平台文件名分隔符
         String SEPARATOR = File.separator;
     }

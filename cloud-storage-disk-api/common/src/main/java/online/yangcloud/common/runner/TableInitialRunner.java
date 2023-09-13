@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.core.type.classreading.CachingMetadataReaderFactory;
@@ -26,9 +27,10 @@ import java.util.List;
  * @author zhuboyang
  * @since 2023年09月03 15:04:57
  */
+@Order(1)
 @Component
 public class TableInitialRunner implements ApplicationRunner {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(TableInitialRunner.class);
 
     private static final String BASE_PACKAGE = "online.yangcloud.common.model";

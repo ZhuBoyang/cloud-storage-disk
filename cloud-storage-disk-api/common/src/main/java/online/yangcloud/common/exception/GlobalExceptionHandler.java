@@ -1,7 +1,7 @@
 package online.yangcloud.common.exception;
 
-import online.yangcloud.common.common.ResultData;
 import online.yangcloud.common.common.AppResultCode;
+import online.yangcloud.common.common.ResultData;
 import online.yangcloud.common.common.UserResultCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

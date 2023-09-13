@@ -7,8 +7,6 @@ import online.yangcloud.common.model.request.user.UserInitializer;
 import online.yangcloud.common.model.request.user.UserUpdater;
 import online.yangcloud.common.model.view.user.UserView;
 
-import java.util.List;
-
 /**
  * @author zhuboyang
  * @since 2023年01月18 11:19:23

@@ -46,7 +46,7 @@ public class ThumbnailServiceImpl implements ThumbnailService {
         String filePath = SystemTools.systemPath() + AppConstants.Uploader.FILE + metadata.getId() + metadata.getExt();
 
         // 获取视频详细信息
-        VideoMetadata video = FfmpegTools.getVideoInfo(FileUtil.file(filePath));
+        VideoMetadata video = FfmpegTools.getVideoInfo(filePath);
 
         // 截取视频的第一帧，用作缩略图
         String thumbnail = AppConstants.Uploader.SNAPSHOT + metadata.getId() + ".png";
