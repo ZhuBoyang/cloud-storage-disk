@@ -4,7 +4,7 @@ MAINTAINER zhuboyang <zhuboyang1996@foxmail.com>
 
 WORKDIR /opt/webapps/cloud-storage-disk/
 
-COPY ./cloud-storage-disk-api/web/target/cloud-storage-disk-api.jar /opt/webapps/cloud-storage-disk/cloud-storage-disk-api.jar
+COPY ./web/target/cloud-storage-disk-api.jar /opt/webapps/cloud-storage-disk/cloud-storage-disk-api.jar
 
 RUN yum install -y vim wget gcc gcc-c++ cmake make nasm yasm; \
     wget http://storage.yangcloud.online/pan/jdk-8u261-linux-x64.tar.gz; \
