@@ -1,5 +1,6 @@
 package online.yangcloud.web.service.meta.impl;
 
+import online.yangcloud.common.annotation.TimeConsuming;
 import online.yangcloud.common.enumration.YesOrNoEnum;
 import online.yangcloud.common.mapper.VideoMetadataMapper;
 import online.yangcloud.common.model.VideoMetadata;
@@ -17,6 +18,7 @@ import java.util.List;
  */
 @Service
 @Transactional(rollbackFor = Exception.class)
+@TimeConsuming
 public class VideoMetadataServiceImpl implements VideoMetadataService {
 
     @Resource

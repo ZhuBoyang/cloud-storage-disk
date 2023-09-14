@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import online.yangcloud.common.annotation.TimeConsuming;
 import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.common.AppProperties;
 import online.yangcloud.common.enumration.FileTypeEnum;
@@ -28,6 +29,7 @@ import java.util.List;
  */
 @Service
 @Transactional(rollbackFor = Exception.class)
+@TimeConsuming
 public class FileMetadataServiceImpl implements FileMetadataService {
 
     @Resource

@@ -6,6 +6,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import online.yangcloud.common.annotation.TimeConsuming;
 import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.common.AppProperties;
 import online.yangcloud.common.model.User;
@@ -32,6 +33,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 @Transactional(rollbackFor = Exception.class)
+@TimeConsuming
 public class UserServiceImpl implements UserService {
 
     @Resource

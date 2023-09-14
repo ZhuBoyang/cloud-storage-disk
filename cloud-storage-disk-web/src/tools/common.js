@@ -4,6 +4,7 @@ import md5 from 'js-md5'
 import type from './type.js'
 
 const identifyFileAvatar = (file) => {
+  console.log('file', file)
   const { ext, type, thumbnail } = file
   if (thumbnail !== undefined && thumbnail !== '' && thumbnail !== null) {
     return apiConfig().apiBaseUrl + thumbnail

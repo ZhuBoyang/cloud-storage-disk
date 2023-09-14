@@ -1,5 +1,6 @@
 package online.yangcloud.web.service.meta.impl;
 
+import online.yangcloud.common.annotation.TimeConsuming;
 import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.enumration.YesOrNoEnum;
 import online.yangcloud.common.mapper.FileBlockMapper;
@@ -18,6 +19,7 @@ import java.util.List;
  */
 @Service
 @Transactional(rollbackFor = Exception.class)
+@TimeConsuming
 public class FileBlockServiceImpl implements FileBlockService {
 
     @Resource
