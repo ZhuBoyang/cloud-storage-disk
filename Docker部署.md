@@ -23,7 +23,7 @@ docker pull redis:7.0.0
 #### 创建容器
 
 ```
-docker run -p 6379:6379 --name redis --network cloud-storage-disk -d redis:7.0.0 --requirepass "123456"
+docker run -p 6379:6379 --name redis --network cloud-storage-disk --restart=always -d redis:7.0.0 --requirepass "123456"
 # -p 设置映射端口号；“:“ 左侧为宿主机端口号，”:“ 右侧为容器内端口号
 # --name 设置容器名称
 # --network 设置容器连接的 docker 网络，此为刚刚创建的桥接网络
@@ -42,7 +42,7 @@ docker pull mysql:8.0.29
 #### 创建容器
 
 ```
-docker run -d -p 3306:3306 --privileged=true --network cloud-storage-disk -v /opt/docker/mysql:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name mysql mysql:8.0.29 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
+docker run -d -p 3306:3306 --privileged=true --network cloud-storage-disk --restart=always -v /opt/docker/mysql:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name mysql mysql:8.0.29 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
 # -d 设置容器为后台运行
 # -p 设置映射端口号
 # --network 设置容器连接的网络
@@ -130,13 +130,13 @@ server:
 #### 拉取后端镜像
 
 ```
-docker pull yangcloud/cloud-storage-disk-api:0.1
+docker pull yangcloud/cloud-storage-disk-api:${version}
 ```
 
 #### 创建后端容器
 
 ```
-docker run --name cloud-storage-disk-api --network cloud-storage-disk -p 8100:8100 -v /opt/webapps/cloud-storage-disk/properties:/opt/webapps/cloud-storage-disk/properties -itd yangcloud/cloud-storage-disk-api:0.1
+docker run --name cloud-storage-disk-api --network cloud-storage-disk --restart=always -p 8100:8100 -v /opt/webapps/cloud-storage-disk/properties:/opt/webapps/cloud-storage-disk/properties -itd yangcloud/cloud-storage-disk-api:${version}
 # 后端服务 Jar 包启动的端口号为 8100，开放的端口也为 8100
 ```
 
@@ -154,13 +154,13 @@ docker run --name cloud-storage-disk-api --network cloud-storage-disk -p 8100:81
 #### 拉取前端镜像
 
 ```
-docker pull yangcloud/cloud-storage-disk-web:0.1
+docker pull yangcloud/cloud-storage-disk-web:${version}
 ```
 
 #### 创建前端容器
 
 ```
-docker run --name cloud-storage-disk-web --network cloud-storage-disk -p 80:80 -itd yangcloud/cloud-storage-disk-web:0.1
+docker run --name cloud-storage-disk-web --network cloud-storage-disk --restart=always -p 80:80 -itd yangcloud/cloud-storage-disk-web:${version}
 # 前端容器可挂载容器内目录：/usr/local/nginx/conf/vhost
 # 此目录为容器内 nginx 配置文件所在目录
 # 此目录内文件名需以 .conf 为后缀，如 test.conf
