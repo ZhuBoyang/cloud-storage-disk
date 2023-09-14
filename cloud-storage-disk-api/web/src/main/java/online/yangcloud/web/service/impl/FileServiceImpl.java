@@ -501,8 +501,10 @@ public class FileServiceImpl implements FileService {
 
         // 检测当前页是否有视频文件
         List<FileMetadata> videos = files.stream().filter(o -> FileTools.isVideo(o.getExt())).collect(Collectors.toList());
+        logger.info("videos count -> {}", videos.size());
         if (!videos.isEmpty()) {
             thumbnailReflectionMap.putAll(thumbnailService.queryThumbnails(videos));
+            thumbnailReflectionMap.forEach((k, v) -> System.out.println(k + " -> " + v));
         }
 
         // 封装并返回展示数据列表
