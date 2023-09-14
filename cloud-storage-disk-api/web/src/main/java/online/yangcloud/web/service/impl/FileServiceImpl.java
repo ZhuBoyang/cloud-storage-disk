@@ -166,9 +166,7 @@ public class FileServiceImpl implements FileService {
         fileMetadataService.insertWidthPrimaryKey(file);
 
         // 记录各类型文件的详细元数据
-        logger.info("start to analysis video metadata");
         ThreadUtil.execute(() -> thumbnailService.thumbnail(file));
-        logger.info("analysis video metadata end");
 
         // 增加空间使用量
         userMetaService.updateSpaceSize(user, file.getSize());
@@ -501,10 +499,8 @@ public class FileServiceImpl implements FileService {
 
         // 检测当前页是否有视频文件
         List<FileMetadata> videos = files.stream().filter(o -> FileTools.isVideo(o.getExt())).collect(Collectors.toList());
-        logger.info("videos count -> {}", videos.size());
         if (!videos.isEmpty()) {
             thumbnailReflectionMap.putAll(thumbnailService.queryThumbnails(videos));
-            thumbnailReflectionMap.forEach((k, v) -> System.out.println(k + " -> " + v));
         }
 
         // 封装并返回展示数据列表
@@ -514,7 +510,7 @@ public class FileServiceImpl implements FileService {
                 VideoMetadata video = thumbnailReflectionMap.get(metadata.getId());
                 FileMetadataView view = FileMetadataView.convert(metadata);
                 if (ObjectUtil.isNotNull(video)) {
-                    video.setThumbnail(video.getThumbnail()).setDuration(video.getDuration());
+                    view.setThumbnail(video.getThumbnail()).setDuration(video.getDuration());
                 }
                 views.add(view);
             }
