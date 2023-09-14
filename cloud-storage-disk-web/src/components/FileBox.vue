@@ -265,23 +265,6 @@ export default {
     hideDrawer (record) {
       this.movie.file = record
     },
-    // 计算视频播放器显示的尺寸
-    calculatePlayerSize (size) {
-      let windowWidth = window.innerWidth
-      let windowHeight = window.innerHeight
-      const { width, height } = size
-      if (width > height) {
-        const scale = height / width
-        windowHeight = 800 * scale
-        return { width: 800, height: windowHeight }
-      }
-      if (width < height) {
-        const scale = width / height
-        windowWidth = 400 * scale
-        return { width: windowWidth, height: 400 }
-      }
-      return { width: 400, height: 400 }
-    },
     // 文件的操作
     fileChangeEvent (action, { id, name }, recordIndex) {
       // 删除单个文件
@@ -504,11 +487,6 @@ export default {
       &:hover {
         background-color: #f0edfe;
         transition: all .3s;
-        .body--name {
-          //.body--name-runner {
-          //  display: flex;
-          //}
-        }
       }
       .body--multiselect {
         width: 30px;
@@ -522,8 +500,8 @@ export default {
           background-color: #f7f6ff;
           border-radius: 12px;
           img {
-            width: 26px;
-            height: 26px;
+            max-width: 26px;
+            max-height: 26px;
           }
         }
       }
