@@ -58,7 +58,7 @@ public class ThumbnailServiceImpl implements ThumbnailService {
         VideoMetadata video = FfmpegTools.getVideoInfo(filePath);
 
         // 截取视频的第一帧，用作缩略图
-        String thumbnail = AppConstants.Uploader.SNAPSHOT + metadata.getId() + ".png";
+        String thumbnail = AppConstants.Uploader.SNAPSHOT + metadata.getId() + ".jpg";
         if (!FileUtil.exist(FileUtil.file(SystemTools.systemPath() + thumbnail).getParent())) {
             FileUtil.mkdir(FileUtil.file(SystemTools.systemPath() + thumbnail).getParent());
         }
@@ -66,7 +66,7 @@ public class ThumbnailServiceImpl implements ThumbnailService {
 
         // 压缩图片大小
         float scale = AppConstants.Icon.DEFAULT_WIDTH / Float.parseFloat(String.valueOf(video.getWidth()));
-        String output = AppConstants.Uploader.SNAPSHOT + metadata.getId() + "_output.png";
+        String output = AppConstants.Uploader.SNAPSHOT + metadata.getId() + "_output.jpg";
         ImgUtil.scale(FileUtil.file(SystemTools.systemPath() + thumbnail), FileUtil.file(SystemTools.systemPath() + output), scale);
         FileUtil.rename(FileUtil.file(SystemTools.systemPath() + output), SystemTools.systemPath() + thumbnail, Boolean.TRUE);
 

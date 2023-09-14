@@ -17,7 +17,7 @@ RUN yum install -y vim wget gcc gcc-c++ cmake make nasm yasm unzip; \
     cd ffmpeg-6.0; \
     ./configure --prefix=/usr/local/ffmpeg; \
     make && make install; \
-    rm -rf *.tar.gz *.tar.xz ffmpeg-6.0 properties Dockerfile
+    rm -rf *.tar.gz *.tar.xz ffmpeg-6.0 *.zip Dockerfile
 
 ENV JAVA_HOME /usr/local/jdk1.8
 ENV CLASSPATH $JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
