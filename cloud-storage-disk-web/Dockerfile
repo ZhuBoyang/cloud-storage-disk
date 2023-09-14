@@ -1,4 +1,4 @@
-FROM centos:7
+FROM basic-service
 
 MAINTAINER zhuboyang <zhuboyang1996@foxmail.com>
 
