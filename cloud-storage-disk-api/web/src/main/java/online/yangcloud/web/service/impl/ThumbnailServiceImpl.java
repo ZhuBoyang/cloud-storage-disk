@@ -72,6 +72,9 @@ public class ThumbnailServiceImpl implements ThumbnailService {
 
         // 补充视频详细信息
         video.setId(IdTools.fastSimpleUuid()).setThumbnail(thumbnail).setFileId(metadata.getId());
+        logger.info("----------------------------------------");
+        logger.info("video metadata -> {}", video);
+        logger.info("----------------------------------------");
         videoMetadataService.addVideoRecord(video);
 
         // 删除整文件

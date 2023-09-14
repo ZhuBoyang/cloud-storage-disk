@@ -8,6 +8,8 @@ import cn.hutool.core.util.RuntimeUtil;
 import cn.hutool.core.util.StrUtil;
 import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.model.VideoMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -18,6 +20,8 @@ import java.util.List;
  * @since 2023年07月29 12:06:34
  */
 public class FfmpegTools {
+    
+    private static final Logger logger = LoggerFactory.getLogger(FfmpegTools.class);
 
     /**
      * 获取视频详细信息
@@ -109,8 +113,10 @@ public class FfmpegTools {
 
         // 检测缩略图是否存在
         while (!FileUtil.exist(screenshot)) {
+            logger.info("screenshot is not exist");
             ThreadUtil.safeSleep(100);
         }
+        logger.info("screenshot has exist");
     }
 
     /**
