@@ -164,7 +164,9 @@ public class FileServiceImpl implements FileService {
         fileMetadataService.insertWidthPrimaryKey(file);
 
         // 记录各类型文件的详细元数据
+        logger.info("start to analysis video metadata");
         ThreadUtil.execute(() -> thumbnailService.thumbnail(file));
+        logger.info("analysis video metadata end");
 
         // 增加空间使用量
         userMetaService.updateSpaceSize(user, file.getSize());

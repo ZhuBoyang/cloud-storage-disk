@@ -13,6 +13,8 @@ import online.yangcloud.common.tools.IdTools;
 import online.yangcloud.common.tools.SystemTools;
 import online.yangcloud.web.service.ThumbnailService;
 import online.yangcloud.web.service.meta.VideoMetadataService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +32,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(rollbackFor = Exception.class)
 public class ThumbnailServiceImpl implements ThumbnailService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(ThumbnailServiceImpl.class);
 
     @Resource
     private VideoMetadataService videoMetadataService;
@@ -37,6 +41,7 @@ public class ThumbnailServiceImpl implements ThumbnailService {
     @Override
     public void thumbnail(FileMetadata metadata) {
         // 上传的文件是个视频
+        logger.info("ext -> {}", metadata.getExt());
         if (FileTools.isVideo(metadata.getExt())) {
             videoThumbnail(metadata);
         }
