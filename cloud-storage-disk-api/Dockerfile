@@ -6,8 +6,7 @@ WORKDIR /opt/webapps/cloud-storage-disk/
 
 COPY ./web/target/cloud-storage-disk-api.jar /opt/webapps/cloud-storage-disk/cloud-storage-disk-api.jar
 
-RUN yum install -y vim wget gcc gcc-c++ cmake make nasm yasm unzip; \
-    wget http://storage.yangcloud.online/pan/properties.zip; \
+RUN wget http://storage.yangcloud.online/pan/properties.zip; \
     unzip properties.zip; \
     rm -rf properties.zip Dockerfile
 
