@@ -4,6 +4,7 @@ import cn.hutool.core.img.ImgUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import online.yangcloud.common.annotation.TimeConsuming;
 import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.model.FileMetadata;
 import online.yangcloud.common.model.VideoMetadata;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional(rollbackFor = Exception.class)
+@TimeConsuming
 public class ThumbnailServiceImpl implements ThumbnailService {
     
     private static final Logger logger = LoggerFactory.getLogger(ThumbnailServiceImpl.class);
@@ -41,7 +43,9 @@ public class ThumbnailServiceImpl implements ThumbnailService {
     @Override
     public void thumbnail(FileMetadata metadata) {
         // 上传的文件是个视频
+        logger.info("----------------------------------------");
         logger.info("ext -> {}", metadata.getExt());
+        logger.info("----------------------------------------");
         if (FileTools.isVideo(metadata.getExt())) {
             videoThumbnail(metadata);
         }
