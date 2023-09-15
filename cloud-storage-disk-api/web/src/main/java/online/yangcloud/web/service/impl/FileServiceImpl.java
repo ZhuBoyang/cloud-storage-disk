@@ -600,7 +600,11 @@ public class FileServiceImpl implements FileService {
         List<FileMetadataView> views = new ArrayList<>(files.size());
         for (FileMetadata file : files) {
             VideoMetadata video = reflectionMap.get(file.getId());
-            views.add(FileMetadataView.convert(file).setThumbnail(video.getThumbnail()).setDuration(video.getDuration()));
+            FileMetadataView view = FileMetadataView.convert(file);
+            if (ObjectUtil.isNotNull(video)) {
+                view.setThumbnail(video.getThumbnail()).setDuration(video.getDuration());
+            }
+            views.add(view);
         }
         return views;
     }
