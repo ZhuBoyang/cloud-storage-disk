@@ -123,7 +123,7 @@
     <div class="video-item" v-for="o in playList" :key="o.id" :class="[{'is-select': process.videoId === o.id}]">
       <div class="video-avatar">
         <div class="video-avatar-box">
-          <img :src="apiConfig().iconBaseUrl + o.thumbnail" alt="avatar"/>
+          <img :src="identifyFileAvatar(o)" alt="avatar"/>
         </div>
         <div class="video-duration">{{ formatNumberToTime(o.duration) }}</div>
       </div>
@@ -208,6 +208,10 @@ export default {
   },
   methods: {
     apiConfig,
+    // 识别文件的缩略图
+    identifyFileAvatar (o) {
+      return common.identifyFileAvatar(o)
+    },
     formatNumberToTime (time) {
       return common.formatNumberToTime(time)
     },
@@ -668,6 +672,12 @@ export default {
   transform: translate(0, -50%);
   z-index: 3;
   transition: all .3s;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display:none
+  }
   &.is-show {
     left: calc(75% + 10px);
     transition: all .3s;
