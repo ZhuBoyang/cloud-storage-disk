@@ -14,7 +14,11 @@ RUN yum install -y wget epel-release; \
     rm -rf jdk-8u261-linux-x64.tar.gz; \
     wget http://storage.yangcloud.online/pan/properties.zip; \
     unzip properties.zip; \
-    rm -rf properties.zip Dockerfile
+    rm -rf properties.zip Dockerfile 
+
+ENV JAVA_HOME /usr/local/jdk1.8
+ENV CLASSPATH $JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+ENV PATH $PATH:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$FFMPEG_HOME/bin
 
 VOLUME ["/opt/webapps/cloud-storage-disk/properties", "/opt/webapps/storage/cloud-storage-disk"]
 
