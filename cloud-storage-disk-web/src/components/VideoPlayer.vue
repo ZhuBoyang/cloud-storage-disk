@@ -328,7 +328,7 @@ export default {
     // 快进 5 秒
     forwardFiveSeconds () {
       let currentTime = this.dp.video.currentTime
-      currentTime += 100
+      currentTime += 5
       if (currentTime >= this.dp.video.duration) {
         currentTime = this.dp.video.duration
       }
