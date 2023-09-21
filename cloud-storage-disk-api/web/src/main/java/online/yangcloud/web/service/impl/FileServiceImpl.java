@@ -505,15 +505,15 @@ public class FileServiceImpl implements FileService {
 
         // 封装并返回展示数据列表
         List<FileMetadataView> views = new ArrayList<>(files.size());
-        for (FileMetadata metadata : filePager.getData()) {
+        for (FileMetadata metadata : files) {
+            FileMetadataView view = FileMetadataView.convert(metadata);
             if (FileTools.isVideo(metadata.getExt())) {
                 VideoMetadata video = thumbnailReflectionMap.get(metadata.getId());
-                FileMetadataView view = FileMetadataView.convert(metadata);
                 if (ObjectUtil.isNotNull(video)) {
                     view.setThumbnail(video.getThumbnail()).setDuration(video.getDuration());
                 }
-                views.add(view);
             }
+            views.add(view);
         }
         return new PagerView<FileMetadataView>().setData(views).setTotal(filePager.getTotal());
     }

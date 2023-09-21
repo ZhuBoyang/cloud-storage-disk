@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -73,7 +74,7 @@ public class UserController {
      * @return result
      */
     @PostMapping("/login")
-    public ResultData login(@Valid @RequestBody UserEnter enter) {
+    public ResultData login(@Valid @RequestBody UserEnter enter) throws IOException {
         String token = userService.enter(enter);
         UserView view = JSONUtil.toBean(redisTools.get(AppConstants.Account.LOGIN_TOKEN + token), UserView.class);
         FileMetadataView file = fileService.queryById(CharSequenceUtil.EMPTY, view.getId());

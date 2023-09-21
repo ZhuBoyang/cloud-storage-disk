@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -84,10 +85,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String enter(UserEnter enter) {
+    public String enter(UserEnter enter) throws IOException {
         // 查询账户信息，并检测账户是否存在
         User user = userMetaService.queryUserByEmail(enter.getEmail());
         ValidateTools.validObjIsNotFound(user);
+        {
+            // 这里重新计算下空间使用的总容量、已用容量和可用容量
+            // 考虑到磁盘本身就会存在一些文件，而这些文件是不包含在本系统内的，所以在计算时需要排除掉，剩下的才是本系统可用的总空间大小
+            Long usableSpace = DiskTools.acquireDiskInfo().getUsableSpace();
+            long projectSize = FileTools.calculateDirSpace(SystemTools.systemPath());
+            user.setTotalSpaceSize(usableSpace + projectSize);
+        }
 
         // 检测密码是否正确
         int encryptCount = AppConstants.Account.ENCRYPT_COUNT - Integer.parseInt(enter.getPassword().substring(0, 1));

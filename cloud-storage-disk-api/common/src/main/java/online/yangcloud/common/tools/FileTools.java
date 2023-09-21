@@ -1,6 +1,7 @@
 package online.yangcloud.common.tools;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.ObjectUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,9 +10,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * 文件工具类
@@ -91,6 +90,38 @@ public class FileTools {
         } catch (IOException e) {
             logger.info("file read or write error {}", e.getMessage(), e);
         }
+    }
+
+    /**
+     * 计算指定目录或文件的空间占用大小
+     *
+     * @param root 文件或目录
+     * @return 空间占用大小 / 字节
+     */
+    public static long calculateDirSpace(File root) {
+        Queue<File> files = new ArrayDeque<>(Collections.singletonList(root));
+        long space = 0;
+        while (!files.isEmpty()) {
+            File file = files.poll();
+            space += file.length();
+            if (file.isDirectory()) {
+                File[] child = file.listFiles();
+                if (ObjectUtil.isNotNull(child) && child.length > 0) {
+                    files.addAll(Arrays.asList(child));
+                }
+            }
+        }
+        return space;
+    }
+
+    /**
+     * 计算指定目录或文件的空间占用大小
+     *
+     * @param root 文件或目录
+     * @return 空间占用大小 / 字节
+     */
+    public static long calculateDirSpace(String root) {
+        return calculateDirSpace(FileUtil.file(root));
     }
 
     /**

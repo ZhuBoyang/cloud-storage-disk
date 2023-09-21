@@ -4,7 +4,9 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
+import online.yangcloud.common.annotation.DatabaseColumn;
 import online.yangcloud.common.common.AppResultCode;
+import online.yangcloud.common.enumration.DatabaseColumnTypeEnum;
 import online.yangcloud.common.model.request.file.FileUploader;
 import online.yangcloud.common.tools.ExceptionTools;
 import online.yangcloud.common.tools.IdTools;
@@ -13,48 +15,56 @@ import online.yangcloud.common.tools.IdTools;
  * @author zhuboyang
  * @since 2022年12月31 21:23:03
  */
-@FluentMybatis(table = "file_block")
+@FluentMybatis(table = "file_block", desc = "文件与文件块的关联")
 public class FileBlock extends BaseParameter {
 
     /**
      * id
      */
     @TableId
+    @DatabaseColumn(name = "id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "关联 id")
     private String id;
 
     /**
      * 文件 id
      */
+    @DatabaseColumn(name = "file_id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件 id")
     private String fileId;
 
     /**
      * 文件块 id
      */
+    @DatabaseColumn(name = "block_id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件块 id")
     private String blockId;
 
     /**
      * 当前文件块序号
      */
+    @DatabaseColumn(name = "index", type = DatabaseColumnTypeEnum.SMALLINT, canNull = false, comment = "文件块序号")
     private Integer index;
 
     /**
      * 文件块数量
      */
+    @DatabaseColumn(name = "count", type = DatabaseColumnTypeEnum.SMALLINT, canNull = false, comment = "文件块数量")
     private Integer count;
 
     /**
      * 文件块分片大小
      */
+    @DatabaseColumn(name = "sharding_size", type = DatabaseColumnTypeEnum.BIGINT, canNull = false, comment = "分片大小")
     private Long shardingSize;
 
     /**
      * 文件大小
      */
+    @DatabaseColumn(name = "file_size", type = DatabaseColumnTypeEnum.BIGINT, canNull = false, comment = "文件总大小")
     private Long fileSize;
 
     /**
      * 是否分片：0.不分片；1.分片
      */
+    @DatabaseColumn(name = "is_shard", type = DatabaseColumnTypeEnum.TINYINT, canNull = false, comment = "是否分片：0.不分片；1.分片")
     private Integer isShard;
 
     /**

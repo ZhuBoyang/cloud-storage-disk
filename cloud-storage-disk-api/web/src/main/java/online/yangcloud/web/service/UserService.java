@@ -7,6 +7,8 @@ import online.yangcloud.common.model.request.user.UserInitializer;
 import online.yangcloud.common.model.request.user.UserUpdater;
 import online.yangcloud.common.model.view.user.UserView;
 
+import java.io.IOException;
+
 /**
  * @author zhuboyang
  * @since 2023年01月18 11:19:23
@@ -26,7 +28,7 @@ public interface UserService {
      * @param enter 邮箱地址与密码
      * @return 会话 session id
      */
-    String enter(UserEnter enter);
+    String enter(UserEnter enter) throws IOException;
 
     /**
      * 修改账户资料

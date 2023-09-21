@@ -4,8 +4,10 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
+import online.yangcloud.common.annotation.DatabaseColumn;
 import online.yangcloud.common.annotation.TokenEntity;
 import online.yangcloud.common.common.AppConstants;
+import online.yangcloud.common.enumration.DatabaseColumnTypeEnum;
 import online.yangcloud.common.tools.IdTools;
 
 /**
@@ -14,7 +16,7 @@ import online.yangcloud.common.tools.IdTools;
  * @author zhuboyang
  * @since 2023年01月18 11:20:25
  */
-@FluentMybatis(table = "user")
+@FluentMybatis(table = "user", desc = "用户表")
 @TokenEntity
 public class User extends BaseParameter {
 
@@ -22,61 +24,68 @@ public class User extends BaseParameter {
      * 主键
      */
     @TableId
+    @DatabaseColumn(name = "id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "用户 id")
     private String id;
 
     /**
      * 昵称
      */
+    @DatabaseColumn(name = "nick_name", type = DatabaseColumnTypeEnum.VARCHAR, length = 50, comment = "昵称")
     private String nickName;
 
     /**
      * 邮箱
      */
+    @DatabaseColumn(name = "email", type = DatabaseColumnTypeEnum.VARCHAR, length = 50, canNull = false, comment = "邮箱")
     private String email;
 
     /**
      * 密码
      */
+    @DatabaseColumn(name = "password", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "账户密码")
     private String password;
 
     /**
      * 头像地址
      */
+    @DatabaseColumn(name = "avatar", type = DatabaseColumnTypeEnum.VARCHAR, length = 1024, canNull = false, comment = "头像地址")
     private String avatar;
 
     /**
      * 生日
      */
+    @DatabaseColumn(name = "birthday", type = DatabaseColumnTypeEnum.BIGINT, defaultValue = "0", comment = "出生日期")
     private Long birthday;
 
     /**
      * 年龄
      */
+    @DatabaseColumn(name = "age", type = DatabaseColumnTypeEnum.SMALLINT, defaultValue = "0", comment = "年龄")
     private Integer age;
 
     /**
      * 性别
      */
+    @DatabaseColumn(name = "gender", type = DatabaseColumnTypeEnum.TINYINT, defaultValue = "(-(1))", comment = "性别")
     private Integer gender;
 
     /**
      * 手机号
      */
+    @DatabaseColumn(name = "phone", type = DatabaseColumnTypeEnum.VARCHAR, length = 13, comment = "联系方式")
     private String phone;
 
     /**
      * 账户总容量
      */
+    @DatabaseColumn(name = "total_space_size", type = DatabaseColumnTypeEnum.BIGINT, defaultValue = "0", comment = "账户总空间")
     private Long totalSpaceSize;
 
     /**
      * 账户已用容量
      */
+    @DatabaseColumn(name = "used_space_size", type = DatabaseColumnTypeEnum.BIGINT, defaultValue = "0", comment = "账户已用空间")
     private Long usedSpaceSize;
-
-    public static User initial() {
-        return new User();
-    }
 
     public static User initial(String email, String password) {
         return new User()
@@ -91,10 +100,6 @@ public class User extends BaseParameter {
                 .setPhone(CharSequenceUtil.EMPTY)
                 .setTotalSpaceSize(AppConstants.Account.TOTAL_SPACE_SIZE)
                 .setUsedSpaceSize(0L);
-    }
-
-    public static User pack(String userId, Long usedSpaceSize) {
-        return new User().setId(userId).setUsedSpaceSize(usedSpaceSize);
     }
 
     public String getId() {

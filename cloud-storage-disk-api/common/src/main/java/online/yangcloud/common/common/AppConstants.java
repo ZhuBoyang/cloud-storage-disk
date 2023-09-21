@@ -1,6 +1,11 @@
 package online.yangcloud.common.common;
 
+import online.yangcloud.common.enumration.DatabaseColumnTypeEnum;
+
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 应用变量，不可修改
@@ -57,6 +62,8 @@ public interface AppConstants {
         String FILE_BLOCK = "FileBlock";
         // 视频元数据表
         String VIDEO_METADATA = "VideoMetadata";
+        // 需要显示字段长度的类型
+        List<DatabaseColumnTypeEnum> COLUMN_TYPES = Collections.singletonList(DatabaseColumnTypeEnum.VARCHAR);
     }
 
     /**

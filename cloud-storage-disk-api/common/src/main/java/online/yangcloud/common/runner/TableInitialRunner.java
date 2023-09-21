@@ -4,6 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import online.yangcloud.common.database.TableMapper;
+import online.yangcloud.common.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -63,13 +64,12 @@ public class TableInitialRunner implements ApplicationRunner {
             // 判断是否有指定主解
             FluentMybatis tableAnnotation = clazz.getAnnotation(FluentMybatis.class);
             if (ObjectUtil.isNotNull(tableAnnotation)) {
-                String name = classname.substring(classname.lastIndexOf(StrUtil.DOT) + 1);
                 // 如果检测到实体类对应的表已创建，那么就直接跳过，进行下一项
                 if (tablesName.contains(tableAnnotation.table())) {
                     continue;
                 }
                 logger.info("Table [{}] has not been created yet and is being created for initialization", tableAnnotation.table());
-                jdbcTemplate.execute(tableMapper.generateTableSql(name));
+                jdbcTemplate.execute(tableMapper.generateUserTable(clazz));
             }
         }
     }
