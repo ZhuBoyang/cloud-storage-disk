@@ -7,6 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.annotation.DatabaseColumn;
+import online.yangcloud.common.annotation.DatabaseIndex;
 import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.enumration.DatabaseColumnTypeEnum;
 import online.yangcloud.common.enumration.FileTypeEnum;
@@ -29,7 +30,8 @@ public class FileMetadata extends BaseParameter {
      * id
      */
     @TableId
-    @DatabaseColumn(name = "id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件 id")
+    @DatabaseColumn(primary = true, name = "id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件 id")
+    @DatabaseIndex(unique = true)
     private String id;
 
     /**
@@ -54,6 +56,7 @@ public class FileMetadata extends BaseParameter {
      * 文件 hash
      */
     @DatabaseColumn(name = "hash", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件 hash")
+    @DatabaseIndex(unique = true)
     private String hash;
 
     /**

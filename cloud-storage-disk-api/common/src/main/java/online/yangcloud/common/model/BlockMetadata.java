@@ -3,6 +3,7 @@ package online.yangcloud.common.model;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.annotation.DatabaseColumn;
+import online.yangcloud.common.annotation.DatabaseIndex;
 import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.enumration.DatabaseColumnTypeEnum;
 import online.yangcloud.common.tools.IdTools;
@@ -20,13 +21,15 @@ public class BlockMetadata extends BaseParameter {
      * id
      */
     @TableId
-    @DatabaseColumn(name = "id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件块 id")
+    @DatabaseColumn(primary = true, name = "id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件块 id")
+    @DatabaseIndex(unique = true)
     private String id;
 
     /**
      * 文件块 md5
      */
     @DatabaseColumn(name = "hash", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件块 hash")
+    @DatabaseIndex(unique = true)
     private String hash;
 
     /**

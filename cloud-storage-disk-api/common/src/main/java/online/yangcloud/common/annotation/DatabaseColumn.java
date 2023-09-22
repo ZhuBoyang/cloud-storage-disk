@@ -14,6 +14,11 @@ import java.lang.annotation.*;
 public @interface DatabaseColumn {
 
     /**
+     * 是否是主键
+     */
+    boolean primary() default false;
+
+    /**
      * 表字段名
      */
     String name();

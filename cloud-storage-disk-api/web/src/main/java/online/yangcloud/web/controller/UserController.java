@@ -16,6 +16,8 @@ import online.yangcloud.common.model.request.user.UserUpdater;
 import online.yangcloud.common.model.view.file.FileMetadataView;
 import online.yangcloud.common.model.view.user.LoginView;
 import online.yangcloud.common.model.view.user.UserView;
+import online.yangcloud.common.tools.DiskTools;
+import online.yangcloud.common.tools.FileTools;
 import online.yangcloud.common.tools.RedisTools;
 import online.yangcloud.common.tools.SystemTools;
 import online.yangcloud.web.service.FileService;
@@ -156,7 +158,10 @@ public class UserController {
      */
     @SessionValid
     @GetMapping("/info")
-    public ResultData enteredUserInfo(User user) {
+    public ResultData enteredUserInfo(User user) throws IOException {
+        Long usableSpace = DiskTools.acquireDiskInfo().getUsableSpace();
+        long projectSize = FileTools.calculateDirSpace(SystemTools.systemPath());
+        user.setTotalSpaceSize(usableSpace + projectSize);
         return ResultData.success(UserView.convert(user));
     }
 

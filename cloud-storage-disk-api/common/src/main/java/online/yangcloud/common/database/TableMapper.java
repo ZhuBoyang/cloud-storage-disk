@@ -7,6 +7,7 @@ import cn.hutool.json.JSONUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.annotation.DatabaseColumn;
+import online.yangcloud.common.annotation.DatabaseIndex;
 import online.yangcloud.common.common.AppConstants;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -46,68 +47,79 @@ public class TableMapper {
      */
     public String generateUserTable(Class<?> clazz) {
         // 获取实体类的所有属性
-        Field[] fields = clazz.getDeclaredFields();
+        Field[] classFields = clazz.getDeclaredFields();
+
+        // 获取继承的父类
+        Class<?> superclass = clazz.getSuperclass();
+
+        // 获取父类的所有属性
+        Field[] superFields = superclass.getDeclaredFields();
 
         // 获取实体类对应表的信息
         FluentMybatis tableAnnotation = clazz.getAnnotation(FluentMybatis.class);
 
-        // 构建表结构 SQL
-        StrBuilder sqlGenerator = StrBuilder.create("CREATE TABLE `").append(tableAnnotation.table()).append("` (");
-        String tableIdName = StrUtil.EMPTY;
-        {
-            for (Field field : fields) {
-                TableId idAnnotation = field.getAnnotation(TableId.class);
-                if (ObjectUtil.isNotNull(idAnnotation)) {
-                    tableIdName = field.getName();
+        // 表结构 SQL 构建器
+        StrBuilder tableGenerator = StrBuilder.create("CREATE TABLE `").append(tableAnnotation.table()).append("` (\n");
+        // 主键 SQL 构建器
+        StrBuilder primaryGenerator = StrBuilder.create("  PRIMARY KEY (`");
+        // 索引 SQL 构建器
+        StrBuilder indexGenerator = StrBuilder.create();
+
+        // 循环实体类的所有属性，构建 SQL
+        generateTableSql(tableAnnotation.table(), tableGenerator, primaryGenerator, indexGenerator, classFields);
+        // 循环父类的所有属性，构建 SQL
+        generateTableSql(tableAnnotation.table(), tableGenerator, primaryGenerator, indexGenerator, superFields);
+
+        // 整合 SQL 构建器
+        tableGenerator.append(primaryGenerator);
+        tableGenerator.append(indexGenerator.subString(0, indexGenerator.length() - 2)).append("\n");
+        tableGenerator.append(") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='")
+                .append(tableAnnotation.desc())
+                .append("'\n");
+        return tableGenerator.toString();
+    }
+
+    private void generateTableSql(String name, StrBuilder table, StrBuilder primary, StrBuilder index, Field[] fields) {
+        for (Field field : fields) {
+            DatabaseColumn columnAnnotation = field.getAnnotation(DatabaseColumn.class);
+            // 字段名
+            table.append("  `").append(columnAnnotation.name()).append("` ");
+            // 字段类型
+            table.append(columnAnnotation.type());
+            if (AppConstants.Table.COLUMN_TYPES.contains(columnAnnotation.type())) {
+                table.append("(").append(columnAnnotation.length()).append(")");
+            }
+            table.append(" ");
+            // 字段编码格式
+            if (AppConstants.Table.COLUMN_TYPES.contains(columnAnnotation.type())) {
+                table.append("CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci ");
+            }
+            // 是否可为空
+            if (columnAnnotation.canNull()) {
+                table.append("DEFAULT '").append(columnAnnotation.defaultValue()).append("' ");
+            } else {
+                table.append("NOT NULL ");
+            }
+            // 备注
+            table.append("COMMENT '").append(columnAnnotation.comment()).append("',\n");
+
+            // 字段是否为主键
+            if (columnAnnotation.primary()) {
+                primary.append(columnAnnotation.name()).append("`),\n");
+            }
+            // 是否设置索引
+            DatabaseIndex indexAnnotation = field.getAnnotation(DatabaseIndex.class);
+            if (ObjectUtil.isNotNull(indexAnnotation)) {
+                // 是否是唯一索引
+                index.append("  ");
+                if (indexAnnotation.unique()) {
+                    index.append("UNIQUE ");
                 }
-                DatabaseColumn columnAnnotation = field.getAnnotation(DatabaseColumn.class);
-                if (ObjectUtil.isNotNull(columnAnnotation)) {
-                    // 字段名
-                    sqlGenerator.append("  `").append(columnAnnotation.name()).append("` ");
-                    // 字段类型
-                    sqlGenerator.append(columnAnnotation.type());
-                    // 字段长度
-                    if (AppConstants.Table.COLUMN_TYPES.contains(columnAnnotation.type())) {
-                        sqlGenerator.append("(").append(columnAnnotation.length()).append(")").append(" ");
-                    } else {
-                        sqlGenerator.append(" ");
-                    }
-                    // 编码格式
-                    if (AppConstants.Table.COLUMN_TYPES.contains(columnAnnotation.type())) {
-                        sqlGenerator.append("CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci ");
-                    }
-                    // 是否为空，字段默认值
-                    if (columnAnnotation.canNull()) {
-                        sqlGenerator.append("DEFAULT ");
-                        if (AppConstants.Table.COLUMN_TYPES.contains(columnAnnotation.type())) {
-                            sqlGenerator.append("'").append(columnAnnotation.defaultValue()).append("'");
-                        } else {
-                            sqlGenerator.append(columnAnnotation.defaultValue());
-                        }
-                        sqlGenerator.append(" ");
-                    } else {
-                        sqlGenerator.append("NOT NULL ");
-                    }
-                    // 注释
-                    if (StrUtil.isNotBlank(columnAnnotation.comment())) {
-                        sqlGenerator.append("COMMENT '").append(columnAnnotation.comment()).append("'");
-                    }
-                    sqlGenerator.append(",");
-                }
+                index.append("KEY ")
+                        .append("`").append(name).append("_").append(columnAnnotation.name()).append("_index").append("` ")
+                        .append("(`").append(columnAnnotation.name()).append("`),\n");
             }
         }
-        sqlGenerator.append(generateBaseParameter());
-        {
-            sqlGenerator.append("  PRIMARY KEY (`").append(tableIdName).append("`),");
-            sqlGenerator.append("  UNIQUE KEY `")
-                    .append(tableAnnotation.table())
-                    .append("_pk2` (`")
-                    .append(tableIdName)
-                    .append("`)");
-            sqlGenerator.append(") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci")
-                    .append(StrUtil.isBlank(tableAnnotation.desc()) ? "" : " COMMENT='" + tableAnnotation.desc() + "'");
-        }
-        return sqlGenerator.toString();
     }
 
     /**

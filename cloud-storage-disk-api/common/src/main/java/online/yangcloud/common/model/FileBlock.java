@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.annotation.DatabaseColumn;
+import online.yangcloud.common.annotation.DatabaseIndex;
 import online.yangcloud.common.common.AppResultCode;
 import online.yangcloud.common.enumration.DatabaseColumnTypeEnum;
 import online.yangcloud.common.model.request.file.FileUploader;
@@ -22,7 +23,8 @@ public class FileBlock extends BaseParameter {
      * id
      */
     @TableId
-    @DatabaseColumn(name = "id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "关联 id")
+    @DatabaseColumn(primary = true, name = "id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "关联 id")
+    @DatabaseIndex(unique = true)
     private String id;
 
     /**

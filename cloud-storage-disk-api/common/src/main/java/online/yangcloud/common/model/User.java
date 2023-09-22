@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.annotation.DatabaseColumn;
+import online.yangcloud.common.annotation.DatabaseIndex;
 import online.yangcloud.common.annotation.TokenEntity;
 import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.enumration.DatabaseColumnTypeEnum;
@@ -24,7 +25,8 @@ public class User extends BaseParameter {
      * 主键
      */
     @TableId
-    @DatabaseColumn(name = "id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "用户 id")
+    @DatabaseColumn(primary = true, name = "id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "用户 id")
+    @DatabaseIndex(unique = true)
     private String id;
 
     /**
@@ -37,6 +39,7 @@ public class User extends BaseParameter {
      * 邮箱
      */
     @DatabaseColumn(name = "email", type = DatabaseColumnTypeEnum.VARCHAR, length = 50, canNull = false, comment = "邮箱")
+    @DatabaseIndex(unique = true)
     private String email;
 
     /**
@@ -66,7 +69,7 @@ public class User extends BaseParameter {
     /**
      * 性别
      */
-    @DatabaseColumn(name = "gender", type = DatabaseColumnTypeEnum.TINYINT, defaultValue = "(-(1))", comment = "性别")
+    @DatabaseColumn(name = "gender", type = DatabaseColumnTypeEnum.TINYINT, defaultValue = "-1", comment = "性别")
     private Integer gender;
 
     /**
