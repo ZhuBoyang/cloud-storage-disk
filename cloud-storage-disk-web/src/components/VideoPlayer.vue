@@ -7,13 +7,13 @@
        @mouseover="mouseInPlayer"
        @mouseout="mouseOutPlayer"
   >
-    <div class="player-box" id="player"/>
+    <div class="player-box" id="player" ref="player"/>
     <div class="box-layer" @click="playAndPause"></div>
     <div class="box-loading" v-show="controls.isLoading">
       <icon-loading class="box-loading-icon"/>
     </div>
     <div class="box-close-action" :class="[{'is-show': controls.closeActionIsShow}]">
-      <img :src="apiConfig().iconBaseUrl + 'video/close.png'" alt="close" @click="closePlayer"/>
+      <img :src="apiConfig().iconBaseUrl + 'player/close.png'" alt="close" @click="closePlayer"/>
     </div>
     <div class="box-controls" :class="[{'is-show': controls.controlIsShow}]">
       <div class="box-controls--process">
@@ -26,37 +26,37 @@
       <div class="box-controls--box">
         <div class="controls-left">
           <div class="control-item control-play" v-if="controls.paused">
-            <img :src="apiConfig().iconBaseUrl + 'video/play.png'" alt="play" @click="playAndPause"/>
+            <img :src="apiConfig().iconBaseUrl + 'player/play.png'" alt="play" @click="playAndPause"/>
           </div>
           <div class="control-item control-mute" v-else>
-            <img :src="apiConfig().iconBaseUrl + 'video/pause.png'" alt="pause" @click="playAndPause"/>
+            <img :src="apiConfig().iconBaseUrl + 'player/pause.png'" alt="pause" @click="playAndPause"/>
           </div>
           <div class="control-item control-prev">
-            <img :src="apiConfig().iconBaseUrl + 'video/prev.png'" alt="prev" @click="switchPrevVideo"/>
+            <img :src="apiConfig().iconBaseUrl + 'player/prev.png'" alt="prev" @click="switchPrevVideo"/>
           </div>
           <div class="control-item control-backward">
-            <img :src="apiConfig().iconBaseUrl + 'video/fast_backward.png'"
+            <img :src="apiConfig().iconBaseUrl + 'player/fast_backward.png'"
                  alt="backward"
                  @click="backwardFiveSeconds"
             />
           </div>
           <div class="control-item control-forward">
-            <img :src="apiConfig().iconBaseUrl + 'video/fast_forward.png'" alt="forward" @click="forwardFiveSeconds"/>
+            <img :src="apiConfig().iconBaseUrl + 'player/fast_forward.png'" alt="forward" @click="forwardFiveSeconds"/>
           </div>
           <div class="control-item control-next">
-            <img :src="apiConfig().iconBaseUrl + 'video/next.png'" alt="next" @click="switchNextVideo"/>
+            <img :src="apiConfig().iconBaseUrl + 'player/next.png'" alt="next" @click="switchNextVideo"/>
           </div>
         </div>
         <div class="controls-right">
           <div class="video-volume-control" @mouseover="showVolumeRegulator" @mouseout="hideVolumeRegulator">
             <div class="control-icon">
               <img v-if="controls.muted"
-                   :src="apiConfig().iconBaseUrl + 'video/mute.png'"
+                   :src="apiConfig().iconBaseUrl + 'player/mute.png'"
                    alt="volume"
                    @click="muteOrNot"
               />
               <img v-else
-                   :src="apiConfig().iconBaseUrl + 'video/volume.png'"
+                   :src="apiConfig().iconBaseUrl + 'player/volume.png'"
                    alt="volume"
                    @click="muteOrNot"
               />
@@ -76,12 +76,12 @@
           <div class="video-webpage-control" v-if="!controls.screenIsFull">
             <div class="control-icon">
               <img v-if="controls.webpageIsFull"
-                   :src="apiConfig().iconBaseUrl + 'video/webpage_non_full.png'"
+                   :src="apiConfig().iconBaseUrl + 'player/webpage_non_full.png'"
                    alt="webpage"
                    @click="outWebpageFull"
               />
               <img v-else
-                   :src="apiConfig().iconBaseUrl + 'video/webpage_full.png'"
+                   :src="apiConfig().iconBaseUrl + 'player/webpage_full.png'"
                    alt="webpage"
                    @click="inWebpageFull"
               />
@@ -90,12 +90,12 @@
           <div class="video-screen-control">
             <div class="control-icon">
               <img v-if="controls.screenIsFull"
-                   :src="apiConfig().iconBaseUrl + 'video/screen_non_full.png'"
+                   :src="apiConfig().iconBaseUrl + 'player/screen_non_full.png'"
                    alt="webpage"
                    @click="outScreenFull"
               />
               <img v-else
-                   :src="apiConfig().iconBaseUrl + 'video/screen_full.png'"
+                   :src="apiConfig().iconBaseUrl + 'player/screen_full.png'"
                    alt="webpage"
                    @click="inScreenFull"
               />
@@ -104,12 +104,12 @@
           <div class="video-list-control" v-if="!controls.webpageIsFull && !controls.screenIsFull">
             <div class="control-icon">
               <img v-if="controls.listIsShow"
-                   :src="apiConfig().iconBaseUrl + 'video/list_shrink.png'"
+                   :src="apiConfig().iconBaseUrl + 'player/list_shrink.png'"
                    alt="list"
                    @click="showOrHideVideoList"
               />
               <img v-else
-                   :src="apiConfig().iconBaseUrl + 'video/list_unfold.png'"
+                   :src="apiConfig().iconBaseUrl + 'player/list_unfold.png'"
                    alt="list"
                    @click="showOrHideVideoList"
               />
@@ -120,12 +120,17 @@
     </div>
   </div>
   <div class="video-list" v-show="visible" :class="[{'is-show': controls.listIsShow}]">
-    <div class="video-item" v-for="o in playList" :key="o.id" :class="[{'is-select': process.videoId === o.id}]">
+    <div class="video-item"
+         v-for="o in playList"
+         :key="o.id"
+         :class="[{'is-select': process.videoId === o.id}]"
+         @dblclick="switchVideo(o)"
+    >
       <div class="video-avatar">
         <div class="video-avatar-box">
           <img :src="identifyFileAvatar(o)" alt="avatar"/>
         </div>
-        <div class="video-duration">{{ formatNumberToTime(o.duration) }}</div>
+        <div class="video-duration">{{ formatNumberToTime(o.extend.duration) }}</div>
       </div>
       <div class="video-info">
         <div class="video-name">{{ o.name }}</div>
@@ -137,7 +142,7 @@
 <script>
 import DPlayer from 'dplayer'
 import apiConfig from '../api/apiConfig.js'
-import { reactive, toRefs, watch } from 'vue'
+import { reactive, toRefs } from 'vue'
 import http from '../api/http.js'
 import { IconLoading } from '@arco-design/web-vue/es/icon'
 import common from '../tools/common.js'
@@ -148,6 +153,11 @@ export default {
     IconLoading
   },
   props: {
+    // 媒体类型
+    mediaType: {
+      type: String,
+      default: ''
+    },
     // 视频播放地址查询接口
     url: {
       type: String,
@@ -193,17 +203,12 @@ export default {
         screenIsFull: false // 是否全屏
       }
     })
-    watch(() => props.videoId, videoId => {
-      dataList.process.videoId = videoId
-    })
     return {
       emit,
       ...toRefs(dataList)
     }
   },
   mounted () {
-    // 初始化播放器实例
-    this.initPlayer(document.getElementById('player'))
     this.monitorVideoId()
   },
   methods: {
@@ -217,18 +222,20 @@ export default {
     },
     // 监控 props id 的变化
     monitorVideoId () {
-      this.$watch('process.videoId', videoId => {
-        if (videoId === '') {
-          // 关闭播放器，停止视频播放
-          this.stopPlay()
-          this.destroyPlayer()
-        } else {
-          // 初始化播放器，并开始播放视频
-          this.initPlayer(document.getElementById('player'))
-          this.visible = true
-          this.startPlay(videoId)
-        }
-      })
+      const videoId = this.videoId
+      if (videoId === '') {
+        // 关闭播放器，停止视频播放
+        this.stopPlay()
+        this.destroyPlayer()
+        return
+      }
+      if (videoId !== '') {
+        // 初始化播放器，并开始播放视频
+        this.initPlayer(this.$refs.player)
+        this.visible = true
+        this.startPlay(this.videoId)
+        this.process.videoId = this.videoId
+      }
     },
     // 初始化播放器
     player (element) {
@@ -243,18 +250,7 @@ export default {
         preload: 'auto', // 视频是否预加载
         volume: this.controls.volume / 100, // 默认音量
         mutex: false, // 阻止多个播放器同时播放，当前播放器播放时暂停其他播放器
-        video: {
-          // url: 'http://localhost:8100/word.mp4', // 视频地址
-          // type: 'customHls'
-          // customType: {
-          //   customHls: (video, player) => {
-          //     // console.log("查看传递的参数", video, player);
-          //     const hls = new Hls() // 实例化Hls  用于解析m3u8
-          //     hls.loadSource(video.src)
-          //     hls.attachMedia(video)
-          //   }
-          // }
-        }
+        video: {}
       })
     },
     // 初始化播放器实例
@@ -281,8 +277,8 @@ export default {
     },
     // 开始播放当前视频
     startPlay (id) {
-      http.req(this.url, http.methods.post, { id }).then(url => {
-        this.dp.switchVideo({ url: apiConfig().apiBaseUrl + url })
+      http.req(this.url, http.methods.post, { id }).then(meta => {
+        this.dp.switchVideo({ url: apiConfig().apiBaseUrl + meta.path })
       })
     },
     // 播放器事件-视频可以开始播放了
@@ -353,6 +349,11 @@ export default {
         return
       }
       const { id } = this.playList[currentIndex + 1]
+      this.process.videoId = id
+      this.startPlay(id)
+    },
+    // 切换指定视频
+    switchVideo ({ id }) {
       this.process.videoId = id
       this.startPlay(id)
     },
@@ -510,6 +511,7 @@ export default {
     left: 0;
     width: 100%;
     height: 100%;
+    cursor: pointer;
   }
   .box-loading {
     position: absolute;

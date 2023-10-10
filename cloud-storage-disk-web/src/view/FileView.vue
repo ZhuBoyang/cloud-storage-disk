@@ -35,7 +35,18 @@
         <a-pagination v-model:current="pager.pageIndex" v-model:page-size="pager.pageSize" :total="pager.total" @change="changePage"/>
       </div>
     </div>
-    <video-player :url="play.url" :video-id="play.videoId" :play-list="play.playList" @on-close="closePlayer"/>
+    <video-player v-if="play.videoMedia"
+                  :url="play.url"
+                  :video-id="play.playId"
+                  :play-list="play.playList"
+                  @on-close="closePlayer"
+    />
+    <audio-player v-if="play.audioMedia"
+                  :url="play.url"
+                  :audio-id="play.playId"
+                  :play-list="play.playList"
+                  @on-close="closePlayer"
+    />
   </div>
 </template>
 
@@ -50,12 +61,14 @@ import type from '../tools/type.js'
 
 const FileBox = defineAsyncComponent(() => import('../components/FileBox.vue'))
 const VideoPlayer = defineAsyncComponent(() => import('../components/VideoPlayer.vue'))
+const AudioPlayer = defineAsyncComponent(() => import('../components/AudioPlayer.vue'))
 
 export default {
   name: 'FileView',
   components: {
     FileBox,
-    VideoPlayer
+    VideoPlayer,
+    AudioPlayer
   },
   setup: function () {
     const router = useRouter()
@@ -70,8 +83,10 @@ export default {
       },
       play: {
         url: http.url.file.playUrl, // 获取视频播放地址的接口
-        videoId: '', // 要播放的视频 id
-        playList: [] // 播放列表
+        playId: '', // 要播放的媒体 id
+        playList: [], // 播放列表
+        videoMedia: false, // 是否显示视频播放器
+        audioMedia: false // 是否显示音频播放器
       }
     })
     // 查询文件面包屑导航数据
@@ -141,9 +156,20 @@ export default {
     selectChange (record) {
       const { id, name, type: fileType, ext } = record
       if (fileType === 0) {
+        this.closePlayer()
+        // 打开的文件是视频文件
         if (type.isVideo(ext)) {
-          this.play.videoId = id
+          this.play.playId = id
           http.reqUrl.file.videos({ id: this.breads[this.breads.length - 1].id }).then(response => {
+            this.play.videoMedia = true
+            this.play.playList = response
+          })
+        }
+        // 打开的文件是音频文件
+        if (type.isAudio(ext)) {
+          this.play.playId = id
+          http.reqUrl.file.audios({ id: this.breads[this.breads.length - 1].id }).then(response => {
+            this.play.audioMedia = true
             this.play.playList = response
           })
         }
@@ -173,10 +199,12 @@ export default {
         this.queryFiles()
       }
     },
-    // 关闭视频播放器
+    // 关闭播放器
     closePlayer () {
-      this.play.videoId = ''
+      this.play.playId = ''
       this.play.playList = []
+      this.play.videoMedia = false
+      this.play.audioMedia = false
     }
   }
 }

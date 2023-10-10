@@ -19,7 +19,7 @@ import org.springframework.util.ClassUtils;
  * @author zhuboyang
  * @since 2023年08月17 10:59:10
  */
-@Order(2)
+@Order(3)
 @Component
 public class TokenScannerRunner implements ApplicationRunner {
 

@@ -2,9 +2,12 @@ package online.yangcloud.common.tools;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjectUtil;
+import online.yangcloud.common.properties.FileExtTypeProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -18,6 +21,7 @@ import java.util.*;
  * @author zhuboyang
  * @since 2023年01月03 13:39:25
  */
+@Component
 public class FileTools {
 
     private static final Logger logger = LoggerFactory.getLogger(FileTools.class);
@@ -25,15 +29,13 @@ public class FileTools {
     private final static int BUF_SIZE = 1024;
     private final static String PREFIX = "data:image/jpeg;base64,";
 
+    @Resource
+    private FileExtTypeProperty fileExtTypeProperty;
+
     /**
      * 图片后缀
      */
     public final static List<String> PICTURE_EXT = new ArrayList<>(Arrays.asList(".bmp", ".jpg", ".jpeg", ".png", ".gif"));
-
-    /**
-     * 视频后缀
-     */
-    public final static List<String> VIDEO_EXT = new ArrayList<>(Arrays.asList(".avi", ".mov", ".rmvb", ".rm", ".flv", ".mp4", ".3gp"));
 
     /**
      * 文件合并
@@ -124,14 +126,28 @@ public class FileTools {
         return calculateDirSpace(FileUtil.file(root));
     }
 
+    public FileExtTypeProperty acquireFileExtProperty() {
+        return fileExtTypeProperty;
+    }
+
     /**
      * 校验文件是否是视频
      *
      * @param ext 文件后缀名
      * @return 校验结果
      */
-    public static boolean isVideo(String ext) {
-        return VIDEO_EXT.contains(ext);
+    public boolean isVideo(String ext) {
+        return acquireFileExtProperty().acquireVideoSupports().contains(ext);
+    }
+
+    /**
+     * 校验文件是否是音频
+     *
+     * @param ext 文件后缀名
+     * @return 校验结果
+     */
+    public boolean isAudio(String ext) {
+        return acquireFileExtProperty().acquireAudioSupports().contains(ext);
     }
 
     /**

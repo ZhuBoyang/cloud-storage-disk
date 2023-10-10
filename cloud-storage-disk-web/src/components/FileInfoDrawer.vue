@@ -10,7 +10,7 @@
         </div>
         <div class="file-avatar--play-icon-box row-col-center">
           <div class="file-avatar--play-icon row-col-center cursor-pointer" @click="playVideo(file.id)">
-            <img :src="apiConfig().iconBaseUrl + 'icons/video/play.png'" alt=""/>
+            <img :src="apiConfig().iconBaseUrl + 'icons/player/play.png'" alt=""/>
           </div>
         </div>
       </div>

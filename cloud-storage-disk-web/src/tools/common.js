@@ -3,13 +3,23 @@ import { Notification } from '@arco-design/web-vue'
 import md5 from 'js-md5'
 import type from './type.js'
 
+const supportsTypes = JSON.parse(localStorage.getItem('type_supports'))
+
 const identifyFileAvatar = (file) => {
-  const { ext, type, thumbnail } = file
-  if (thumbnail !== undefined && thumbnail !== '' && thumbnail !== null) {
-    return apiConfig().apiBaseUrl + thumbnail
-  }
+  const { ext, type, extend } = file
   if (type === 1) {
     return apiConfig().iconBaseUrl + 'file/directory.png'
+  }
+  if (extend !== undefined && extend !== null && Object.keys(extend).length > 0) {
+    return apiConfig().apiBaseUrl + extend.thumbnail
+  }
+  // 检测到是视频文件
+  if (supportsTypes.video.indexOf(ext) >= 0) {
+    return apiConfig().iconBaseUrl + 'file/mp4.png'
+  }
+  // 检测到是音频文件
+  if (supportsTypes.audio.indexOf(ext) >= 0) {
+    return apiConfig().iconBaseUrl + 'file/mp3.png'
   }
   if (ext === 'doc' || ext === 'docx') {
     return apiConfig().iconBaseUrl + 'file/docx.png'
@@ -25,12 +35,6 @@ const identifyFileAvatar = (file) => {
   }
   if (ext === 'zip') {
     return apiConfig().iconBaseUrl + 'file/zip.png'
-  }
-  if (ext === 'mp3') {
-    return apiConfig().iconBaseUrl + 'file/mp3.png'
-  }
-  if (ext === 'mp4') {
-    return apiConfig().iconBaseUrl + 'file/mp4.png'
   }
   if (ext === 'zip') {
     return apiConfig().iconBaseUrl + 'file/zip.png'
@@ -140,9 +144,12 @@ const formatNumberToTime = time => {
   let hour = Math.floor(time / 60 / 60 % 24)
   let minute = Math.floor(time / 60 % 60)
   let second = Math.floor(time % 60)
-  hour = hour < 10 ? '0' + hour : hour
   minute = minute < 10 ? '0' + minute : minute
   second = second < 10 ? '0' + second : second
+  if (hour === 0) {
+    return `${minute}:${second}`
+  }
+  hour = hour < 10 ? '0' + hour : hour
   return `${hour}:${minute}:${second}`
 }
 

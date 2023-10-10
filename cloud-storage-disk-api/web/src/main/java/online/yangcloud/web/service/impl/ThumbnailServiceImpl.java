@@ -6,6 +6,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import online.yangcloud.common.annotation.TimeConsuming;
 import online.yangcloud.common.common.AppConstants;
+import online.yangcloud.common.model.AudioMetadata;
 import online.yangcloud.common.model.FileMetadata;
 import online.yangcloud.common.model.VideoMetadata;
 import online.yangcloud.common.tools.FfmpegTools;
@@ -13,12 +14,12 @@ import online.yangcloud.common.tools.FileTools;
 import online.yangcloud.common.tools.IdTools;
 import online.yangcloud.common.tools.SystemTools;
 import online.yangcloud.web.service.ThumbnailService;
+import online.yangcloud.web.service.meta.AudioMetadataService;
 import online.yangcloud.web.service.meta.VideoMetadataService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,19 +37,37 @@ public class ThumbnailServiceImpl implements ThumbnailService {
     @Resource
     private VideoMetadataService videoMetadataService;
 
+    @Resource
+    private AudioMetadataService audioMetadataService;
+
+    @Resource
+    private FileTools fileTools;
+
     @Override
     public void thumbnail(FileMetadata metadata) {
         // 上传的文件是个视频
-        if (FileTools.isVideo(metadata.getExt())) {
-            videoThumbnail(metadata);
+        if (fileTools.isVideo(metadata.getExt())) {
+            videoInformation(metadata);
+            return;
         }
+        // 上传的文件是个音频
+        if (fileTools.isAudio(metadata.getExt())) {
+            audioInformation(metadata);
+            return;
+        }
+        FileUtil.del(SystemTools.systemPath() + AppConstants.Uploader.FILE + metadata.getId() + metadata.getExt());
     }
 
-    private void videoThumbnail(FileMetadata metadata) {
+    /**
+     * 获取视频详细信息，并对视频第一帧进行截帧
+     *
+     * @param metadata 文件元数据
+     */
+    private void videoInformation(FileMetadata metadata) {
         String filePath = SystemTools.systemPath() + AppConstants.Uploader.FILE + metadata.getId() + metadata.getExt();
 
         // 获取视频详细信息
-        VideoMetadata video = FfmpegTools.getVideoInfo(filePath);
+        VideoMetadata video = FfmpegTools.acquireVideoInfo(filePath);
 
         // 截取视频的第一帧，用作缩略图
         String thumbnail = AppConstants.Uploader.SNAPSHOT + metadata.getId() + ".jpg";
@@ -71,9 +90,28 @@ public class ThumbnailServiceImpl implements ThumbnailService {
         FileUtil.del(filePath);
     }
 
+    /**
+     * 获取音频详细信息
+     *
+     * @param metadata 文件元数据
+     */
+    private void audioInformation(FileMetadata metadata) {
+        String filePath = SystemTools.systemPath() + AppConstants.Uploader.FILE + metadata.getId() + metadata.getExt();
+
+        // 获取音频详细信息
+        AudioMetadata audio = FfmpegTools.acquireAudioMetadata(filePath);
+        audio.setId(IdTools.fastSimpleUuid()).setFileId(metadata.getId());
+
+        // 记录音频元数据
+        audioMetadataService.addAudioRecord(audio);
+
+        // 删除整文件
+        FileUtil.del(filePath);
+    }
+
     @Override
     public String queryThumbnail(FileMetadata file) {
-        if (FileTools.isVideo(file.getExt())) {
+        if (fileTools.isVideo(file.getExt())) {
             VideoMetadata video = videoMetadataService.queryVideoByFileId(file.getId());
             return ObjectUtil.isNull(video) ? StrUtil.EMPTY : video.getThumbnail();
         }
@@ -81,26 +119,50 @@ public class ThumbnailServiceImpl implements ThumbnailService {
     }
 
     @Override
-    public Map<String, VideoMetadata> queryThumbnails(List<FileMetadata> files) {
-        Map<String, VideoMetadata> maps = new HashMap<>(files.size());
+    public Map<String, Object> queryMetadata(List<FileMetadata> files) {
+        Map<String, Object> maps = new HashMap<>(files.size());
 
         // 查询各类文件元数据并封装映射
         Map<String, List<FileMetadata>> fileMap = files.stream().collect(Collectors.groupingBy(FileMetadata::getExt));
 
         // 整理视频文件的元数据映射
-        List<String> fileIds = new ArrayList<>();
-        for (String ext : FileTools.VIDEO_EXT) {
+        for (String ext : fileTools.acquireFileExtProperty().acquireVideoSupports()) {
             List<FileMetadata> videos = fileMap.get(ext);
             if (ObjectUtil.isNotNull(videos) && !videos.isEmpty()) {
-                fileIds.addAll(videos.stream().map(FileMetadata::getId).collect(Collectors.toList()));
+                List<String> fileIds = videos.stream().map(FileMetadata::getId).collect(Collectors.toList());
+                if (!fileIds.isEmpty()) {
+                    List<VideoMetadata> objs = videoMetadataService.queryVideosByFileIds(fileIds);
+                    maps.putAll(objs.stream().collect(Collectors.toMap(VideoMetadata::getFileId, o -> o)));
+                }
             }
         }
-        if (!fileIds.isEmpty()) {
-            List<VideoMetadata> videos = videoMetadataService.queryVideosByFileIds(fileIds);
-            maps.putAll(videos.stream().collect(Collectors.toMap(VideoMetadata::getFileId, o -> o)));
+
+        // 整理音频文件的元数据映射
+        for (String ext : fileTools.acquireFileExtProperty().acquireAudioSupports()) {
+            List<FileMetadata> videos = fileMap.get(ext);
+            if (ObjectUtil.isNotNull(videos) && !videos.isEmpty()) {
+                List<String> fileIds = videos.stream().map(FileMetadata::getId).collect(Collectors.toList());
+                if (!fileIds.isEmpty()) {
+                    List<AudioMetadata> objs = audioMetadataService.queryAudiosByFileIds(fileIds);
+                    maps.putAll(objs.stream().collect(Collectors.toMap(AudioMetadata::getFileId, o -> o)));
+                }
+            }
         }
 
         return maps;
+    }
+
+    @Override
+    public Object queryMediaMetadata(String fileId, String ext) {
+        // 是视频文件
+        if (fileTools.isVideo(ext)) {
+            return videoMetadataService.queryVideoByFileId(fileId);
+        }
+        // 是音频文件
+        if (fileTools.isAudio(ext)) {
+            return audioMetadataService.queryAudioByFileId(fileId);
+        }
+        return null;
     }
 
 }

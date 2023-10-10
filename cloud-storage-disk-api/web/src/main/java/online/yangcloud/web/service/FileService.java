@@ -1,5 +1,6 @@
 package online.yangcloud.web.service;
 
+import online.yangcloud.common.enumration.FileExtTypeEnum;
 import online.yangcloud.common.model.User;
 import online.yangcloud.common.model.request.file.DirLooker;
 import online.yangcloud.common.model.request.file.FileSearcher;
@@ -191,13 +192,14 @@ public interface FileService {
     FileMetadataView combineToTmp(String id, String userId);
 
     /**
-     * 查询指定目录下所有的视频文件
+     * 查询指定目录下所有的文件
      *
-     * @param pid    目录的文件 id
-     * @param userId 文件所属人
+     * @param pid     目录的文件 id
+     * @param userId  文件所属人
+     * @param extType 文件类型
      * @return 文件列表
      */
-    List<FileMetadataView> queryVideosUnderDir(String pid, String userId);
+    List<FileMetadataView> queryFilesUnderDir(String pid, String userId, FileExtTypeEnum extType);
 
     /**
      * 文件下载

@@ -2,10 +2,12 @@ package online.yangcloud.web.controller;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.annotation.SessionValid;
 import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.common.AppResultCode;
 import online.yangcloud.common.common.ResultData;
+import online.yangcloud.common.enumration.FileExtTypeEnum;
 import online.yangcloud.common.model.User;
 import online.yangcloud.common.model.request.BatchOperator;
 import online.yangcloud.common.model.request.IdRequest;
@@ -14,6 +16,7 @@ import online.yangcloud.common.model.request.user.BreadsLooker;
 import online.yangcloud.common.model.view.PagerView;
 import online.yangcloud.common.model.view.file.FileMetadataView;
 import online.yangcloud.common.tools.ExceptionTools;
+import online.yangcloud.common.tools.FileTools;
 import online.yangcloud.common.tools.IdTools;
 import online.yangcloud.common.tools.SystemTools;
 import online.yangcloud.web.service.FileService;
@@ -38,6 +41,21 @@ public class FileController {
 
     @Resource
     private FileService fileService;
+
+    @Resource
+    private FileTools fileTools;
+
+    /**
+     * 获取系统支持的各类文件的后缀格式列表
+     *
+     * @return 后缀格式列表
+     */
+    @GetMapping("/type_supports")
+    public ResultData acquireSupportsTypes() {
+        return ResultData.success(JSONUtil.createObj()
+                .set("video", fileTools.acquireFileExtProperty().acquireVideoSupports())
+                .set("audio", fileTools.acquireFileExtProperty().acquireAudioSupports()));
+    }
 
     /**
      * 检测文件大小是否允许上传，用户空间剩余量是否足够
@@ -272,7 +290,7 @@ public class FileController {
     @PostMapping("/play_url")
     public ResultData queryVideoPlayUrl(@Valid @RequestBody IdRequest request, User user) {
         FileMetadataView video = fileService.combineToTmp(request.getId(), user.getId());
-        return ResultData.success(video.getPath());
+        return ResultData.success(video);
     }
 
     /**
@@ -285,8 +303,22 @@ public class FileController {
     @SessionValid
     @PostMapping("/videos")
     public ResultData queryVideos(@Valid @RequestBody IdRequest request, User user) {
-        List<FileMetadataView> videos = fileService.queryVideosUnderDir(request.getId(), user.getId());
+        List<FileMetadataView> videos = fileService.queryFilesUnderDir(request.getId(), user.getId(), FileExtTypeEnum.VIDEO);
         return ResultData.success(videos);
+    }
+
+    /**
+     * 查询指定目录下所有的音频
+     *
+     * @param request 目录的文件 id
+     * @param user    当前登录的用户
+     * @return 音频列表
+     */
+    @SessionValid
+    @PostMapping("/audios")
+    public ResultData queryAudios(@Valid @RequestBody IdRequest request, User user) {
+        List<FileMetadataView> audios = fileService.queryFilesUnderDir(request.getId(), user.getId(), FileExtTypeEnum.AUDIO);
+        return ResultData.success(audios);
     }
 
     /**

@@ -24,12 +24,21 @@ public class SystemTools {
     private static final Logger logger = LoggerFactory.getLogger(SystemTools.class);
 
     /**
+     * 获取系统类型
+     *
+     * @return 系统类型
+     */
+    public static String acquireSystemType() {
+        return System.getProperty("os.name").substring(0, 3);
+    }
+
+    /**
      * 网站资源根目录（自动识别）
      */
     public static String systemPath() {
         String userDir = System.getProperty("user.dir");
         userDir = userDir.substring(userDir.lastIndexOf(AppConstants.Special.SEPARATOR) + 1);
-        String systemName = System.getProperty("os.name").substring(0, 3);
+        String systemName = acquireSystemType();
         StringBuilder rootPathBuilder = new StringBuilder();
         switch (systemName) {
             case "Win":

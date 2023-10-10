@@ -13,6 +13,7 @@ import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.annotation.TimeConsuming;
 import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.common.AppResultCode;
+import online.yangcloud.common.enumration.FileExtTypeEnum;
 import online.yangcloud.common.enumration.FileTypeEnum;
 import online.yangcloud.common.enumration.YesOrNoEnum;
 import online.yangcloud.common.model.*;
@@ -71,6 +72,9 @@ public class FileServiceImpl implements FileService {
 
     @Resource
     private ThumbnailService thumbnailService;
+
+    @Resource
+    private FileTools fileTools;
 
     @Resource
     private RedissonClient redissonClient;
@@ -495,22 +499,25 @@ public class FileServiceImpl implements FileService {
         List<FileMetadata> files = filePager.getData();
 
         // 各类文件 id 与缩略图的映射关系
-        Map<String, VideoMetadata> thumbnailReflectionMap = new HashMap<>(files.size());
+        Map<String, Object> thumbnailReflectionMap = new HashMap<>(files.size());
 
         // 检测当前页是否有视频文件
-        List<FileMetadata> videos = files.stream().filter(o -> FileTools.isVideo(o.getExt())).collect(Collectors.toList());
+        List<FileMetadata> videos = files.stream().filter(o -> fileTools.isVideo(o.getExt())).collect(Collectors.toList());
         if (!videos.isEmpty()) {
-            thumbnailReflectionMap.putAll(thumbnailService.queryThumbnails(videos));
+            thumbnailReflectionMap.putAll(thumbnailService.queryMetadata(videos));
         }
 
         // 封装并返回展示数据列表
         List<FileMetadataView> views = new ArrayList<>(files.size());
         for (FileMetadata metadata : files) {
             FileMetadataView view = FileMetadataView.convert(metadata);
-            if (FileTools.isVideo(metadata.getExt())) {
-                VideoMetadata video = thumbnailReflectionMap.get(metadata.getId());
-                if (ObjectUtil.isNotNull(video)) {
-                    view.setThumbnail(video.getThumbnail()).setDuration(video.getDuration());
+            if (fileTools.isVideo(metadata.getExt())) {
+                Object o = thumbnailReflectionMap.get(metadata.getId());
+                if (ObjectUtil.isNotNull(o)) {
+                    VideoMetadata video = JSONUtil.toBean(JSONUtil.toJsonStr(o), VideoMetadata.class);
+                    view.setExtend(JSONUtil.createObj()
+                            .set("thumbnail", video.getThumbnail())
+                            .set("duration", video.getDuration()));
                 }
             }
             views.add(view);
@@ -550,21 +557,24 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public FileMetadataView combineToTmp(String id, String userId) {
-        // 查询视频文件元数据
-        FileMetadata video = fileMetadataService.queryById(id, userId);
-        if (ObjectUtil.isNull(video)) {
+        // 查询预览文件元数据
+        FileMetadata media = fileMetadataService.queryById(id, userId);
+        if (ObjectUtil.isNull(media)) {
             ExceptionTools.noDataLogger();
         }
 
         // 构建临时文件的存放目录地址
-        String path = AppConstants.Uploader.TMP + video.getId() + StrUtil.UNDERLINE + video.getName() + video.getExt();
+        String path = AppConstants.Uploader.TMP + media.getId() + StrUtil.UNDERLINE + media.getName() + media.getExt();
         String target = SystemTools.systemPath() + path;
+
+        // 查询预览文件的预览元数据
+        Object mediaMetadata = thumbnailService.queryMediaMetadata(media.getId(), media.getExt());
         if (FileUtil.exist(target)) {
-            return FileMetadataView.convert(video.setPath(path));
+            return FileMetadataView.convert(media.setPath(path), mediaMetadata);
         }
 
-        // 查询视频文件的文件块存放地址
-        List<FileBlock> fileBlocks = fileBlockService.queryBlocks(video.getId());
+        // 查询预览文件的文件块存放地址
+        List<FileBlock> fileBlocks = fileBlockService.queryBlocks(media.getId());
         List<String> fileBlocksIds = fileBlocks.stream()
                 .sorted(Comparator.comparingInt(FileBlock::getIndex))
                 .map(FileBlock::getBlockId)
@@ -572,37 +582,53 @@ public class FileServiceImpl implements FileService {
         List<BlockMetadata> blocks = blockMetadataService.queryListByIds(fileBlocksIds);
         Map<String, String> blockPathMap = blocks.stream().collect(Collectors.toMap(BlockMetadata::getId, BlockMetadata::getPath));
 
-        // 合并视频文件，并存放至临时文件夹
+        // 合并预览文件，并存放至临时文件夹
         List<String> blockPaths = fileBlocksIds.stream()
                 .map(o -> SystemTools.systemPath() + blockPathMap.get(o))
                 .collect(Collectors.toList());
         FileTools.combineFile(target, blockPaths);
 
         // 返回文件元数据
-        return FileMetadataView.convert(video.setPath(path));
+        return FileMetadataView.convert(media.setPath(path), mediaMetadata);
     }
 
     @Override
-    public List<FileMetadataView> queryVideosUnderDir(String pid, String userId) {
+    public List<FileMetadataView> queryFilesUnderDir(String pid, String userId, FileExtTypeEnum extType) {
         // 查询当前目录下所有的文件
         List<FileMetadata> files = fileMetadataService.queryListByPid(pid, userId);
 
-        // 过滤掉非视频文件，并查询视频元数据
-        Map<String, VideoMetadata> reflectionMap = new HashMap<>(files.size());
-        files = files.stream().filter(o -> FileTools.isVideo(o.getExt()))
+        // 过滤掉非指定类型件，并查询指定类型文件元数据
+        Map<String, Object> metaMaps = new HashMap<>(files.size());
+        List<String> ext = FileExtTypeEnum.VIDEO.equals(extType) ?
+                fileTools.acquireFileExtProperty().acquireVideoSupports() : FileExtTypeEnum.AUDIO.equals(extType) ?
+                fileTools.acquireFileExtProperty().acquireAudioSupports() : Collections.emptyList();
+        files = files.stream().filter(o -> ext.contains(o.getExt()))
                 .sorted(Comparator.comparingLong(FileMetadata::getUploadTime))
                 .collect(Collectors.toList());
         if (!files.isEmpty()) {
-            reflectionMap.putAll(thumbnailService.queryThumbnails(files));
+            metaMaps.putAll(thumbnailService.queryMetadata(files));
         }
 
         // 封装文件展示数据
         List<FileMetadataView> views = new ArrayList<>(files.size());
         for (FileMetadata file : files) {
-            VideoMetadata video = reflectionMap.get(file.getId());
             FileMetadataView view = FileMetadataView.convert(file);
-            if (ObjectUtil.isNotNull(video)) {
-                view.setThumbnail(video.getThumbnail()).setDuration(video.getDuration());
+            Object o = metaMaps.get(file.getId());
+            if (ObjectUtil.isNotNull(o)) {
+                if (FileExtTypeEnum.VIDEO.equals(extType)) {
+                    VideoMetadata video = JSONUtil.toBean(JSONUtil.toJsonStr(o), VideoMetadata.class);
+                    view.setExtend(JSONUtil.createObj()
+                            .set("thumbnail", video.getThumbnail())
+                            .set("duration", video.getDuration()));
+                }
+                if (FileExtTypeEnum.AUDIO.equals(extType)) {
+                    AudioMetadata audio = JSONUtil.toBean(JSONUtil.toJsonStr(o), AudioMetadata.class);
+                    view.setExtend(JSONUtil.createObj()
+                            .set("title", audio.getTitle())
+                            .set("album", audio.getAlbum())
+                            .set("artist", audio.getArtist())
+                            .set("duration", audio.getDuration()));
+                }
             }
             views.add(view);
         }

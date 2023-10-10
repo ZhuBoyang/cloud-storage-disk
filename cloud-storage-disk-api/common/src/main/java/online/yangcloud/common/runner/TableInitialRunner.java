@@ -1,10 +1,8 @@
 package online.yangcloud.common.runner;
 
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import online.yangcloud.common.database.TableMapper;
-import online.yangcloud.common.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -28,7 +26,7 @@ import java.util.List;
  * @author zhuboyang
  * @since 2023年09月03 15:04:57
  */
-@Order(1)
+@Order(2)
 @Component
 public class TableInitialRunner implements ApplicationRunner {
 

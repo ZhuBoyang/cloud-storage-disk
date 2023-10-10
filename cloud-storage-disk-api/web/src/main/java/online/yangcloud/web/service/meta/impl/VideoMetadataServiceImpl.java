@@ -26,7 +26,7 @@ public class VideoMetadataServiceImpl implements VideoMetadataService {
 
     @Override
     public void addVideoRecord(VideoMetadata metadata) {
-        updateError(videoMetadataMapper.insertWithPk(metadata));
+        ExceptionTools.updateError(videoMetadataMapper.insertWithPk(metadata));
     }
 
     @Override
@@ -43,12 +43,6 @@ public class VideoMetadataServiceImpl implements VideoMetadataService {
                 .where.fileId().in(fileIds)
                 .and.isDelete().eq(YesOrNoEnum.NO.code())
                 .end());
-    }
-
-    private void updateError(int updateResult) {
-        if (updateResult == 0) {
-            ExceptionTools.businessLogger();
-        }
     }
 
 }

@@ -63,4 +63,10 @@ public class ExceptionTools {
         throw new NoAuthException(exp);
     }
 
+    public static void updateError(int updateResult) {
+        if (updateResult == 0) {
+            ExceptionTools.businessLogger();
+        }
+    }
+
 }

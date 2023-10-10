@@ -1,6 +1,8 @@
 package online.yangcloud.common.model.view.file;
 
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.model.FileMetadata;
 
 /**
@@ -60,14 +62,9 @@ public class FileMetadataView {
     private String userId;
 
     /**
-     * 文件缩略图
+     * 扩展信息
      */
-    private String thumbnail = StrUtil.EMPTY;
-
-    /**
-     * 文件时长（仅用于视频、音频文件）
-     */
-    private Double duration = 0D;
+    private JSONObject extend = JSONUtil.createObj();
 
     public static FileMetadataView convert(FileMetadata file) {
         return new FileMetadataView()
@@ -81,6 +78,10 @@ public class FileMetadataView {
                 .setSize(file.getSize())
                 .setUploadTime(file.getUploadTime())
                 .setUserId(file.getUserId());
+    }
+
+    public static FileMetadataView convert(FileMetadata file, Object extend) {
+        return convert(file).setExtend(ObjectUtil.isNull(extend) ? JSONUtil.createObj() : JSONUtil.parseObj(extend));
     }
 
     public String getId() {
@@ -173,21 +174,12 @@ public class FileMetadataView {
         return this;
     }
 
-    public String getThumbnail() {
-        return thumbnail;
+    public JSONObject getExtend() {
+        return extend;
     }
 
-    public FileMetadataView setThumbnail(String thumbnail) {
-        this.thumbnail = thumbnail;
-        return this;
-    }
-
-    public Double getDuration() {
-        return duration;
-    }
-
-    public FileMetadataView setDuration(Double duration) {
-        this.duration = duration;
+    public FileMetadataView setExtend(JSONObject extend) {
+        this.extend = extend;
         return this;
     }
 
@@ -204,8 +196,7 @@ public class FileMetadataView {
                 + " size=" + size + ","
                 + " uploadTime=" + uploadTime + ","
                 + " userId=" + userId + ","
-                + " thumbnail=" + thumbnail + ","
-                + " duration=" + duration
+                + " extend=" + extend
                 + " ]";
     }
 }

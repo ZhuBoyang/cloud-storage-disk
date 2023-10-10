@@ -451,7 +451,7 @@ export default {
       align-items: center;
     }
     .header--name {
-      width: calc(100% - 380px);
+      width: calc(100% - 340px);
       display: flex;
       align-items: center;
     }
@@ -461,7 +461,7 @@ export default {
       align-items: center;
     }
     .header--size {
-      width: 100px;
+      width: 60px;
       display: flex;
       align-items: center;
     }
@@ -506,9 +506,11 @@ export default {
         }
       }
       .body--name {
-        width: calc(100% - 380px);
-        display: flex;
-        align-items: center;
+        width: calc(100% - 340px);
+        line-height: 72px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         .body--name-runner {
           margin-left: 10px;
           display: none;
@@ -526,7 +528,7 @@ export default {
         align-items: center;
       }
       .body--size {
-        width: 100px;
+        width: 60px;
         display: flex;
         align-items: center;
       }

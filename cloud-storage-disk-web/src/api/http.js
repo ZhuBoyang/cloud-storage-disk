@@ -82,7 +82,7 @@ const url = {
     mergeFile: modules.file + 'merge', // 文件合并
     simpleUpload: modules.file + 'simple_upload', // 上传简单文件
     download: modules.file + 'download/', // 文件下载
-    playUrl: modules.file + 'play_url' // 获取视频播放地址
+    playUrl: modules.file + 'play_url' // 获取媒体文件的播放地址
   }
 }
 
@@ -98,6 +98,7 @@ const reqUrl = {
     info: () => req(modules.user + 'info', methods.get)
   },
   file: {
+    typeSupports: () => req(modules.file + 'type_supports', methods.get), // 查询各类文件支持的格式后缀
     mkdir: obj => req(modules.file + 'mkdir', methods.post, obj),
     remove: obj => req(modules.file + 'remove', methods.post, obj), // 批量删除文件
     move: obj => req(modules.file + 'move', methods.post, obj),
@@ -109,7 +110,8 @@ const reqUrl = {
     pager: obj => req(modules.file + 'pager', methods.get, obj),
     dirs: obj => req(modules.file + 'dirs', methods.post, obj),
     trash: obj => req(modules.file + 'trash', methods.post, obj), // 查询回收站的文件列表
-    videos: obj => req(modules.file + 'videos', methods.post, obj) // 查询目录下所有的视频文件
+    videos: obj => req(modules.file + 'videos', methods.post, obj), // 查询目录下所有的视频文件
+    audios: obj => req(modules.file + 'audios', methods.post, obj) // 查询目录下所有的音频文件
   }
 }
 

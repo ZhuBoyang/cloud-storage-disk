@@ -25,6 +25,7 @@ public class VideoMetadata extends BaseParameter {
      * 文件 id
      */
     @DatabaseColumn(name = "file_id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件 id")
+    @DatabaseIndex
     private String fileId;
 
     /**

@@ -46,3 +46,7 @@ spring:
 # application web connection port
 server:
   port: 8100
+# media ext type
+media:
+  video: avi,mov,rmvb,rm,flv,mp4,3gp
+  audio: wav,flac,mp3,aac,ogg

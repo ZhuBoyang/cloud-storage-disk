@@ -18,7 +18,7 @@ import javax.annotation.Resource;
  * @author zhuboyang
  * @since 2023年08月15 16:32:41
  */
-@Order(3)
+@Order(4)
 @Component
 public class UserInitialRunner implements ApplicationRunner {
 

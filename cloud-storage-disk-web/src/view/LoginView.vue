@@ -61,8 +61,17 @@ export default {
       ...toRefs(dataList)
     }
   },
+  created () {
+    this.loadSupportsExt()
+  },
   methods: {
     apiConfig,
+    // 加载系统支持的各类文件偶追
+    loadSupportsExt () {
+      http.reqUrl.file.typeSupports().then(response => {
+        localStorage.setItem('type_supports', JSON.stringify(response))
+      })
+    },
     // 登录
     login () {
       // 参数校验
