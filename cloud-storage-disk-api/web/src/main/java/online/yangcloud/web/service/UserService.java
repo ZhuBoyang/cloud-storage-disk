@@ -6,6 +6,7 @@ import online.yangcloud.common.model.request.user.UserEnter;
 import online.yangcloud.common.model.request.user.UserInitializer;
 import online.yangcloud.common.model.request.user.UserUpdater;
 import online.yangcloud.common.model.view.user.UserView;
+import online.yangcloud.web.service.meta.UserMetaService;
 
 import java.io.IOException;
 
@@ -14,6 +15,13 @@ import java.io.IOException;
  * @since 2023年01月18 11:19:23
  */
 public interface UserService {
+
+    /**
+     * 获取数据库交互业务层
+     *
+     * @return 业务层
+     */
+    UserMetaService acquireMeta();
 
     /**
      * 初始化账户信息
@@ -47,5 +55,47 @@ public interface UserService {
      * @return 修改后的账户资料
      */
     UserView updatePassword(PasswordUpdater updater, User user);
+
+    /**
+     * 更新用户账户的空间增量
+     *
+     * @param sessionId 会话 id
+     * @param user      要更新的用户
+     */
+    void updateIncrementSize(String sessionId, User user);
+
+    /**
+     * 跟新 redis 缓存
+     *
+     * @param user       用户账户信息
+     * @param expireTime 过期时间/秒
+     */
+    void updateRedisCache(User user, Integer expireTime);
+
+    /**
+     * 跟新 redis 缓存
+     *
+     * @param view       用户账户信息
+     * @param expireTime 过期时间/秒
+     */
+    void updateRedisCache(UserView view, Integer expireTime);
+
+    /**
+     * 跟新 redis 缓存
+     *
+     * @param sessionId  会话 id
+     * @param user       用户账户信息
+     * @param expireTime 过期时间/秒
+     */
+    void updateRedisCache(String sessionId, User user, Integer expireTime);
+
+    /**
+     * 跟新 redis 缓存
+     *
+     * @param sessionId  会话 id
+     * @param view       用户账户信息
+     * @param expireTime 过期时间/秒
+     */
+    void updateRedisCache(String sessionId, UserView view, Integer expireTime);
 
 }

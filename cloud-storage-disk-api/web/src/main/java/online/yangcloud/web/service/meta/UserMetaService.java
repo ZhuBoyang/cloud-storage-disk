@@ -24,6 +24,13 @@ public interface UserMetaService {
     void updateSpaceSize(User user, Long spaceSize);
 
     /**
+     * 更新账户空间已用量
+     *
+     * @param user 当前操作用户
+     */
+    void updateSpaceSize(User user);
+
+    /**
      * 更新用户账户信息
      *
      * @param user 新的账户信息

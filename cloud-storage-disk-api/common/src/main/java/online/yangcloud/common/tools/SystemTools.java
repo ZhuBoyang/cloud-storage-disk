@@ -65,9 +65,9 @@ public class SystemTools {
                         .append(AppConstants.Special.SEPARATOR)
                         .append("webapps")
                         .append(AppConstants.Special.SEPARATOR)
-                        .append("storage")
+                        .append(userDir)
                         .append(AppConstants.Special.SEPARATOR)
-                        .append(userDir);
+                        .append("storage");
                 break;
             default:
                 break;

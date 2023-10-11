@@ -24,6 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -45,6 +48,11 @@ public class UserServiceImpl implements UserService {
 
     @Resource
     private RedisTools redisTools;
+
+    @Override
+    public UserMetaService acquireMeta() {
+        return userMetaService;
+    }
 
     @Override
     public void initialize(UserInitializer initializer) {
@@ -106,12 +114,7 @@ public class UserServiceImpl implements UserService {
 
         // 将用户信息存入 redis，生成会话 session，并返回
         String sessionId = IdTools.fastSimpleUuid();
-        String userInfo = JSONUtil.toJsonStr(UserView.convert(user));
-        redisTools.expire(AppConstants.Account.LOGIN_TOKEN + sessionId,
-                userInfo,
-                AppConstants.Account.LOGIN_SESSION_EXPIRE_TIME,
-                TimeUnit.MINUTES
-        );
+        updateRedisCache(sessionId, user, AppConstants.Account.LOGIN_SESSION_EXPIRE_TIME);
         return sessionId;
     }
 
@@ -170,6 +173,51 @@ public class UserServiceImpl implements UserService {
         user.setPassword(password);
         userMetaService.updateUser(user);
         return UserView.convert(user);
+    }
+
+    @Override
+    public void updateIncrementSize(String sessionId, User user) {
+        List<String> keys = redisTools.keys(AppConstants.Account.INCREMENT + user.getId());
+        long increment = 0;
+        for (String o : keys) {
+            redisTools.delete(o);
+            increment += Long.parseLong(o.substring(o.lastIndexOf(StrUtil.COLON) + 1));
+        }
+
+        // 如果账户已用空间容量或者总空间容量发生改变，则更新数据库数据
+        if (increment != 0) {
+            user.setUsedSpaceSize(user.getUsedSpaceSize() + increment);
+            userMetaService.updateUser(user);
+            updateRedisCache(sessionId, user, AppConstants.Account.LOGIN_SESSION_EXPIRE_TIME);
+        }
+    }
+
+    @Override
+    public void updateRedisCache(User user, Integer expireTime) {
+        updateRedisCache(StrUtil.EMPTY, UserView.convert(user), expireTime);
+    }
+
+    @Override
+    public void updateRedisCache(UserView view, Integer expireTime) {
+        updateRedisCache(StrUtil.EMPTY, view, expireTime);
+    }
+
+    @Override
+    public void updateRedisCache(String sessionId, User user, Integer expireTime) {
+        updateRedisCache(sessionId, UserView.convert(user), expireTime);
+    }
+
+    @Override
+    public void updateRedisCache(String sessionId, UserView view, Integer expireTime) {
+        String authorization = SystemTools.getHeaders().getAuthorization();
+        if (StrUtil.isBlank(authorization)) {
+            authorization = sessionId;
+        }
+        redisTools.expire(AppConstants.Account.LOGIN_TOKEN + authorization,
+                JSONUtil.toJsonStr(view),
+                expireTime,
+                TimeUnit.SECONDS
+        );
     }
 
 }

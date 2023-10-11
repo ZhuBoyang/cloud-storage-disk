@@ -3,7 +3,6 @@ package online.yangcloud.common.common;
 import online.yangcloud.common.enumration.DatabaseColumnTypeEnum;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -82,8 +81,8 @@ public interface AppConstants {
         // 登录状态续期
         Long ACCOUNT_EXPIRED_STATUS = -1L;
         Long ACCOUNT_NOT_EXIST_STATUS = -2L;
-        // 账户空间
-        String SPACE_UPDATE = "space_update:";
+        // 空间增量
+        String INCREMENT = "increment_space_size:";
     }
 
     /**

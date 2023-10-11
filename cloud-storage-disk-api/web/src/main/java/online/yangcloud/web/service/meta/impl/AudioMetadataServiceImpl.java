@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Service
 public class AudioMetadataServiceImpl implements AudioMetadataService {
-    
+
     @Resource
     private AudioMetadataMapper audioMetadataMapper;
 

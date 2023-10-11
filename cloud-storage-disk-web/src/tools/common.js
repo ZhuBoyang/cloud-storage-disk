@@ -3,7 +3,15 @@ import { Notification } from '@arco-design/web-vue'
 import md5 from 'js-md5'
 import type from './type.js'
 
-const supportsTypes = JSON.parse(localStorage.getItem('type_supports'))
+let supportsTypes = JSON.parse(localStorage.getItem('type_supports'))
+
+const acquireSupportTypes = () => {
+  if (supportsTypes === null) {
+    supportsTypes = JSON.parse(localStorage.getItem('type_supports'))
+    return supportsTypes
+  }
+  return supportsTypes
+}
 
 const identifyFileAvatar = (file) => {
   const { ext, type, extend } = file
@@ -14,11 +22,11 @@ const identifyFileAvatar = (file) => {
     return apiConfig().apiBaseUrl + extend.thumbnail
   }
   // 检测到是视频文件
-  if (supportsTypes.video.indexOf(ext) >= 0) {
+  if (acquireSupportTypes().video.indexOf(ext) >= 0) {
     return apiConfig().iconBaseUrl + 'file/mp4.png'
   }
   // 检测到是音频文件
-  if (supportsTypes.audio.indexOf(ext) >= 0) {
+  if (acquireSupportTypes().audio.indexOf(ext) >= 0) {
     return apiConfig().iconBaseUrl + 'file/mp3.png'
   }
   if (ext === 'doc' || ext === 'docx') {

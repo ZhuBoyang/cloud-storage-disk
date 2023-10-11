@@ -43,7 +43,6 @@ public class RedisTools {
      * @return 值
      */
     public String get(String redisKey) {
-        logger.info("acquire redis key[{}]", redisKey);
         return redisTemplate.opsForValue().get(redisKey);
     }
 
@@ -64,7 +63,6 @@ public class RedisTools {
      * @param expireTime 过期时间
      */
     public void expire(String redisKey, Duration expireTime) {
-        logger.info("start to setter expire time [{}] for redis key [{}]", expireTime, redisKey);
         redisTemplate.expire(redisKey, expireTime);
     }
 
@@ -76,7 +74,6 @@ public class RedisTools {
      * @param seconds  过期时间
      */
     public void expire(String redisKey, String value, Integer seconds) {
-        logger.info("start to setter expire time [{}] for redis key [{}]", seconds, redisKey);
         expire(redisKey, value, seconds, TimeUnit.SECONDS);
     }
 

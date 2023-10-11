@@ -36,5 +36,5 @@ public class DiskTools {
                 .setUsableSpace(usableSpace)
                 .setUseRate(Double.parseDouble(new DecimalFormat("#0.00").format(usableSpace / totalSpace * 100)));
     }
-    
+
 }

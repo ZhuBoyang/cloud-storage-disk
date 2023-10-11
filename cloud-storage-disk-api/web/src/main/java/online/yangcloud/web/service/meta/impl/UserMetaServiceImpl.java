@@ -45,7 +45,6 @@ public class UserMetaServiceImpl implements UserMetaService {
         // 增加空间使用量
         long usedSpaceSize = user.getUsedSpaceSize() + spaceSize;
         user.setUsedSpaceSize(usedSpaceSize);
-        updateUser(user);
 
         // 更新 redis 中的登录信息
         redisTools.expire(AppConstants.Account.LOGIN_TOKEN + SystemTools.getHeaders().getAuthorization(),
@@ -53,6 +52,11 @@ public class UserMetaServiceImpl implements UserMetaService {
                 AppConstants.Account.LOGIN_SESSION_EXPIRE_TIME,
                 TimeUnit.MINUTES
         );
+    }
+
+    @Override
+    public void updateSpaceSize(User user) {
+        updateUser(user);
     }
 
     @Override

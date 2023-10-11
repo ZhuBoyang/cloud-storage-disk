@@ -14,6 +14,10 @@
     <name>web</name>
     <description>web</description>
 
+    <properties>
+        <apache.poi.version>5.2.4</apache.poi.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>online.yangcloud</groupId>

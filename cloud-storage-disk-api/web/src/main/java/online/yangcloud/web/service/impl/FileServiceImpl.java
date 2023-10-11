@@ -173,7 +173,7 @@ public class FileServiceImpl implements FileService {
         ThreadUtil.execute(() -> thumbnailService.thumbnail(file));
 
         // 增加空间使用量
-        userMetaService.updateSpaceSize(user, file.getSize());
+        redisTools.set(AppConstants.Account.INCREMENT + user.getId() + StrUtil.COLON + file.getSize(), StrUtil.EMPTY);
 
         // 清空文件块的缓存记录
         redisTools.delete(AppConstants.Uploader.FILE_BLOCK_UPLOAD_PREFIX + identifier);
@@ -230,7 +230,7 @@ public class FileServiceImpl implements FileService {
 
         // 更新用户账户中的空间使用量
         if (total > 0) {
-            userMetaService.updateSpaceSize(user, total * -1);
+            redisTools.set(AppConstants.Account.INCREMENT + user.getId() + StrUtil.COLON + total * -1L, StrUtil.EMPTY);
         }
     }
 
@@ -272,7 +272,7 @@ public class FileServiceImpl implements FileService {
                 fileBlocks.forEach(value -> value.setId(IdTools.fastSimpleUuid()).setFileId(file.getId()));
                 copiedBlocks.addAll(fileBlocks);
                 // 增加用户账户空间已用量
-                userMetaService.updateSpaceSize(user, file.getSize());
+                redisTools.set(AppConstants.Account.INCREMENT + user.getId() + StrUtil.COLON + file.getSize(), StrUtil.EMPTY);
             }
             // 如果是文件夹的话，需要查询所有子级的文件及文件夹。并加入队列中，后续统一进行入库
             if (FileTypeEnum.DIR.is(o.getType())) {
@@ -349,7 +349,7 @@ public class FileServiceImpl implements FileService {
         // 循环恢复所有需要恢复的文件及文件夹
         List<FileMetadata> files = new ArrayList<>();
         // 还原的文件大小
-        long total = 0;
+        long rollbackTotal = 0;
         for (String id : idsList) {
             FileMetadata file = fileMetadataService.queryByIdInDeleted(id, user.getId());
             if (FileTypeEnum.DIR.is(file.getType())) {
@@ -362,7 +362,7 @@ public class FileServiceImpl implements FileService {
                     ancestors.add(0, root.getId());
                     files.add(o.setterAncestors(ancestors));
                     if (FileTypeEnum.FILE.is(o.getType())) {
-                        total += o.getSize();
+                        rollbackTotal += o.getSize();
                     }
                 }
                 file.setIsDelete(YesOrNoEnum.NO.code());
@@ -371,7 +371,7 @@ public class FileServiceImpl implements FileService {
             if (FileTypeEnum.FILE.is(file.getType())) {
                 file.setIsDelete(YesOrNoEnum.NO.code());
                 files.add(file.setterAncestors(Collections.singletonList(root.getId())));
-                total += file.getSize();
+                rollbackTotal += file.getSize();
             }
         }
 
@@ -379,7 +379,7 @@ public class FileServiceImpl implements FileService {
         fileMetadataService.batchUpdate(files);
 
         // 更新账户的空间容量大小
-        userMetaService.updateSpaceSize(user, total);
+        redisTools.set(AppConstants.Account.INCREMENT + user.getId() + StrUtil.COLON + rollbackTotal, StrUtil.EMPTY);
     }
 
     @Override

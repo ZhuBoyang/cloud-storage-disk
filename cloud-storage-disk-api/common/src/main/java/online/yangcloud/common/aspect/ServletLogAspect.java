@@ -167,7 +167,7 @@ public class ServletLogAspect {
             String userInfoJson = redisTools.get(AppConstants.Account.LOGIN_TOKEN + sessionId);
             if (StrUtil.isNotBlank(userInfoJson)) {
                 long expireTime = redisTools.getExpireTime(AppConstants.Account.LOGIN_TOKEN + sessionId);
-                // 当session还剩5分钟过期的时候，再次请求就会对session进行续期
+                // 当 session 还剩 5 分钟过期的时候，再次请求就会对 session 进行续期
                 if (expireTime < AppConstants.Account.LOGIN_SESSION_EXPIRE_TIME
                         && expireTime != AppConstants.Account.ACCOUNT_EXPIRED_STATUS
                         && expireTime != AppConstants.Account.ACCOUNT_NOT_EXIST_STATUS) {

@@ -1,6 +1,7 @@
 package online.yangcloud.web.controller;
 
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.annotation.RepeatRequest;
 import online.yangcloud.common.annotation.SessionValid;
@@ -22,11 +23,13 @@ import online.yangcloud.common.tools.RedisTools;
 import online.yangcloud.common.tools.SystemTools;
 import online.yangcloud.web.service.FileService;
 import online.yangcloud.web.service.UserService;
+import online.yangcloud.web.service.impl.UserServiceImpl;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -91,12 +94,11 @@ public class UserController {
     @SessionValid
     @PostMapping("/logout")
     public ResultData logout(User user) {
+        // 更新账户的空间增量
+        userService.updateIncrementSize(SystemTools.getHeaders().getAuthorization(), user);
+
         // 更新 redis 中的登录信息，设置 1s 后过期
-        redisTools.expire(AppConstants.Account.LOGIN_TOKEN + SystemTools.getHeaders().getAuthorization(),
-                JSONUtil.toJsonStr(user),
-                1,
-                TimeUnit.SECONDS
-        );
+        userService.updateRedisCache(user, 1);
         return ResultData.success(Boolean.TRUE);
     }
 
@@ -111,11 +113,7 @@ public class UserController {
     @PostMapping("/update")
     public ResultData updateInfo(@Valid @RequestBody UserUpdater updater, User user) {
         UserView view = userService.updateUserInfo(updater, user);
-        redisTools.expire(AppConstants.Account.LOGIN_TOKEN + SystemTools.getHeaders().getAuthorization(),
-                JSONUtil.toJsonStr(view),
-                AppConstants.Account.LOGIN_SESSION_EXPIRE_TIME,
-                TimeUnit.SECONDS
-        );
+        userService.updateRedisCache(view, AppConstants.Account.LOGIN_SESSION_EXPIRE_TIME);
         return ResultData.success(view);
     }
 
@@ -159,9 +157,22 @@ public class UserController {
     @SessionValid
     @GetMapping("/info")
     public ResultData enteredUserInfo(User user) throws IOException {
+        // 获取 redis 中的空间增量大小
+        List<String> keys = redisTools.keys(AppConstants.Account.INCREMENT + user.getId());
+        long increment = 0;
+        if (!keys.isEmpty()) {
+            for (String key : keys) {
+                increment += Long.parseLong(key.substring(key.lastIndexOf(StrUtil.COLON) + 1));
+            }
+        }
+
+        // 查询账户信息
         Long usableSpace = DiskTools.acquireDiskInfo().getUsableSpace();
         long projectSize = FileTools.calculateDirSpace(SystemTools.systemPath());
         user.setTotalSpaceSize(usableSpace + projectSize);
+        if (increment != 0) {
+            user.setUsedSpaceSize(user.getUsedSpaceSize() + increment);
+        }
         return ResultData.success(UserView.convert(user));
     }
 

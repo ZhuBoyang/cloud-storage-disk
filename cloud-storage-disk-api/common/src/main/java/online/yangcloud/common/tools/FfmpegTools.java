@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -21,7 +20,7 @@ import java.util.List;
  * @since 2023年07月29 12:06:34
  */
 public class FfmpegTools {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(FfmpegTools.class);
 
     /**
@@ -90,12 +89,12 @@ public class FfmpegTools {
 
         // 执行指令获取有用的视频信息
         List<String> contents = acquireMediaUsableInfo(path);
-        
+
         // 解析音频信息
         for (String content : contents) {
             // 这一行包含有标题、专辑或艺术家的信息
             if (content.contains("TITLE") || content.contains("ALBUM") || content.contains("ARTIST")
-            || content.contains("title") || content.contains("album") || content.contains("artist")) {
+                    || content.contains("title") || content.contains("album") || content.contains("artist")) {
                 List<String> arr = StrUtil.split(content, StrUtil.COLON);
                 // 标题/名称
                 if ("TITLE".equals(arr.get(0).trim()) || "title".equals(arr.get(0).trim())) {
@@ -132,7 +131,7 @@ public class FfmpegTools {
         }
         return audio;
     }
-    
+
     /**
      * 获取媒体文件有用的信息
      *
