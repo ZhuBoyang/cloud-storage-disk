@@ -1,28 +1,24 @@
----
-outline: deep
----
-
 # Docker 方式部署
 
-## 搭建基础环境
+## 一.创建自定义`Docker`网桥
 
-### 创建自定义桥接网络
-
-```
+```bash
 docker network create cloud-storage-disk
 ```
 
-### 创建 `Redis` 容器
+## 二.搭建基础环境
 
-#### 拉取 `Redis` 镜像
+### 1.创建 `Redis` 容器
 
-```
+#### 1.1.拉取 `Redis` 镜像
+
+```bash
 docker pull redis:7.0.0
 ```
 
-#### 创建容器
+#### 1.2.创建容器
 
-```
+```bash
 docker run -p 6379:6379 --name redis --network cloud-storage-disk --restart=always -d redis:7.0.0 --requirepass "123456"
 # -p 设置映射端口号；“:“ 左侧为宿主机端口号，”:“ 右侧为容器内端口号
 # --name 设置容器名称
@@ -31,17 +27,17 @@ docker run -p 6379:6379 --name redis --network cloud-storage-disk --restart=alwa
 # --requirepass 设置 redis 密码
 ```
 
-### 创建 `MySQL` 容器
+### 2.创建 `MySQL` 容器
 
-#### 拉取 `MySQL` 镜像
+#### 2.1.拉取 `MySQL` 镜像
 
-```
+```bash
 docker pull mysql:8.0.29
 ```
 
-#### 创建容器
+#### 2.2.创建容器
 
-```
+```bash
 docker run -d -p 3306:3306 --privileged=true --network cloud-storage-disk --restart=always -v /opt/docker/mysql:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name mysql mysql:8.0.29 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
 # -d 设置容器为后台运行
 # -p 设置映射端口号
@@ -51,18 +47,18 @@ docker run -d -p 3306:3306 --privileged=true --network cloud-storage-disk --rest
 # --name 设置容器名称
 ```
 
-### 创建配置文件
+### 3.创建配置文件
 
-#### 创建配置文件
+#### 3.1.创建配置文件
 
-```
+```bash
 /opt/webapps/cloud-storage-disk/properties/application.yml
 # 云存储后端服务会读取 application.yml 配置文件
 ```
 
-#### 编写配置文件
+#### 3.2.编写配置文件
 
-```
+```yml
 # application name
 spring:
   application:
@@ -83,8 +79,8 @@ spring:
       allowPublicKeyRetrieval=true&\
       serverTimezone"
     # username and password of database
-    username: root
-    password: 123456
+    username: root # {your_mysql_username}
+    password: 123456 # {your_mysql_password}
     # database connection pool config
     hikari:
       connection-timeout: 30000
@@ -109,7 +105,7 @@ spring:
   # redis config
   redis:
     host: redis
-    password: 123456
+    password: 123456 # {your_redis_password}
     port: 6379
     database: 1
     timeout: 5000
@@ -125,74 +121,30 @@ server:
   port: 8100
 ```
 
-### 拉取创建云存储后端容器
+### 4.拉取创建云存储后端容器
 
-#### 拉取后端镜像
+#### 4.1.拉取服务
 
-```
-docker pull yangcloud/cloud-storage-disk-api:${version}
-```
-
-#### 创建后端容器
-
-```
-docker run --name cloud-storage-disk-api --network cloud-storage-disk --restart=always -p 8100:8100 -v /opt/webapps/cloud-storage-disk/properties:/opt/webapps/cloud-storage-disk/properties -itd yangcloud/cloud-storage-disk-api:${version}
-# 后端服务 Jar 包启动的端口号为 8100，开放的端口也为 8100
+```bash
+docker pull yangcloud/cloud-storage-disk:${version}
 ```
 
-#### 开放的目录
+#### 4.2.创建服务容器
 
-```shell
-# 后端服务配置文件所在目录
+```bash
+docker run --name cloud-storage-disk --network cloud-storage-disk --restart=always -p 80:80 -v /opt/webapps/cloud-storage-disk/properties:/opt/webapps/cloud-storage-disk/properties -v /opt/webapps/cloud-storage-disk/storage:/opt/webapps/cloud-storage-disk/storage -itd yangcloud/cloud-storage-disk:${version}
+```
+
+#### 5.开放的目录
+
+```bash
+# 服务配置文件所在目录
 /opt/webapps/cloud-storage-disk/properties
-# 后端服务本地存储目录
-/opt/webapps/storage/cloud-storage-disk
+# 服务本地存储目录
+/opt/webapps/cloud-storage-disk/storage
 ```
 
-### 拉取创建云存储前端容器
-
-#### 拉取前端镜像
-
-```
-docker pull yangcloud/cloud-storage-disk-web:${version}
-```
-
-#### 创建前端容器
-
-```
-docker run --name cloud-storage-disk-web --network cloud-storage-disk --restart=always -p 80:80 -itd yangcloud/cloud-storage-disk-web:${version}
-# 前端容器可挂载容器内目录：/usr/local/nginx/conf/vhost
-# 此目录为容器内 nginx 配置文件所在目录
-# 此目录内文件名需以 .conf 为后缀，如 test.conf
-# 容器内默认配置文件 pan.conf 内容：
-server {
-    listen       80;
-    server_name  localhost;
-
-    location / {
-        root /usr/local/nginx/html;
-        index index.html;
-    }
-
-    location /pan {
-        proxy_set_header HOST $host;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header REMOTE-HOST $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_pass http://cloud-storage-disk-api:8100;
-    }
-}
-```
-
-#### 开放的目录
-
-```shell
-# nginx 配置文件所在目录
-/usr/local/nginx/conf/vhost
-```
-
-### 访问网站
+## 三.访问网站
 
 ```
 http://{ip}/
