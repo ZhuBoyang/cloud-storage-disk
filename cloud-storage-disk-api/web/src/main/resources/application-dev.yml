@@ -9,7 +9,7 @@ spring:
       serverTimezone"
     # username and password of database
     username: root
-    password: Jhxz951129Jhxz
+    password: 123456
   # redis config
   redis:
     host: 127.0.0.1
