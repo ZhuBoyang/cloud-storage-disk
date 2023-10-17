@@ -18,12 +18,20 @@
         <fluent.mybatis.version>1.9.8</fluent.mybatis.version>
         <hutool.version>5.8.11</hutool.version>
         <redission.version>3.17.5</redission.version>
+        <apache.poi.version>5.2.4</apache.poi.version>
     </properties>
 
     <modules>
         <module>common</module>
         <module>web</module>
     </modules>
+
+    <repositories>
+        <repository>
+            <id>com.e-iceblue</id>
+            <url>https://repo.e-iceblue.cn/repository/maven-public/</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -104,6 +112,24 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
+        </dependency>
+
+        <!-- office 转换器 -->
+        <dependency>
+            <groupId>org.jodconverter</groupId>
+            <artifactId>jodconverter-local</artifactId>
+            <version>4.4.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jodconverter</groupId>
+            <artifactId>jodconverter-spring-boot-starter</artifactId>
+            <version>4.4.6</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>2.0.26</version>
         </dependency>
 
         <!--        下列依赖用于获取系统资源（内存、硬盘等）使用情况-->

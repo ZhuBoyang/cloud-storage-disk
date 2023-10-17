@@ -2,27 +2,32 @@ package online.yangcloud.web.service.impl;
 
 import cn.hutool.core.img.ImgUtil;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import online.yangcloud.common.annotation.TimeConsuming;
 import online.yangcloud.common.common.AppConstants;
+import online.yangcloud.common.enumration.OfficeTypeEnum;
 import online.yangcloud.common.model.AudioMetadata;
 import online.yangcloud.common.model.FileMetadata;
 import online.yangcloud.common.model.VideoMetadata;
-import online.yangcloud.common.tools.FfmpegTools;
-import online.yangcloud.common.tools.FileTools;
-import online.yangcloud.common.tools.IdTools;
-import online.yangcloud.common.tools.SystemTools;
+import online.yangcloud.common.tools.*;
+import online.yangcloud.web.processor.OfficeProcessor;
 import online.yangcloud.web.service.ThumbnailService;
 import online.yangcloud.web.service.meta.AudioMetadataService;
 import online.yangcloud.web.service.meta.VideoMetadataService;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import org.jodconverter.core.document.DefaultDocumentFormatRegistry;
+import org.jodconverter.core.office.OfficeException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +39,11 @@ import java.util.stream.Collectors;
 @TimeConsuming
 public class ThumbnailServiceImpl implements ThumbnailService {
 
+    /**
+     * 待处理文件队列
+     */
+    public static final Queue<FileMetadata> FILE = new ArrayDeque<>();
+
     @Resource
     private VideoMetadataService videoMetadataService;
 
@@ -41,21 +51,33 @@ public class ThumbnailServiceImpl implements ThumbnailService {
     private AudioMetadataService audioMetadataService;
 
     @Resource
+    private OfficeProcessor officeProcessor;
+
+    @Resource
     private FileTools fileTools;
 
     @Override
     public void thumbnail(FileMetadata metadata) {
-        // 上传的文件是个视频
-        if (fileTools.isVideo(metadata.getExt())) {
-            videoInformation(metadata);
-            return;
+        while (true) {
+            FileMetadata metadata1 = FILE.poll();
+            if (ObjectUtil.isNull(metadata1)) {
+                ThreadUtil.safeSleep(1000);
+                continue;
+            }
+            // 上传的文件是个视频
+            if (fileTools.isVideo(metadata.getExt())) {
+                videoInformation(metadata);
+            }
+            // 上传的文件是个音频
+            if (fileTools.isAudio(metadata.getExt())) {
+                audioInformation(metadata);
+            }
+            // 上传的文件是个 office 文档
+            if (fileTools.isOffice(metadata.getExt())) {
+                officeInformation(metadata);
+            }
+            FileUtil.del(SystemTools.systemPath() + AppConstants.Uploader.FILE + metadata.getId() + metadata.getExt());
         }
-        // 上传的文件是个音频
-        if (fileTools.isAudio(metadata.getExt())) {
-            audioInformation(metadata);
-            return;
-        }
-        FileUtil.del(SystemTools.systemPath() + AppConstants.Uploader.FILE + metadata.getId() + metadata.getExt());
     }
 
     /**
@@ -85,9 +107,6 @@ public class ThumbnailServiceImpl implements ThumbnailService {
         // 补充视频详细信息
         video.setId(IdTools.fastSimpleUuid()).setThumbnail(thumbnail).setFileId(metadata.getId());
         videoMetadataService.addVideoRecord(video);
-
-        // 删除整文件
-        FileUtil.del(filePath);
     }
 
     /**
@@ -104,9 +123,40 @@ public class ThumbnailServiceImpl implements ThumbnailService {
 
         // 记录音频元数据
         audioMetadataService.addAudioRecord(audio);
+    }
 
-        // 删除整文件
-        FileUtil.del(filePath);
+    /**
+     * 获取 office 文档详细信息
+     *
+     * @param metadata 文件元数据
+     */
+    private void officeInformation(FileMetadata metadata) {
+        try {
+            // 将文档转为 pdf
+            String pdfSuffix = DefaultDocumentFormatRegistry.PDF.getExtension();
+            String source = SystemTools.systemPath() + AppConstants.Uploader.FILE + metadata.getId() + metadata.getExt();
+            String target = SystemTools.systemPath() + AppConstants.Uploader.TMP + metadata.getId() + StrUtil.DOT + pdfSuffix;
+            OfficeTypeEnum type = fileTools.isWord(metadata.getExt()) ?
+                    OfficeTypeEnum.WORD : fileTools.isPpt(metadata.getExt()) ?
+                    OfficeTypeEnum.PPT : OfficeTypeEnum.EXCEL;
+            officeProcessor.convertToPdf(source, target, type);
+
+            // 在缩略图目录中创建以文件 id 为名的目录，以存放 pdf 每页生成的图片
+            String thumbnailDir = AppConstants.Uploader.SNAPSHOT + metadata.getId();
+            if (!FileUtil.exist(SystemTools.systemPath() + thumbnailDir)) {
+                FileUtil.mkdir(SystemTools.systemPath() + thumbnailDir);
+            }
+
+            // 对 pdf 文件进行切分，并将每页转为图片
+            PDDocument document = PDDocument.load(FileUtil.file(target));
+            PDFRenderer renderer = new PDFRenderer(document);
+            for (int i = 0; i < document.getPages().getCount(); i++) {
+                BufferedImage image = renderer.renderImage(i);
+                ImageIO.write(image, "PNG", FileUtil.file(SystemTools.systemPath() + thumbnailDir + StrUtil.SLASH + i + ".png"));
+            }
+        } catch (OfficeException | IOException e) {
+            ExceptionTools.businessLogger(e.getMessage());
+        }
     }
 
     @Override

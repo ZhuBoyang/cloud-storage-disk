@@ -26,6 +26,82 @@ public class FileExtTypeProperty {
      */
     private String audio;
 
+    /**
+     * word 后缀
+     */
+    private String word;
+
+    /**
+     * ppt 后缀
+     */
+    private String ppt;
+
+    /**
+     * excel 后缀
+     */
+    private String excel;
+
+    /**
+     * 获取视频支持的后缀格式
+     *
+     * @return 格式列表
+     */
+    public List<String> acquireVideoSupports() {
+        return StrUtil.isBlank(video) ? Collections.emptyList() : addDotPrefix(video);
+    }
+
+    /**
+     * 获取音频支持的后缀格式
+     *
+     * @return 格式列表
+     */
+    public List<String> acquireAudioSupports() {
+        return StrUtil.isBlank(audio) ? Collections.emptyList() : addDotPrefix(audio);
+    }
+
+    /**
+     * 获取 word 支持的后缀格式
+     *
+     * @return 格式列表
+     */
+    public List<String> acquireWordSupports() {
+        return StrUtil.isBlank(word) ? Collections.emptyList() : addDotPrefix(word);
+    }
+
+    /**
+     * 获取 ppt 支持的后缀格式
+     *
+     * @return 格式列表
+     */
+    public List<String> acquirePptSupports() {
+        return StrUtil.isBlank(ppt) ? Collections.emptyList() : addDotPrefix(ppt);
+    }
+
+    /**
+     * 获取 excel 支持的后缀格式
+     *
+     * @return 格式列表
+     */
+    public List<String> acquireExcelSupports() {
+        return StrUtil.isBlank(excel) ? Collections.emptyList() : addDotPrefix(excel);
+    }
+
+    /**
+     * 获取 office 支持的后缀格式
+     *
+     * @return 格式列表
+     */
+    public List<String> acquireOfficeSupports() {
+        List<String> supports = acquireWordSupports();
+        supports.addAll(acquirePptSupports());
+        supports.addAll(acquireExcelSupports());
+        return supports;
+    }
+
+    private List<String> addDotPrefix(String ext) {
+        return StrUtil.split(ext, StrUtil.COMMA).stream().map(o -> StrUtil.DOT + o).collect(Collectors.toList());
+    }
+
     public String getVideo() {
         return video;
     }
@@ -42,37 +118,38 @@ public class FileExtTypeProperty {
         this.audio = audio;
     }
 
-    /**
-     * 获取视频支持的后缀格式
-     *
-     * @return 格式列表
-     */
-    public List<String> acquireVideoSupports() {
-        if (StrUtil.isBlank(video)) {
-            return Collections.emptyList();
-        }
-        List<String> ext = StrUtil.split(video, StrUtil.COMMA);
-        return ext.stream().map(o -> StrUtil.DOT + o).collect(Collectors.toList());
+    public String getWord() {
+        return word;
     }
 
-    /**
-     * 获取音频支持的后缀格式
-     *
-     * @return 格式列表
-     */
-    public List<String> acquireAudioSupports() {
-        if (StrUtil.isBlank(audio)) {
-            return Collections.emptyList();
-        }
-        List<String> ext = StrUtil.split(audio, StrUtil.COMMA);
-        return ext.stream().map(o -> StrUtil.DOT + o).collect(Collectors.toList());
+    public void setWord(String word) {
+        this.word = word;
+    }
+
+    public String getPpt() {
+        return ppt;
+    }
+
+    public void setPpt(String ppt) {
+        this.ppt = ppt;
+    }
+
+    public String getExcel() {
+        return excel;
+    }
+
+    public void setExcel(String excel) {
+        this.excel = excel;
     }
 
     @Override
     public String toString() {
         return "FileExtTypeProperty["
                 + " video=" + video + ","
-                + " audio=" + audio
+                + " audio=" + audio + ","
+                + " word=" + word + ","
+                + " ppt=" + ppt + ","
+                + " excel=" + excel
                 + " ]";
     }
 }

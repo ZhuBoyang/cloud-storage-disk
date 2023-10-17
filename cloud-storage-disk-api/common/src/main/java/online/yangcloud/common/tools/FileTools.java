@@ -151,6 +151,46 @@ public class FileTools {
     }
 
     /**
+     * 校验文件是否是 word
+     *
+     * @param ext 文件后缀名
+     * @return 校验结果
+     */
+    public boolean isWord(String ext) {
+        return acquireFileExtProperty().acquireWordSupports().contains(ext);
+    }
+
+    /**
+     * 校验文件是否是 ppt
+     *
+     * @param ext 文件后缀名
+     * @return 校验结果
+     */
+    public boolean isPpt(String ext) {
+        return acquireFileExtProperty().acquirePptSupports().contains(ext);
+    }
+
+    /**
+     * 校验文件是否是 excel
+     *
+     * @param ext 文件后缀名
+     * @return 校验结果
+     */
+    public boolean isExcel(String ext) {
+        return acquireFileExtProperty().acquireExcelSupports().contains(ext);
+    }
+
+    /**
+     * 校验文件是否是 office 文档
+     *
+     * @param ext 文件后缀名
+     * @return 校验结果
+     */
+    public boolean isOffice(String ext) {
+        return acquireFileExtProperty().acquireOfficeSupports().contains(ext);
+    }
+
+    /**
      * 校验文件是否是图片
      *
      * @param ext 文件后缀名

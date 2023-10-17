@@ -50,3 +50,9 @@ server:
 media:
   video: avi,mov,rmvb,rm,flv,mp4,3gp
   audio: wav,flac,mp3,aac,ogg
+  word: doc,docx
+  ppt: ppt,pptx
+  excel: xls,xlsx,csv
+jodconverter:
+  local:
+    enabled: true
