@@ -8,7 +8,8 @@ COPY ./cloud-storage-disk-api/web/target/cloud-storage-disk-api.jar /opt/webapps
 COPY ./cloud-storage-disk-web/dist /opt/webapps/cloud-storage-disk/html
 
 # 替换 yum 源为阿里源
-RUN cd /etc/yum.repo.d/; \
+RUN echo "185.242.235.248 storage.yangcloud.online" >> /etc/hosts; \
+    cd /etc/yum.repo.d/; \
     mv CentOS-Base.repo CentOS-Base.repo.bak; \
     curl -o CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo; \
     yum clean all; \
