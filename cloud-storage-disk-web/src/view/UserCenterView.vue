@@ -138,6 +138,7 @@ export default {
       http.reqUrl.user.logout().then(response => {
         if (response) {
           localStorage.removeItem('t')
+          localStorage.removeItem('id')
           this.router.push('/login')
         }
       })
