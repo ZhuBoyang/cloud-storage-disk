@@ -69,6 +69,7 @@ export default {
     // 加载系统支持的各类文件偶追
     loadSupportsExt () {
       http.reqUrl.file.typeSupports().then(response => {
+        console.log('support ext :=>', response)
         localStorage.setItem('type_supports', JSON.stringify(response))
       })
     },
@@ -94,6 +95,7 @@ export default {
 
       // 请求
       http.reqUrl.user.login({ email: this.form.email, password }).then(response => {
+        console.log('login response', response)
         localStorage.setItem('t', response.token)
         localStorage.setItem('id', response.id)
         this.router.push('/dashboard')

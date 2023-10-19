@@ -31,7 +31,6 @@ import online.yangcloud.web.service.ThumbnailService;
 import online.yangcloud.web.service.meta.BlockMetadataService;
 import online.yangcloud.web.service.meta.FileBlockService;
 import online.yangcloud.web.service.meta.FileMetadataService;
-import online.yangcloud.web.service.meta.UserMetaService;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
@@ -57,9 +56,6 @@ import java.util.stream.Collectors;
 public class FileServiceImpl implements FileService {
 
     private static final Logger logger = LoggerFactory.getLogger(FileServiceImpl.class);
-
-    @Resource
-    private UserMetaService userMetaService;
 
     @Resource
     private FileMetadataService fileMetadataService;
@@ -170,7 +166,7 @@ public class FileServiceImpl implements FileService {
         fileMetadataService.insertWidthPrimaryKey(file);
 
         // 记录各类型文件的详细元数据
-        ThreadUtil.execute(() -> thumbnailService.thumbnail(file));
+        redisTools.convertAndSend(AppConstants.Topic.PREVIEW, JSONUtil.toJsonStr(file));
 
         // 增加空间使用量
         redisTools.set(AppConstants.Account.INCREMENT + user.getId() + StrUtil.COLON + file.getSize(), StrUtil.EMPTY);

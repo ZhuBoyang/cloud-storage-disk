@@ -56,7 +56,7 @@ public class FileMetadata extends BaseParameter {
      * 文件 hash
      */
     @DatabaseColumn(name = "hash", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件 hash")
-    @DatabaseIndex(unique = true)
+    @DatabaseIndex
     private String hash;
 
     /**

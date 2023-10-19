@@ -1,5 +1,4 @@
 const typeSupports = localStorage.getItem('type_supports')
-const supportsTypes = typeSupports === null || typeSupports === undefined ? {} : JSON.parse(typeSupports)
 
 const type = {
   isString (o) {
@@ -213,6 +212,7 @@ const type = {
    * 是否是视频
    */
   isVideo (ext) {
+    const supportsTypes = typeSupports === null || typeSupports === undefined ? {} : JSON.parse(typeSupports)
     return supportsTypes.video.indexOf(ext) >= 0
   },
 
@@ -220,6 +220,7 @@ const type = {
    * 是否是音频
    */
   isAudio (ext) {
+    const supportsTypes = typeSupports === null || typeSupports === undefined ? {} : JSON.parse(typeSupports)
     return supportsTypes.audio.indexOf(ext) >= 0
   },
 

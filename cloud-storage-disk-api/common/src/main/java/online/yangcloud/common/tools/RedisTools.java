@@ -6,6 +6,7 @@ import cn.hutool.core.util.ObjectUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +26,9 @@ public class RedisTools {
 
     @Resource
     private RedisTemplate<String, String> redisTemplate;
+    
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 设置redis值
@@ -199,6 +203,16 @@ public class RedisTools {
             return ListUtil.empty();
         }
         return new ArrayList<>(keys);
+    }
+
+    /**
+     * 发布消息
+     *
+     * @param topic 发布通道
+     * @param value 消息内容
+     */
+    public void convertAndSend(String topic, String value) {
+        stringRedisTemplate.convertAndSend(topic, value);
     }
 
 }
