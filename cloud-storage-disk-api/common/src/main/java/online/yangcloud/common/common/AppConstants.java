@@ -137,4 +137,12 @@ public interface AppConstants {
         float DEFAULT_WIDTH = 500f;
     }
 
+    /**
+     * redis 会话
+     */
+    interface Topic {
+        // 预览
+        String PREVIEW = "preview_topic";
+    }
+
 }

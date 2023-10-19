@@ -23,7 +23,6 @@ import online.yangcloud.common.tools.RedisTools;
 import online.yangcloud.common.tools.SystemTools;
 import online.yangcloud.web.service.FileService;
 import online.yangcloud.web.service.UserService;
-import online.yangcloud.web.service.impl.UserServiceImpl;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
