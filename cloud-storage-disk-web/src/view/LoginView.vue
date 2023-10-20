@@ -103,7 +103,6 @@ export default {
 
       // 请求
       http.reqUrl.user.login({ email: this.form.email, password }).then(response => {
-        console.log('login response', response)
         localStorage.setItem('t', response.token)
         localStorage.setItem('id', response.id)
         this.router.push('/dashboard')
