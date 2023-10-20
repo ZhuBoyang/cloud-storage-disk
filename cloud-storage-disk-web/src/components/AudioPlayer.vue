@@ -321,7 +321,7 @@ export default {
 <style scoped lang="scss">
 .audio-player {
   position: fixed;
-  top: 750px;
+  bottom: 100px;
   left: 0;
   width: 258px;
   .player-outbox {
@@ -331,7 +331,7 @@ export default {
     z-index: 3;
     .player-inbox {
       position: absolute;
-      top: -100%;
+      //top: -100%;
       left: 0;
       width: 100%;
       background: linear-gradient(to right, #b4bbf0, #dcdffa);

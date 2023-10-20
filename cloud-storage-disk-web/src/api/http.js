@@ -21,6 +21,8 @@ service.interceptors.response.use(config => {
   } else if (code >= 10000) {
     if (code === 11000) {
       common.notify.error(message)
+      localStorage.removeItem('t')
+      localStorage.removeItem('id')
       const { protocol, host } = window.location
       window.location.href = `${protocol}//${host}/login`
     } else {

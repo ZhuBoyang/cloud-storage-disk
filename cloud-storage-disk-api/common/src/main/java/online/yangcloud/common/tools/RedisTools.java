@@ -26,7 +26,7 @@ public class RedisTools {
 
     @Resource
     private RedisTemplate<String, String> redisTemplate;
-    
+
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
