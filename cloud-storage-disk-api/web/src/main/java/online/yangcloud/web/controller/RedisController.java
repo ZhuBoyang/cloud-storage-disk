@@ -15,7 +15,7 @@ import javax.annotation.Resource;
 @RestController
 @RequestMapping("/redis")
 public class RedisController {
-    
+
     @Resource
     private RedisTemplate<String, String> redisTemplate;
 
@@ -23,5 +23,5 @@ public class RedisController {
     public void send() {
         redisTemplate.convertAndSend("channel", VideoMetadata.initial());
     }
-    
+
 }

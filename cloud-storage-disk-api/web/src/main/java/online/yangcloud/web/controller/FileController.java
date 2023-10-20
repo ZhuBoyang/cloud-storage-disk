@@ -54,7 +54,8 @@ public class FileController {
     public ResultData acquireSupportsTypes() {
         return ResultData.success(JSONUtil.createObj()
                 .set("video", fileTools.acquireFileExtProperty().acquireVideoSupports())
-                .set("audio", fileTools.acquireFileExtProperty().acquireAudioSupports()));
+                .set("audio", fileTools.acquireFileExtProperty().acquireAudioSupports())
+                .set("office", fileTools.acquireFileExtProperty().acquireOfficeSupports()));
     }
 
     /**

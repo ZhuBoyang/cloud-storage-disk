@@ -8,6 +8,7 @@ public enum OfficeTypeEnum {
 
     WORD,
     PPT,
-    EXCEL
+    EXCEL,
+    PDF
 
 }

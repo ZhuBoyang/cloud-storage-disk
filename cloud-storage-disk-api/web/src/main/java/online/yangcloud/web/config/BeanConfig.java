@@ -2,7 +2,6 @@ package online.yangcloud.web.config;
 
 import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.web.listener.PreviewProcessorListener;
-import online.yangcloud.web.listener.FileAnalysisListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;

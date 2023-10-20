@@ -18,7 +18,7 @@ import org.springframework.data.redis.connection.MessageListener;
  */
 @Configuration
 public class PreviewProcessorListener implements MessageListener {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(PreviewProcessorListener.class);
 
     @Override

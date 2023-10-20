@@ -2,6 +2,7 @@ package online.yangcloud.common.tools;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjectUtil;
+import online.yangcloud.common.enumration.OfficeTypeEnum;
 import online.yangcloud.common.properties.FileExtTypeProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -181,6 +182,16 @@ public class FileTools {
     }
 
     /**
+     * 校验文件是否是 pdf
+     *
+     * @param ext 文件后缀名
+     * @return 校验结果
+     */
+    public boolean isPdf(String ext) {
+        return acquireFileExtProperty().acquirePdfSupports().contains(ext);
+    }
+
+    /**
      * 校验文件是否是 office 文档
      *
      * @param ext 文件后缀名
@@ -188,6 +199,28 @@ public class FileTools {
      */
     public boolean isOffice(String ext) {
         return acquireFileExtProperty().acquireOfficeSupports().contains(ext);
+    }
+
+    /**
+     * 获取文件对应的文档类型
+     *
+     * @param ext 文件后缀格式
+     * @return 文档类型
+     */
+    public OfficeTypeEnum acquireOfficeType(String ext) {
+        if (isWord(ext)) {
+            return OfficeTypeEnum.WORD;
+        }
+        if (isPpt(ext)) {
+            return OfficeTypeEnum.PPT;
+        }
+        if (isExcel(ext)) {
+            return OfficeTypeEnum.EXCEL;
+        }
+        if (isPdf(ext)) {
+            return OfficeTypeEnum.PDF;
+        }
+        return null;
     }
 
     /**

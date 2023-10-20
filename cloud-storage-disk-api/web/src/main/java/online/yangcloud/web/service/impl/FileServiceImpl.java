@@ -5,7 +5,6 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
@@ -28,9 +27,7 @@ import online.yangcloud.common.model.view.file.FileMetadataView;
 import online.yangcloud.common.tools.*;
 import online.yangcloud.web.service.FileService;
 import online.yangcloud.web.service.ThumbnailService;
-import online.yangcloud.web.service.meta.BlockMetadataService;
-import online.yangcloud.web.service.meta.FileBlockService;
-import online.yangcloud.web.service.meta.FileMetadataService;
+import online.yangcloud.web.service.meta.MetaService;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
@@ -58,13 +55,7 @@ public class FileServiceImpl implements FileService {
     private static final Logger logger = LoggerFactory.getLogger(FileServiceImpl.class);
 
     @Resource
-    private FileMetadataService fileMetadataService;
-
-    @Resource
-    private FileBlockService fileBlockService;
-
-    @Resource
-    private BlockMetadataService blockMetadataService;
+    private MetaService metaService;
 
     @Resource
     private ThumbnailService thumbnailService;
@@ -81,7 +72,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public Integer checkBlockExist(FileUploader uploader) {
         // 检测文件块是否已在库中
-        if (ObjectUtil.isNull(blockMetadataService.queryByHash(uploader.getHash()))) {
+        if (ObjectUtil.isNull(metaService.acquireBlock().queryByHash(uploader.getHash()))) {
             return YesOrNoEnum.NO.code();
         }
 
@@ -98,7 +89,7 @@ public class FileServiceImpl implements FileService {
         RLock blockUploadLocker = redissonClient.getLock("upload_file_block_lock:" + uploader.getIdentifier());
         try {
             blockUploadLocker.lock();
-            BlockMetadata block = blockMetadataService.queryByHash(uploader.getHash());
+            BlockMetadata block = metaService.acquireBlock().queryByHash(uploader.getHash());
 
             // 如果检测到文件块还不存在，就说明还没有上传过，那么先进行落地
             if (ObjectUtil.isNull(block)) {
@@ -109,7 +100,7 @@ public class FileServiceImpl implements FileService {
                 uploader.getFile().transferTo(new File(uploadPath + uploader.getHash()));
             }
             block = BlockMetadata.initial(uploader.getHash(), uploader.getBlockSize());
-            blockMetadataService.insertBlock(block);
+            metaService.acquireBlock().insertBlock(block);
 
             // 将文件块数据加入到 redis 集合中，便于入库文件元数据，使用 redisson 分布式锁解决并发
             uploader.setFile(null);
@@ -138,7 +129,7 @@ public class FileServiceImpl implements FileService {
         });
 
         // 查询并将文件块的元数据转为 map，方便后续生成文件块的存储路径，用以合并文件
-        List<BlockMetadata> blocks = blockMetadataService.queryListByHashList(blockHashList);
+        List<BlockMetadata> blocks = metaService.acquireBlock().queryListByHashList(blockHashList);
         Map<String, BlockMetadata> blocksHashMap = blocks.stream().collect(Collectors.toMap(BlockMetadata::getHash, block -> block));
 
         // 生成文件 id，用以存储文件与文件块之间的关联关系
@@ -147,7 +138,7 @@ public class FileServiceImpl implements FileService {
         List<FileBlock> fileBlocks = blockUploaderList.stream()
                 .map(o -> FileBlock.initial(fileId, o, blocksHashMap.get(o.getHash())))
                 .collect(Collectors.toList());
-        fileBlockService.batchInsert(fileBlocks);
+        metaService.acquireFileBlock().batchInsert(fileBlocks);
 
         // 将文件块合并成文件，用以生成文件 hash
         Map<String, String> blocksPathMap =
@@ -161,9 +152,9 @@ public class FileServiceImpl implements FileService {
 
         // 封装文件元数据并入库
         String name = calculateName(blockUploaderList.get(0).getId(), blockUploaderList.get(0).getFileName(), FileTypeEnum.FILE.code());
-        FileMetadata parent = fileMetadataService.queryById(blockUploaderList.get(0).getId(), user.getId());
+        FileMetadata parent = metaService.acquireFile().queryById(blockUploaderList.get(0).getId(), user.getId());
         FileMetadata file = FileMetadata.initial(fileId, name, fileHash, parent, blockUploaderList.get(0), user);
-        fileMetadataService.insertWidthPrimaryKey(file);
+        metaService.acquireFile().insertWidthPrimaryKey(file);
 
         // 记录各类型文件的详细元数据
         redisTools.convertAndSend(AppConstants.Topic.PREVIEW, JSONUtil.toJsonStr(file));
@@ -179,34 +170,34 @@ public class FileServiceImpl implements FileService {
     @Override
     public void initialUserRoot(String userId) {
         FileMetadata file = FileMetadata.initial(userId);
-        fileMetadataService.insertWidthPrimaryKey(file);
+        metaService.acquireFile().insertWidthPrimaryKey(file);
     }
 
     @Override
     public FileMetadataView mkdir(String pid, String name, String userId) {
         // 1. 查询当前目录下与待创建文件夹名相关的文件列表
         // 2. 计算文件夹后缀数字
-        List<FileMetadata> files = fileMetadataService.queryLikePrefix(pid, name, FileTypeEnum.DIR);
+        List<FileMetadata> files = metaService.acquireFile().queryLikePrefix(pid, name, FileTypeEnum.DIR);
         int fileNumber = FileMetadata.calculateFileSuffixNumber(files, name);
 
         // 查询父级文件元数据，用以拼接祖级文件 id
-        FileMetadata parent = fileMetadataService.queryById(pid, userId);
+        FileMetadata parent = metaService.acquireFile().queryById(pid, userId);
 
         // 拼接文件夹名，并入库
         name = fileNumber == 0 ? name : name + AppConstants.Special.LEFT_BRACKET + fileNumber + AppConstants.Special.RIGHT_BRACKET;
         FileMetadata file = FileMetadata.initialDir(pid, name, parent.queryAncestors(), userId);
-        fileMetadataService.insertWidthPrimaryKey(file);
+        metaService.acquireFile().insertWidthPrimaryKey(file);
         return FileMetadataView.convert(file);
     }
 
     @Override
     public void batchDeleteFile(List<String> ids, User user) {
         // 检测存在的文件。因为有可能有的文件已经不存在了
-        List<FileMetadata> files = fileMetadataService.queryListByIds(ids, user.getId());
+        List<FileMetadata> files = metaService.acquireFile().queryListByIds(ids, user.getId());
         ids = files.stream().map(FileMetadata::getId).collect(Collectors.toList());
 
         // 删除文件
-        fileMetadataService.batchRemove(ids, user.getId());
+        metaService.acquireFile().batchRemove(ids, user.getId());
 
         // 查询子级的所有文件与文件夹，并计算占用空间总量
         long total = 0;
@@ -215,7 +206,7 @@ public class FileServiceImpl implements FileService {
                 total += o.getSize();
             }
             if (FileTypeEnum.DIR.is(o.getType())) {
-                List<FileMetadata> childList = fileMetadataService.queryChildListByPid(o.getId(), user.getId(), Boolean.FALSE);
+                List<FileMetadata> childList = metaService.acquireFile().queryChildListByPid(o.getId(), user.getId(), Boolean.FALSE);
                 for (FileMetadata child : childList) {
                     if (FileTypeEnum.FILE.is(child.getType())) {
                         total += child.getSize();
@@ -264,7 +255,7 @@ public class FileServiceImpl implements FileService {
             total += file.getSize();
             // 如果是文件的话，那么查询所有文件块的关联数据
             if (FileTypeEnum.FILE.is(o.getType())) {
-                List<FileBlock> fileBlocks = fileBlockService.queryBlocks(o.getId());
+                List<FileBlock> fileBlocks = metaService.acquireFileBlock().queryBlocks(o.getId());
                 fileBlocks.forEach(value -> value.setId(IdTools.fastSimpleUuid()).setFileId(file.getId()));
                 copiedBlocks.addAll(fileBlocks);
                 // 增加用户账户空间已用量
@@ -274,7 +265,7 @@ public class FileServiceImpl implements FileService {
             if (FileTypeEnum.DIR.is(o.getType())) {
                 // 将生成的文件元数据记录到 map 中
                 historyThisMap.put(o.getId(), file);
-                files.addAll(fileMetadataService.queryListByPid(o.getId(), user.getId()));
+                files.addAll(metaService.acquireFile().queryListByPid(o.getId(), user.getId()));
             }
         }
 
@@ -283,8 +274,8 @@ public class FileServiceImpl implements FileService {
             ExceptionTools.businessLogger("您的空间容量剩余不足，操作失败");
         }
 
-        fileMetadataService.batchInsert(copiedFiles);
-        fileBlockService.batchInsert(copiedBlocks);
+        metaService.acquireFile().batchInsert(copiedFiles);
+        metaService.acquireFileBlock().batchInsert(copiedBlocks);
     }
 
     @Override
@@ -330,27 +321,27 @@ public class FileServiceImpl implements FileService {
             historyThisMap.put(o.getId(), o);
             // 如果是文件夹的话，需要查询子级文件及文件夹，并放入队列，进行后续的移动操作
             if (FileTypeEnum.DIR.is(o.getType())) {
-                files.addAll(fileMetadataService.queryListByPid(o.getId(), userId));
+                files.addAll(metaService.acquireFile().queryListByPid(o.getId(), userId));
             }
         }
 
-        fileMetadataService.batchUpdate(movedFiles);
+        metaService.acquireFile().batchUpdate(movedFiles);
     }
 
     @Override
     public void rollbackTrash(List<String> idsList, User user) {
         // 查询账户根目录的文件 id
-        FileMetadata root = fileMetadataService.queryByPid(StrUtil.EMPTY, user.getId());
+        FileMetadata root = metaService.acquireFile().queryByPid(StrUtil.EMPTY, user.getId());
 
         // 循环恢复所有需要恢复的文件及文件夹
         List<FileMetadata> files = new ArrayList<>();
         // 还原的文件大小
         long rollbackTotal = 0;
         for (String id : idsList) {
-            FileMetadata file = fileMetadataService.queryByIdInDeleted(id, user.getId());
+            FileMetadata file = metaService.acquireFile().queryByIdInDeleted(id, user.getId());
             if (FileTypeEnum.DIR.is(file.getType())) {
                 // 如果是文件夹，则查询文件夹下所有未删除的文件及文件夹，以修改祖级文件 id
-                List<FileMetadata> childFiles = fileMetadataService.queryChildListByPid(file.getId(), user.getId(), Boolean.FALSE);
+                List<FileMetadata> childFiles = metaService.acquireFile().queryChildListByPid(file.getId(), user.getId(), Boolean.FALSE);
                 for (FileMetadata o : childFiles) {
                     List<String> ancestors = o.queryAncestors();
                     int index = ancestors.indexOf(file.getId());
@@ -372,7 +363,7 @@ public class FileServiceImpl implements FileService {
         }
 
         // 批量修改文件元数据
-        fileMetadataService.batchUpdate(files);
+        metaService.acquireFile().batchUpdate(files);
 
         // 更新账户的空间容量大小
         redisTools.set(AppConstants.Account.INCREMENT + user.getId() + StrUtil.COLON + rollbackTotal, StrUtil.EMPTY);
@@ -381,7 +372,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public void rename(String id, String name) {
         // 检测文件是否存在
-        FileMetadata file = fileMetadataService.queryById(id);
+        FileMetadata file = metaService.acquireFile().queryById(id);
         if (ObjectUtil.isNull(file)) {
             ExceptionTools.noDataLogger();
         }
@@ -392,7 +383,7 @@ public class FileServiceImpl implements FileService {
         }
 
         // 修改文件名
-        fileMetadataService.updateById(new FileMetadata().setId(id).setName(name));
+        metaService.acquireFile().updateById(new FileMetadata().setId(id).setName(name));
     }
 
     /**
@@ -421,7 +412,7 @@ public class FileServiceImpl implements FileService {
 
         // 将目标目录与待操作文件 id 一同进行查询，减少查库次数
         sources.add(target);
-        List<FileMetadata> files = fileMetadataService.queryListByIds(sources, userId);
+        List<FileMetadata> files = metaService.acquireFile().queryListByIds(sources, userId);
 
         // 获取目标目录元数据
         List<FileMetadata> findTargets = files.stream().filter(o -> o.getId().equals(target)).collect(Collectors.toList());
@@ -459,30 +450,30 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileMetadataView queryById(String id, String userId) {
         return CharSequenceUtil.isBlank(id) ?
-                FileMetadataView.convert(fileMetadataService.queryByPid(CharSequenceUtil.EMPTY, userId)) :
-                FileMetadataView.convert(fileMetadataService.queryById(id, userId));
+                FileMetadataView.convert(metaService.acquireFile().queryByPid(CharSequenceUtil.EMPTY, userId)) :
+                FileMetadataView.convert(metaService.acquireFile().queryById(id, userId));
     }
 
     @Override
     public List<BreadsView> queryBreads(String id, String userId) {
         if (StrUtil.UNDERLINE.equals(id)) {
-            FileMetadata file = fileMetadataService.queryByPid(StrUtil.EMPTY, userId);
+            FileMetadata file = metaService.acquireFile().queryByPid(StrUtil.EMPTY, userId);
             return Collections.singletonList(BreadsView.convert(file));
         }
-        FileMetadata file = fileMetadataService.queryById(id, userId);
+        FileMetadata file = metaService.acquireFile().queryById(id, userId);
         List<String> ancestors = file.queryAncestors();
         if (ancestors.isEmpty()) {
             return BreadsView.convert(Collections.singletonList(file));
         }
-        List<FileMetadata> files = fileMetadataService.queryListByIds(ancestors, userId);
+        List<FileMetadata> files = metaService.acquireFile().queryListByIds(ancestors, userId);
         files.add(file);
         return BreadsView.convert(files);
     }
 
     @Override
     public PagerView<FileMetadataView> queryDeletedFiles(TrashQuery query, String userId) {
-        List<FileMetadata> files = fileMetadataService.queryDeletedFiles(query.getPageIndex(), query.getPageSize(), userId);
-        Integer count = fileMetadataService.queryDeletedCount(userId);
+        List<FileMetadata> files = metaService.acquireFile().queryDeletedFiles(query.getPageIndex(), query.getPageSize(), userId);
+        Integer count = metaService.acquireFile().queryDeletedCount(userId);
         List<FileMetadataView> views = files.stream().map(FileMetadataView::convert).collect(Collectors.toList());
         return PagerView.initial(count, views);
     }
@@ -490,7 +481,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public PagerView<FileMetadataView> queryFiles(FileSearcher searcher, String userId) {
         // 查询分页数据
-        PagerView<FileMetadata> filePager = fileMetadataService.queryFilesInPager(searcher.getPid(), searcher.getName(), userId,
+        PagerView<FileMetadata> filePager = metaService.acquireFile().queryFilesInPager(searcher.getPid(), searcher.getName(), userId,
                 YesOrNoEnum.YES.is(searcher.getIsOnlyDir()), searcher.getPageIndex(), searcher.getPageSize());
         List<FileMetadata> files = filePager.getData();
 
@@ -502,18 +493,34 @@ public class FileServiceImpl implements FileService {
         if (!videos.isEmpty()) {
             thumbnailReflectionMap.putAll(thumbnailService.queryMetadata(videos));
         }
+        
+        // 检测当前页面是否有 office 文档
+        List<FileMetadata> offices = files.stream().filter(o -> fileTools.isOffice(o.getExt())).collect(Collectors.toList());
+        if (!offices.isEmpty()) {
+            thumbnailReflectionMap.putAll(thumbnailService.queryMetadata(offices));
+        }
 
         // 封装并返回展示数据列表
         List<FileMetadataView> views = new ArrayList<>(files.size());
         for (FileMetadata metadata : files) {
             FileMetadataView view = FileMetadataView.convert(metadata);
-            if (fileTools.isVideo(metadata.getExt())) {
+            if (fileTools.isVideo(metadata.getExt()) || fileTools.isOffice(metadata.getExt())) {
                 Object o = thumbnailReflectionMap.get(metadata.getId());
                 if (ObjectUtil.isNotNull(o)) {
-                    VideoMetadata video = JSONUtil.toBean(JSONUtil.toJsonStr(o), VideoMetadata.class);
-                    view.setExtend(JSONUtil.createObj()
-                            .set("thumbnail", video.getThumbnail())
-                            .set("duration", video.getDuration()));
+                    if (fileTools.isVideo(metadata.getExt())) {
+                        VideoMetadata video = JSONUtil.toBean(JSONUtil.toJsonStr(o), VideoMetadata.class);
+                        view.setExtend(JSONUtil.createObj()
+                                .set("thumbnail", video.getThumbnail())
+                                .set("duration", video.getDuration()));
+                    }
+                    if (fileTools.isOffice(metadata.getExt())) {
+                        OfficeMetadata office = JSONUtil.toBean(JSONUtil.toJsonStr(o), OfficeMetadata.class);
+                        view.setExtend(JSONUtil.createObj()
+                                .set("thumbnail", office.getThumbnail())
+                                .set("width", office.getWidth())
+                                .set("height", office.getHeight())
+                                .set("pageTotal", office.getPageTotal()));
+                    }
                 }
             }
             views.add(view);
@@ -525,16 +532,16 @@ public class FileServiceImpl implements FileService {
     public List<FileMetadataView> queryDirs(DirLooker looker, String userId) {
         String pid = looker.getPid();
         if (StrUtil.UNDERLINE.equals(looker.getPid())) {
-            pid = fileMetadataService.queryByPid(StrUtil.EMPTY, userId).getId();
+            pid = metaService.acquireFile().queryByPid(StrUtil.EMPTY, userId).getId();
         }
-        Long createTime = StrUtil.isBlank(looker.getId()) ? 0L : fileMetadataService.queryById(looker.getId()).getCreateTime();
-        List<FileMetadata> dirs = fileMetadataService.queryListAfter(pid, createTime, looker.getSize(), userId, FileTypeEnum.DIR);
+        Long createTime = StrUtil.isBlank(looker.getId()) ? 0L : metaService.acquireFile().queryById(looker.getId()).getCreateTime();
+        List<FileMetadata> dirs = metaService.acquireFile().queryListAfter(pid, createTime, looker.getSize(), userId, FileTypeEnum.DIR);
         return dirs.stream().map(FileMetadataView::convert).collect(Collectors.toList());
     }
 
     @Override
     public Integer calculateSuffixNumber(String pid, String name, Integer fileType) {
-        List<FileMetadata> tmp = fileMetadataService.queryLikePrefix(pid, name, FileTypeEnum.findType(fileType));
+        List<FileMetadata> tmp = metaService.acquireFile().queryLikePrefix(pid, name, FileTypeEnum.findType(fileType));
         return FileMetadata.calculateFileSuffixNumber(tmp, name);
     }
 
@@ -546,7 +553,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public Boolean validDuplicatedName(String id, String pid, String name, Integer fileType) {
-        List<FileMetadata> tmp = fileMetadataService.queryLikePrefix(pid, name, FileTypeEnum.findType(fileType));
+        List<FileMetadata> tmp = metaService.acquireFile().queryLikePrefix(pid, name, FileTypeEnum.findType(fileType));
         tmp.removeIf(o -> o.getId().equals(id));
         return FileMetadata.calculateFileSuffixNumber(tmp, name) > 0;
     }
@@ -554,7 +561,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileMetadataView combineToTmp(String id, String userId) {
         // 查询预览文件元数据
-        FileMetadata media = fileMetadataService.queryById(id, userId);
+        FileMetadata media = metaService.acquireFile().queryById(id, userId);
         if (ObjectUtil.isNull(media)) {
             ExceptionTools.noDataLogger();
         }
@@ -570,12 +577,12 @@ public class FileServiceImpl implements FileService {
         }
 
         // 查询预览文件的文件块存放地址
-        List<FileBlock> fileBlocks = fileBlockService.queryBlocks(media.getId());
+        List<FileBlock> fileBlocks = metaService.acquireFileBlock().queryBlocks(media.getId());
         List<String> fileBlocksIds = fileBlocks.stream()
                 .sorted(Comparator.comparingInt(FileBlock::getIndex))
                 .map(FileBlock::getBlockId)
                 .collect(Collectors.toList());
-        List<BlockMetadata> blocks = blockMetadataService.queryListByIds(fileBlocksIds);
+        List<BlockMetadata> blocks = metaService.acquireBlock().queryListByIds(fileBlocksIds);
         Map<String, String> blockPathMap = blocks.stream().collect(Collectors.toMap(BlockMetadata::getId, BlockMetadata::getPath));
 
         // 合并预览文件，并存放至临时文件夹
@@ -591,7 +598,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public List<FileMetadataView> queryFilesUnderDir(String pid, String userId, FileExtTypeEnum extType) {
         // 查询当前目录下所有的文件
-        List<FileMetadata> files = fileMetadataService.queryListByPid(pid, userId);
+        List<FileMetadata> files = metaService.acquireFile().queryListByPid(pid, userId);
 
         // 过滤掉非指定类型件，并查询指定类型文件元数据
         Map<String, Object> metaMaps = new HashMap<>(files.size());
@@ -634,7 +641,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public void download(String id, HttpServletResponse response) {
         // 校验文件是否存在
-        FileMetadata file = fileMetadataService.queryById(id);
+        FileMetadata file = metaService.acquireFile().queryById(id);
         if (ObjectUtil.isNull(file)) {
             ExceptionTools.businessLogger(AppResultCode.DATA_NOT_FOUND.getMessage());
         }
@@ -645,9 +652,9 @@ public class FileServiceImpl implements FileService {
         }
 
         // 查询所有的文件块，并合并文件到临时目录
-        List<FileBlock> fileBlocks = fileBlockService.queryBlocks(file.getId());
+        List<FileBlock> fileBlocks = metaService.acquireFileBlock().queryBlocks(file.getId());
 
-        List<BlockMetadata> blocks = blockMetadataService.queryListByIds(fileBlocks.stream()
+        List<BlockMetadata> blocks = metaService.acquireBlock().queryListByIds(fileBlocks.stream()
                 .map(FileBlock::getBlockId).collect(Collectors.toList()));
         Map<String, String> blockStorageMap = blocks.stream().collect(Collectors.toMap(BlockMetadata::getId, BlockMetadata::getPath));
 

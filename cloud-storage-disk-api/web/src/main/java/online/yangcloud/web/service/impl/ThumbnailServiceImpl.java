@@ -2,7 +2,8 @@ package online.yangcloud.web.service.impl;
 
 import cn.hutool.core.img.ImgUtil;
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.thread.ThreadUtil;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import online.yangcloud.common.annotation.TimeConsuming;
@@ -10,16 +11,19 @@ import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.enumration.OfficeTypeEnum;
 import online.yangcloud.common.model.AudioMetadata;
 import online.yangcloud.common.model.FileMetadata;
+import online.yangcloud.common.model.OfficeMetadata;
 import online.yangcloud.common.model.VideoMetadata;
 import online.yangcloud.common.tools.*;
 import online.yangcloud.web.processor.OfficeProcessor;
 import online.yangcloud.web.service.ThumbnailService;
-import online.yangcloud.web.service.meta.AudioMetadataService;
-import online.yangcloud.web.service.meta.VideoMetadataService;
+import online.yangcloud.web.service.meta.MetaService;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.jodconverter.core.document.DefaultDocumentFormatRegistry;
 import org.jodconverter.core.office.OfficeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +31,9 @@ import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -39,16 +45,20 @@ import java.util.stream.Collectors;
 @TimeConsuming
 public class ThumbnailServiceImpl implements ThumbnailService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ThumbnailServiceImpl.class);
+
     /**
-     * 待处理文件队列
+     * 视频缩略图后缀
      */
-    public static final Queue<FileMetadata> FILE = new ArrayDeque<>();
+    private static final String VIDEO_SUFFIX = ".jpg";
+
+    /**
+     * 文档缩略图后缀
+     */
+    private static final String OFFICE_SUFFIX = "png";
 
     @Resource
-    private VideoMetadataService videoMetadataService;
-
-    @Resource
-    private AudioMetadataService audioMetadataService;
+    private MetaService metaService;
 
     @Resource
     private OfficeProcessor officeProcessor;
@@ -58,26 +68,19 @@ public class ThumbnailServiceImpl implements ThumbnailService {
 
     @Override
     public void thumbnail(FileMetadata metadata) {
-        while (true) {
-            FileMetadata metadata1 = FILE.poll();
-            if (ObjectUtil.isNull(metadata1)) {
-                ThreadUtil.safeSleep(1000);
-                continue;
-            }
-            // 上传的文件是个视频
-            if (fileTools.isVideo(metadata.getExt())) {
-                videoInformation(metadata);
-            }
-            // 上传的文件是个音频
-            if (fileTools.isAudio(metadata.getExt())) {
-                audioInformation(metadata);
-            }
-            // 上传的文件是个 office 文档
-            if (fileTools.isOffice(metadata.getExt())) {
-                officeInformation(metadata);
-            }
-            FileUtil.del(SystemTools.systemPath() + AppConstants.Uploader.FILE + metadata.getId() + metadata.getExt());
+        // 上传的文件是个视频
+        if (fileTools.isVideo(metadata.getExt())) {
+            videoInformation(metadata);
         }
+        // 上传的文件是个音频
+        if (fileTools.isAudio(metadata.getExt())) {
+            audioInformation(metadata);
+        }
+        // 上传的文件是个 office 文档
+        if (fileTools.isOffice(metadata.getExt())) {
+            officeInformation(metadata);
+        }
+        FileUtil.del(SystemTools.systemPath() + AppConstants.Uploader.FILE + metadata.getId() + metadata.getExt());
     }
 
     /**
@@ -92,7 +95,7 @@ public class ThumbnailServiceImpl implements ThumbnailService {
         VideoMetadata video = FfmpegTools.acquireVideoInfo(filePath);
 
         // 截取视频的第一帧，用作缩略图
-        String thumbnail = AppConstants.Uploader.SNAPSHOT + metadata.getId() + ".jpg";
+        String thumbnail = AppConstants.Uploader.SNAPSHOT + metadata.getId() + VIDEO_SUFFIX;
         if (!FileUtil.exist(FileUtil.file(SystemTools.systemPath() + thumbnail).getParent())) {
             FileUtil.mkdir(FileUtil.file(SystemTools.systemPath() + thumbnail).getParent());
         }
@@ -100,13 +103,13 @@ public class ThumbnailServiceImpl implements ThumbnailService {
 
         // 压缩图片大小
         float scale = AppConstants.Icon.DEFAULT_WIDTH / Float.parseFloat(String.valueOf(video.getWidth()));
-        String output = AppConstants.Uploader.SNAPSHOT + metadata.getId() + "_output.jpg";
+        String output = AppConstants.Uploader.SNAPSHOT + metadata.getId() + "_output" + VIDEO_SUFFIX;
         ImgUtil.scale(FileUtil.file(SystemTools.systemPath() + thumbnail), FileUtil.file(SystemTools.systemPath() + output), scale);
         FileUtil.rename(FileUtil.file(SystemTools.systemPath() + output), SystemTools.systemPath() + thumbnail, Boolean.TRUE);
 
         // 补充视频详细信息
         video.setId(IdTools.fastSimpleUuid()).setThumbnail(thumbnail).setFileId(metadata.getId());
-        videoMetadataService.addVideoRecord(video);
+        metaService.acquireVideo().addVideoRecord(video);
     }
 
     /**
@@ -122,7 +125,7 @@ public class ThumbnailServiceImpl implements ThumbnailService {
         audio.setId(IdTools.fastSimpleUuid()).setFileId(metadata.getId());
 
         // 记录音频元数据
-        audioMetadataService.addAudioRecord(audio);
+        metaService.acquireAudio().addAudioRecord(audio);
     }
 
     /**
@@ -132,37 +135,58 @@ public class ThumbnailServiceImpl implements ThumbnailService {
      */
     private void officeInformation(FileMetadata metadata) {
         try {
-            // 将文档转为 pdf
+            // 判断是否是 pdf 文件。如果是，则直接切分并转换图片；如果是 word、ppt、excel 文件，则需要先转成 pdf
+            OfficeTypeEnum officeType = fileTools.acquireOfficeType(metadata.getExt());
+            if (ObjUtil.isNull(officeType)) {
+                ExceptionTools.businessLogger("不支持的文件格式");
+            }
+
+            // 拼接 pdf 文件存储路径
             String pdfSuffix = DefaultDocumentFormatRegistry.PDF.getExtension();
             String source = SystemTools.systemPath() + AppConstants.Uploader.FILE + metadata.getId() + metadata.getExt();
             String target = SystemTools.systemPath() + AppConstants.Uploader.TMP + metadata.getId() + StrUtil.DOT + pdfSuffix;
-            OfficeTypeEnum type = fileTools.isWord(metadata.getExt()) ?
-                    OfficeTypeEnum.WORD : fileTools.isPpt(metadata.getExt()) ?
-                    OfficeTypeEnum.PPT : OfficeTypeEnum.EXCEL;
-            officeProcessor.convertToPdf(source, target, type);
+
+            // 将 word、ppt、excel 格式文件转换为 pdf 文件
+            if (!OfficeTypeEnum.PDF.equals(officeType)) {
+                officeProcessor.convertToPdf(source, target, officeType);
+            }
 
             // 在缩略图目录中创建以文件 id 为名的目录，以存放 pdf 每页生成的图片
-            String thumbnailDir = AppConstants.Uploader.SNAPSHOT + metadata.getId();
+            String thumbnailDir = AppConstants.Uploader.SNAPSHOT + metadata.getId() + AppConstants.Special.SEPARATOR;
             if (!FileUtil.exist(SystemTools.systemPath() + thumbnailDir)) {
                 FileUtil.mkdir(SystemTools.systemPath() + thumbnailDir);
             }
 
+            // 文档元数据
+            OfficeMetadata office = OfficeMetadata.builder()
+                    .setId(IdUtil.fastSimpleUUID())
+                    .setFileId(metadata.getId());
+
             // 对 pdf 文件进行切分，并将每页转为图片
             PDDocument document = PDDocument.load(FileUtil.file(target));
             PDFRenderer renderer = new PDFRenderer(document);
+            office.setPageTotal(document.getPages().getCount());
             for (int i = 0; i < document.getPages().getCount(); i++) {
-                BufferedImage image = renderer.renderImage(i);
-                ImageIO.write(image, "PNG", FileUtil.file(SystemTools.systemPath() + thumbnailDir + StrUtil.SLASH + i + ".png"));
+                BufferedImage image = renderer.renderImageWithDPI(i, 300, ImageType.RGB);
+                String thumbnailPath = SystemTools.systemPath() + thumbnailDir + i + StrUtil.DOT + OFFICE_SUFFIX;
+                office.setWidth(image.getWidth()).setHeight(image.getHeight());
+                if (StrUtil.isBlank(office.getThumbnail())) {
+                    office.setThumbnail(thumbnailPath.replace(SystemTools.systemPath(), StrUtil.EMPTY));
+                }
+                ImageIO.write(image, OFFICE_SUFFIX, FileUtil.file(thumbnailPath));
             }
+
+            // 记录文档元数据
+            metaService.acquireOffice().addOfficeRecord(office);
         } catch (OfficeException | IOException e) {
-            ExceptionTools.businessLogger(e.getMessage());
+            logger.error(e.getMessage(), e);
         }
     }
 
     @Override
     public String queryThumbnail(FileMetadata file) {
         if (fileTools.isVideo(file.getExt())) {
-            VideoMetadata video = videoMetadataService.queryVideoByFileId(file.getId());
+            VideoMetadata video = metaService.acquireVideo().queryVideoByFileId(file.getId());
             return ObjectUtil.isNull(video) ? StrUtil.EMPTY : video.getThumbnail();
         }
         return StrUtil.EMPTY;
@@ -181,7 +205,7 @@ public class ThumbnailServiceImpl implements ThumbnailService {
             if (ObjectUtil.isNotNull(videos) && !videos.isEmpty()) {
                 List<String> fileIds = videos.stream().map(FileMetadata::getId).collect(Collectors.toList());
                 if (!fileIds.isEmpty()) {
-                    List<VideoMetadata> objs = videoMetadataService.queryVideosByFileIds(fileIds);
+                    List<VideoMetadata> objs = metaService.acquireVideo().queryVideosByFileIds(fileIds);
                     maps.putAll(objs.stream().collect(Collectors.toMap(VideoMetadata::getFileId, o -> o)));
                 }
             }
@@ -193,8 +217,20 @@ public class ThumbnailServiceImpl implements ThumbnailService {
             if (ObjectUtil.isNotNull(videos) && !videos.isEmpty()) {
                 List<String> fileIds = videos.stream().map(FileMetadata::getId).collect(Collectors.toList());
                 if (!fileIds.isEmpty()) {
-                    List<AudioMetadata> objs = audioMetadataService.queryAudiosByFileIds(fileIds);
+                    List<AudioMetadata> objs = metaService.acquireAudio().queryAudiosByFileIds(fileIds);
                     maps.putAll(objs.stream().collect(Collectors.toMap(AudioMetadata::getFileId, o -> o)));
+                }
+            }
+        }
+
+        // 整理 office 文件的元数据映射
+        for (String ext : fileTools.acquireFileExtProperty().acquireOfficeSupports()) {
+            List<FileMetadata> offices = fileMap.get(ext);
+            if (ObjUtil.isNotNull(offices) && !offices.isEmpty()) {
+                List<String> fileIds = offices.stream().map(FileMetadata::getId).collect(Collectors.toList());
+                if (!fileIds.isEmpty()) {
+                    List<OfficeMetadata> objs = metaService.acquireOffice().queryOfficesByFileIds(fileIds);
+                    maps.putAll(objs.stream().collect(Collectors.toMap(OfficeMetadata::getFileId, o -> o)));
                 }
             }
         }
@@ -206,11 +242,11 @@ public class ThumbnailServiceImpl implements ThumbnailService {
     public Object queryMediaMetadata(String fileId, String ext) {
         // 是视频文件
         if (fileTools.isVideo(ext)) {
-            return videoMetadataService.queryVideoByFileId(fileId);
+            return metaService.acquireVideo().queryVideoByFileId(fileId);
         }
         // 是音频文件
         if (fileTools.isAudio(ext)) {
-            return audioMetadataService.queryAudioByFileId(fileId);
+            return metaService.acquireAudio().queryAudioByFileId(fileId);
         }
         return null;
     }

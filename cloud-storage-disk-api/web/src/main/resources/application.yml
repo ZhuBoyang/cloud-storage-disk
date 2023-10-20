@@ -53,6 +53,7 @@ media:
   word: doc,docx
   ppt: ppt,pptx
   excel: xls,xlsx,csv
+  pdf: pdf
 jodconverter:
   local:
     enabled: true

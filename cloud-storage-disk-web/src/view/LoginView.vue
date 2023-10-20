@@ -71,7 +71,15 @@ export default {
       http.reqUrl.file.typeSupports().then(response => {
         console.log('support ext :=>', response)
         localStorage.setItem('type_supports', JSON.stringify(response))
+        this.hadLogin()
       })
+    },
+    // 检测是否已登录
+    hadLogin () {
+      const token = localStorage.getItem('t')
+      if (token !== undefined && token !== null) {
+        this.router.push('/dashboard')
+      }
     },
     // 登录
     login () {
