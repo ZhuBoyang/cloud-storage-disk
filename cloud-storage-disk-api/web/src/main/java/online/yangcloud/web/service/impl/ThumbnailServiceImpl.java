@@ -146,8 +146,10 @@ public class ThumbnailServiceImpl implements ThumbnailService {
             String source = SystemTools.systemPath() + AppConstants.Uploader.FILE + metadata.getId() + metadata.getExt();
             String target = SystemTools.systemPath() + AppConstants.Uploader.TMP + metadata.getId() + StrUtil.DOT + pdfSuffix;
 
-            // 将 word、ppt、excel 格式文件转换为 pdf 文件
-            if (!OfficeTypeEnum.PDF.equals(officeType)) {
+            if (OfficeTypeEnum.PDF.equals(officeType)) {
+                target = source;
+            } else {
+                // 将 word、ppt、excel 格式文件转换为 pdf 文件
                 officeProcessor.convertToPdf(source, target, officeType);
             }
 

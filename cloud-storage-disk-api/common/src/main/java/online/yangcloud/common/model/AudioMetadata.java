@@ -1,5 +1,6 @@
 package online.yangcloud.common.model;
 
+import cn.hutool.core.util.StrUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.annotation.DatabaseColumn;
@@ -32,19 +33,19 @@ public class AudioMetadata extends BaseParameter {
      * 歌曲名称
      */
     @DatabaseColumn(name = "title", type = DatabaseColumnTypeEnum.VARCHAR, length = 128, canNull = false, comment = "歌曲名称")
-    private String title;
+    private String title = "未知";
 
     /**
      * 所属专辑
      */
     @DatabaseColumn(name = "album", type = DatabaseColumnTypeEnum.VARCHAR, length = 128, canNull = false, comment = "所属专辑")
-    private String album;
+    private String album = "未知";
 
     /**
      * 艺术家
      */
     @DatabaseColumn(name = "artist", type = DatabaseColumnTypeEnum.VARCHAR, length = 128, canNull = false, comment = "艺术家")
-    private String artist;
+    private String artist = "未知";
 
     /**
      * 时长

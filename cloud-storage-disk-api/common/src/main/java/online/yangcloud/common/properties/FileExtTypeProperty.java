@@ -97,7 +97,7 @@ public class FileExtTypeProperty {
      * @return 格式列表
      */
     public List<String> acquirePdfSupports() {
-        return StrUtil.isBlank(pdf) ? Collections.emptyList() : addDotPrefix(ppt);
+        return StrUtil.isBlank(pdf) ? Collections.emptyList() : addDotPrefix(pdf);
     }
 
     /**
