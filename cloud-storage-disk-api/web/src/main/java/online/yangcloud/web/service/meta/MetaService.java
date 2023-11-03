@@ -6,18 +6,20 @@ package online.yangcloud.web.service.meta;
  */
 public interface MetaService {
 
-    AudioMetadataService acquireAudio();
-
     BlockMetadataService acquireBlock();
 
     FileBlockService acquireFileBlock();
 
     FileMetadataService acquireFile();
 
-    OfficeMetadataService acquireOffice();
+    VideoMetadataService acquireVideo();
+
+    AudioMetadataService acquireAudio();
+
+    DocumentMetadataService acquireDocument();
+
+    PreviewConvertMetaService acquireSnapshotConvert();
 
     UserMetaService acquireUser();
-
-    VideoMetadataService acquireVideo();
 
 }

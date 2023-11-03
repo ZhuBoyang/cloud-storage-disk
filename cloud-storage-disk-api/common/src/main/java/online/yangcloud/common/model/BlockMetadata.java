@@ -5,7 +5,7 @@ import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.annotation.DatabaseColumn;
 import online.yangcloud.common.annotation.DatabaseIndex;
 import online.yangcloud.common.common.AppConstants;
-import online.yangcloud.common.enumration.DatabaseColumnTypeEnum;
+import online.yangcloud.common.enumration.ColumnTypeEnum;
 import online.yangcloud.common.tools.IdTools;
 
 /**
@@ -21,27 +21,27 @@ public class BlockMetadata extends BaseParameter {
      * id
      */
     @TableId
-    @DatabaseColumn(primary = true, name = "id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件块 id")
+    @DatabaseColumn(primary = true, name = "id", type = ColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件块 id")
     @DatabaseIndex(unique = true)
     private String id;
 
     /**
      * 文件块 md5
      */
-    @DatabaseColumn(name = "hash", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件块 hash")
+    @DatabaseColumn(name = "hash", type = ColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件块 hash")
     @DatabaseIndex(unique = true)
     private String hash;
 
     /**
      * 文件块存储路径
      */
-    @DatabaseColumn(name = "path", type = DatabaseColumnTypeEnum.VARCHAR, length = 1000, canNull = false, comment = "文件块存储路径")
+    @DatabaseColumn(name = "path", type = ColumnTypeEnum.VARCHAR, length = 1000, canNull = false, comment = "文件块存储路径")
     private String path;
 
     /**
      * 文件块大小
      */
-    @DatabaseColumn(name = "size", type = DatabaseColumnTypeEnum.BIGINT, canNull = false, comment = "文件块大小")
+    @DatabaseColumn(name = "size", type = ColumnTypeEnum.BIGINT, canNull = false, comment = "文件块大小")
     private Long size;
 
     /**

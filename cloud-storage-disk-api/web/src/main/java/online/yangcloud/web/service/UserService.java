@@ -6,7 +6,6 @@ import online.yangcloud.common.model.request.user.UserEnter;
 import online.yangcloud.common.model.request.user.UserInitializer;
 import online.yangcloud.common.model.request.user.UserUpdater;
 import online.yangcloud.common.model.view.user.UserView;
-import online.yangcloud.web.service.meta.UserMetaService;
 
 import java.io.IOException;
 
@@ -17,11 +16,11 @@ import java.io.IOException;
 public interface UserService {
 
     /**
-     * 获取数据库交互业务层
+     * 系统是否进行了初始化
      *
-     * @return 业务层
+     * @return 结果
      */
-    UserMetaService acquireMeta();
+    boolean hadInitialized();
 
     /**
      * 初始化账户信息

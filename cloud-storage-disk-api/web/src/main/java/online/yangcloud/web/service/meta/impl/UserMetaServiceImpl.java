@@ -69,6 +69,13 @@ public class UserMetaServiceImpl implements UserMetaService {
     }
 
     @Override
+    public User queryFirstUser() {
+        return userMapper.findOne(userMapper.query()
+                .orderBy.createTime().asc().end()
+                .limit(0, 1));
+    }
+
+    @Override
     public User queryUserById(String id) {
         return userMapper.findOne(userMapper.query()
                 .where.id().eq(id).and.isDelete().eq(YesOrNoEnum.NO.code()).end());

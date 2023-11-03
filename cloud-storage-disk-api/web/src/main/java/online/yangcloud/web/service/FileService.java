@@ -1,5 +1,6 @@
 package online.yangcloud.web.service;
 
+import cn.hutool.json.JSONObject;
 import online.yangcloud.common.enumration.FileExtTypeEnum;
 import online.yangcloud.common.model.User;
 import online.yangcloud.common.model.request.file.DirLooker;
@@ -200,6 +201,15 @@ public interface FileService {
      * @return 文件列表
      */
     List<FileMetadataView> queryFilesUnderDir(String pid, String userId, FileExtTypeEnum extType);
+
+    /**
+     * 批量查询文件扩展信息
+     *
+     * @param fileId 文件 id
+     * @param ext    文件后缀
+     * @return 文件扩展信息
+     */
+    JSONObject queryFileExtend(String fileId, FileExtTypeEnum ext);
 
     /**
      * 文件下载

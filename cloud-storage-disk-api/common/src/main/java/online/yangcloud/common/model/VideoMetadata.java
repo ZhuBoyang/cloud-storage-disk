@@ -4,7 +4,7 @@ import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.annotation.DatabaseColumn;
 import online.yangcloud.common.annotation.DatabaseIndex;
-import online.yangcloud.common.enumration.DatabaseColumnTypeEnum;
+import online.yangcloud.common.enumration.ColumnTypeEnum;
 
 /**
  * @author zhuboyang
@@ -17,57 +17,57 @@ public class VideoMetadata extends BaseParameter {
      * 主键
      */
     @TableId
-    @DatabaseColumn(primary = true, name = "id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false)
+    @DatabaseColumn(primary = true, name = "id", type = ColumnTypeEnum.VARCHAR, length = 32, canNull = false)
     @DatabaseIndex(unique = true)
     private String id;
 
     /**
      * 文件 id
      */
-    @DatabaseColumn(name = "file_id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件 id")
+    @DatabaseColumn(name = "file_id", type = ColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件 id")
     @DatabaseIndex
     private String fileId;
 
     /**
      * 缩略图
      */
-    @DatabaseColumn(name = "thumbnail", type = DatabaseColumnTypeEnum.VARCHAR, length = 128, canNull = false, comment = "视频缩略图地址")
+    @DatabaseColumn(name = "thumbnail", type = ColumnTypeEnum.VARCHAR, length = 128, canNull = false, comment = "视频缩略图地址")
     private String thumbnail;
 
     /**
      * 总时长
      */
-    @DatabaseColumn(name = "duration", type = DatabaseColumnTypeEnum.DOUBLE, canNull = false, comment = "总时长")
+    @DatabaseColumn(name = "duration", type = ColumnTypeEnum.DOUBLE, canNull = false, comment = "总时长")
     private Double duration;
 
     /**
      * 比特率
      */
-    @DatabaseColumn(name = "bitrate", type = DatabaseColumnTypeEnum.VARCHAR, length = 20, canNull = false, comment = "比特率")
+    @DatabaseColumn(name = "bitrate", type = ColumnTypeEnum.VARCHAR, length = 20, canNull = false, comment = "比特率")
     private String bitrate;
 
     /**
      * 分辨率-宽
      */
-    @DatabaseColumn(name = "width", type = DatabaseColumnTypeEnum.SMALLINT, canNull = false, comment = "分辨率宽度")
+    @DatabaseColumn(name = "width", type = ColumnTypeEnum.SMALLINT, canNull = false, comment = "分辨率宽度")
     private Integer width;
 
     /**
      * 分辨率-高
      */
-    @DatabaseColumn(name = "height", type = DatabaseColumnTypeEnum.SMALLINT, canNull = false, comment = "分辨率高度")
+    @DatabaseColumn(name = "height", type = ColumnTypeEnum.SMALLINT, canNull = false, comment = "分辨率高度")
     private Integer height;
 
     /**
      * 视频编码
      */
-    @DatabaseColumn(name = "video_code", type = DatabaseColumnTypeEnum.VARCHAR, length = 10, canNull = false, comment = "视频编码")
+    @DatabaseColumn(name = "video_code", type = ColumnTypeEnum.VARCHAR, length = 10, canNull = false, comment = "视频编码")
     private String videoCode;
 
     /**
      * 音频编码
      */
-    @DatabaseColumn(name = "audio_code", type = DatabaseColumnTypeEnum.VARCHAR, length = 10, canNull = false, comment = "音频编码")
+    @DatabaseColumn(name = "audio_code", type = ColumnTypeEnum.VARCHAR, length = 10, canNull = false, comment = "音频编码")
     private String audioCode;
 
     public static VideoMetadata initial() {

@@ -6,9 +6,9 @@ package online.yangcloud.common.enumration;
  */
 public enum OfficeTypeEnum {
 
-    WORD,
-    PPT,
-    EXCEL,
-    PDF
+//    WORD,
+//    PPT,
+//    EXCEL,
+//    PDF
 
 }

@@ -13,9 +13,6 @@ import javax.annotation.Resource;
 public class MetaServiceImpl implements MetaService {
 
     @Resource
-    private AudioMetadataService audioMetadataService;
-
-    @Resource
     private BlockMetadataService blockMetadataService;
 
     @Resource
@@ -25,18 +22,19 @@ public class MetaServiceImpl implements MetaService {
     private FileMetadataService fileMetadataService;
 
     @Resource
-    private OfficeMetadataService officeMetadataService;
+    private VideoMetadataService videoMetadataService;
+
+    @Resource
+    private AudioMetadataService audioMetadataService;
+
+    @Resource
+    private DocumentMetadataService documentMetadataService;
+    
+    @Resource
+    private PreviewConvertMetaService previewConvertMetaService;
 
     @Resource
     private UserMetaService userMetaService;
-
-    @Resource
-    private VideoMetadataService videoMetadataService;
-
-    @Override
-    public AudioMetadataService acquireAudio() {
-        return audioMetadataService;
-    }
 
     @Override
     public BlockMetadataService acquireBlock() {
@@ -54,18 +52,28 @@ public class MetaServiceImpl implements MetaService {
     }
 
     @Override
-    public OfficeMetadataService acquireOffice() {
-        return officeMetadataService;
+    public VideoMetadataService acquireVideo() {
+        return videoMetadataService;
+    }
+
+    @Override
+    public AudioMetadataService acquireAudio() {
+        return audioMetadataService;
+    }
+
+    @Override
+    public DocumentMetadataService acquireDocument() {
+        return documentMetadataService;
+    }
+
+    @Override
+    public PreviewConvertMetaService acquireSnapshotConvert() {
+        return previewConvertMetaService;
     }
 
     @Override
     public UserMetaService acquireUser() {
         return userMetaService;
-    }
-
-    @Override
-    public VideoMetadataService acquireVideo() {
-        return videoMetadataService;
     }
 
 }

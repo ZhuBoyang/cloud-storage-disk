@@ -1,6 +1,6 @@
 package online.yangcloud.common.common;
 
-import online.yangcloud.common.enumration.DatabaseColumnTypeEnum;
+import online.yangcloud.common.enumration.ColumnTypeEnum;
 
 import java.io.File;
 import java.util.Collections;
@@ -62,7 +62,7 @@ public interface AppConstants {
         // 视频元数据表
         String VIDEO_METADATA = "VideoMetadata";
         // 需要显示字段长度的类型
-        List<DatabaseColumnTypeEnum> COLUMN_TYPES = Collections.singletonList(DatabaseColumnTypeEnum.VARCHAR);
+        List<ColumnTypeEnum> COLUMN_TYPES = Collections.singletonList(ColumnTypeEnum.VARCHAR);
     }
 
     /**
@@ -138,11 +138,15 @@ public interface AppConstants {
     }
 
     /**
-     * redis 会话
+     * 预览转换相关
      */
-    interface Topic {
-        // 预览
-        String PREVIEW = "preview_topic";
+    interface PreviewConverter {
+        // 执行锁
+        String PROCESS_LOCK = "can_process:preview_converter";
+        // 转换锁
+        String CONVERT_LOCK = "preview_convert:";
+        // 转换任务
+        String CONVERT_TASK = "preview_convert_task";
     }
 
 }

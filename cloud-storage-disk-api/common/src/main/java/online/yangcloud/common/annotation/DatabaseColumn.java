@@ -1,6 +1,6 @@
 package online.yangcloud.common.annotation;
 
-import online.yangcloud.common.enumration.DatabaseColumnTypeEnum;
+import online.yangcloud.common.enumration.ColumnTypeEnum;
 
 import java.lang.annotation.*;
 
@@ -26,7 +26,7 @@ public @interface DatabaseColumn {
     /**
      * 字段类型
      */
-    DatabaseColumnTypeEnum type();
+    ColumnTypeEnum type();
 
     /**
      * 字段长度

@@ -8,5 +8,10 @@ public enum FileExtTypeEnum {
 
     VIDEO,
     AUDIO,
+    WORD,
+    PPT,
+    EXCEL,
+    PDF,
+    TXT,
 
 }

@@ -8,13 +8,11 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import online.yangcloud.common.annotation.TimeConsuming;
 import online.yangcloud.common.common.AppConstants;
-import online.yangcloud.common.enumration.OfficeTypeEnum;
-import online.yangcloud.common.model.AudioMetadata;
-import online.yangcloud.common.model.FileMetadata;
-import online.yangcloud.common.model.OfficeMetadata;
-import online.yangcloud.common.model.VideoMetadata;
+import online.yangcloud.common.enumration.FileExtTypeEnum;
+import online.yangcloud.common.enumration.YesOrNoEnum;
+import online.yangcloud.common.model.*;
 import online.yangcloud.common.tools.*;
-import online.yangcloud.web.processor.OfficeProcessor;
+import online.yangcloud.web.processor.DocumentProcessor;
 import online.yangcloud.web.service.ThumbnailService;
 import online.yangcloud.web.service.meta.MetaService;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -61,13 +59,40 @@ public class ThumbnailServiceImpl implements ThumbnailService {
     private MetaService metaService;
 
     @Resource
-    private OfficeProcessor officeProcessor;
+    private DocumentProcessor documentProcessor;
 
     @Resource
     private FileTools fileTools;
 
+    @Resource
+    private RedisTools redisTools;
+
     @Override
-    public void thumbnail(FileMetadata metadata) {
+    public void thumbnail() {
+        // 检测是否允许执行
+        String canProcess = redisTools.get(AppConstants.PreviewConverter.PROCESS_LOCK);
+        if (ObjUtil.isNotNull(canProcess) && !Boolean.parseBoolean(canProcess)) {
+            return;
+        }
+        Boolean bool = redisTools.setIfAbsent(AppConstants.PreviewConverter.PROCESS_LOCK, StrUtil.toString(false));
+        if (!bool) {
+            return;
+        }
+
+        // 获取一条未执行的文件预览转换任务
+        PreviewConvertTask task = metaService.acquireSnapshotConvert().queryUnExecutedTask();
+        if (ObjUtil.isNull(task)) {
+            // 暂时没有转换任务
+            redisTools.delete(AppConstants.PreviewConverter.PROCESS_LOCK);
+            // 关闭转换任务开关，
+            redisTools.delete(AppConstants.PreviewConverter.CONVERT_TASK);
+            return;
+        }
+
+        // 查询转换任务关联的文件元数据
+        FileMetadata metadata = metaService.acquireFile().queryById(task.getFileId());
+        logger.info("The converted file is detected and the metadata is {}", metadata);
+
         // 上传的文件是个视频
         if (fileTools.isVideo(metadata.getExt())) {
             videoInformation(metadata);
@@ -76,11 +101,18 @@ public class ThumbnailServiceImpl implements ThumbnailService {
         if (fileTools.isAudio(metadata.getExt())) {
             audioInformation(metadata);
         }
-        // 上传的文件是个 office 文档
-        if (fileTools.isOffice(metadata.getExt())) {
-            officeInformation(metadata);
+        // 上传的文件是个 office 文档，或者是系统支持的文件
+        if (fileTools.isDocument(metadata.getExt())) {
+            documentInformation(metadata);
         }
+        redisTools.delete(AppConstants.PreviewConverter.CONVERT_LOCK + metadata.getId());
+
+        // 更新转换任务的状态，并删除缓存文件
+        metaService.acquireSnapshotConvert().updatePreviewTask(task.setIsOver(YesOrNoEnum.YES.code()));
         FileUtil.del(SystemTools.systemPath() + AppConstants.Uploader.FILE + metadata.getId() + metadata.getExt());
+
+        // 解除执行锁
+        redisTools.delete(AppConstants.PreviewConverter.PROCESS_LOCK);
     }
 
     /**
@@ -129,59 +161,76 @@ public class ThumbnailServiceImpl implements ThumbnailService {
     }
 
     /**
-     * 获取 office 文档详细信息
+     * 获取 document 文档详细信息
      *
      * @param metadata 文件元数据
      */
-    private void officeInformation(FileMetadata metadata) {
+    private void documentInformation(FileMetadata metadata) {
+        // 判断是否是 pdf 文件。如果是，则直接切分并转换图片；如果是 word、ppt、excel 文件，则需要先转成 pdf
+        FileExtTypeEnum officeType = fileTools.acquireDocumentType(metadata.getExt());
+        if (ObjUtil.isNull(officeType)) {
+            ExceptionTools.businessLogger("不支持的文件格式");
+        }
+
+        // 拼接 pdf 文件存储路径
+        String pdfSuffix = DefaultDocumentFormatRegistry.PDF.getExtension();
+        String source = SystemTools.systemPath() + AppConstants.Uploader.FILE + metadata.getId() + metadata.getExt();
+        String target = SystemTools.systemPath() + AppConstants.Uploader.TMP + metadata.getId() + StrUtil.DOT + pdfSuffix;
+
+        // 在缩略图目录中创建以文件 id 为名的目录，以存放 pdf 每页生成的图片
+        String thumbnailDir = AppConstants.Uploader.SNAPSHOT + metadata.getId() + AppConstants.Special.SEPARATOR;
+        if (!FileUtil.exist(SystemTools.systemPath() + thumbnailDir)) {
+            FileUtil.mkdir(SystemTools.systemPath() + thumbnailDir);
+        }
+
+        // 文档元数据
+        DocumentMetadata document = DocumentMetadata.builder()
+                .setId(IdUtil.fastSimpleUUID())
+                .setFileId(metadata.getId())
+                .setErrExp(StrUtil.EMPTY)
+                .setErrMsg(StrUtil.EMPTY);
+
         try {
-            // 判断是否是 pdf 文件。如果是，则直接切分并转换图片；如果是 word、ppt、excel 文件，则需要先转成 pdf
-            OfficeTypeEnum officeType = fileTools.acquireOfficeType(metadata.getExt());
-            if (ObjUtil.isNull(officeType)) {
-                ExceptionTools.businessLogger("不支持的文件格式");
-            }
-
-            // 拼接 pdf 文件存储路径
-            String pdfSuffix = DefaultDocumentFormatRegistry.PDF.getExtension();
-            String source = SystemTools.systemPath() + AppConstants.Uploader.FILE + metadata.getId() + metadata.getExt();
-            String target = SystemTools.systemPath() + AppConstants.Uploader.TMP + metadata.getId() + StrUtil.DOT + pdfSuffix;
-
-            if (OfficeTypeEnum.PDF.equals(officeType)) {
+            if (FileExtTypeEnum.PDF.equals(officeType)) {
+                // 如果是 pdf 文档的话，就从 ‘file’目录下获取完整的文件
                 target = source;
             } else {
-                // 将 word、ppt、excel 格式文件转换为 pdf 文件
-                officeProcessor.convertToPdf(source, target, officeType);
+                // 将 word、ppt、excel、txt 格式文件转换为 pdf 文件
+                documentProcessor.convertToPdf(source, target, officeType);
             }
+        } catch (OfficeException oe) {
+            logger.error(oe.getMessage(), oe);
+        }
 
-            // 在缩略图目录中创建以文件 id 为名的目录，以存放 pdf 每页生成的图片
-            String thumbnailDir = AppConstants.Uploader.SNAPSHOT + metadata.getId() + AppConstants.Special.SEPARATOR;
-            if (!FileUtil.exist(SystemTools.systemPath() + thumbnailDir)) {
-                FileUtil.mkdir(SystemTools.systemPath() + thumbnailDir);
-            }
-
-            // 文档元数据
-            OfficeMetadata office = OfficeMetadata.builder()
-                    .setId(IdUtil.fastSimpleUUID())
-                    .setFileId(metadata.getId());
-
+        try (PDDocument pdDocument = PDDocument.load(FileUtil.file(target))) {
             // 对 pdf 文件进行切分，并将每页转为图片
-            PDDocument document = PDDocument.load(FileUtil.file(target));
-            PDFRenderer renderer = new PDFRenderer(document);
-            office.setPageTotal(document.getPages().getCount());
-            for (int i = 0; i < document.getPages().getCount(); i++) {
+            PDFRenderer renderer = new PDFRenderer(pdDocument);
+            document.setPageTotal(pdDocument.getPages().getCount());
+            for (int i = 0; i < pdDocument.getPages().getCount(); i++) {
+                logger.info("The page number currently being converted is {}, for a total of {} page", i + 1, document.getPageTotal());
                 BufferedImage image = renderer.renderImageWithDPI(i, 300, ImageType.RGB);
                 String thumbnailPath = SystemTools.systemPath() + thumbnailDir + i + StrUtil.DOT + OFFICE_SUFFIX;
-                office.setWidth(image.getWidth()).setHeight(image.getHeight());
-                if (StrUtil.isBlank(office.getThumbnail())) {
-                    office.setThumbnail(thumbnailPath.replace(SystemTools.systemPath(), StrUtil.EMPTY));
+                document.setWidth(image.getWidth()).setHeight(image.getHeight());
+                if (StrUtil.isBlank(document.getThumbnail())) {
+                    document.setThumbnail(thumbnailPath.replace(SystemTools.systemPath(), StrUtil.EMPTY));
                 }
                 ImageIO.write(image, OFFICE_SUFFIX, FileUtil.file(thumbnailPath));
             }
-
-            // 记录文档元数据
-            metaService.acquireOffice().addOfficeRecord(office);
-        } catch (OfficeException | IOException e) {
+        } catch (IOException e) {
             logger.error(e.getMessage(), e);
+            if (e.getMessage().contains("javax.crypto.BadPaddingException")) {
+                document.setPageTotal(0)
+                        .setWidth(0)
+                        .setHeight(0)
+                        .setThumbnail(StrUtil.EMPTY)
+                        .setErrExp("BadPaddingException")
+                        .setErrMsg(e.getMessage());
+            }
+        } finally {
+            // 记录文档元数据
+            metaService.acquireDocument().addDocumentRecord(document);
+            // 清理临时生成的 pdf 文件
+            FileUtil.del(target);
         }
     }
 
@@ -201,41 +250,29 @@ public class ThumbnailServiceImpl implements ThumbnailService {
         // 查询各类文件元数据并封装映射
         Map<String, List<FileMetadata>> fileMap = files.stream().collect(Collectors.groupingBy(FileMetadata::getExt));
 
-        // 整理视频文件的元数据映射
-        for (String ext : fileTools.acquireFileExtProperty().acquireVideoSupports()) {
-            List<FileMetadata> videos = fileMap.get(ext);
-            if (ObjectUtil.isNotNull(videos) && !videos.isEmpty()) {
+        // 整理各种文件的元数据映射
+        fileMap.forEach((ext, videos) -> {
+            if (ObjUtil.isNotNull(videos) && !videos.isEmpty()) {
                 List<String> fileIds = videos.stream().map(FileMetadata::getId).collect(Collectors.toList());
                 if (!fileIds.isEmpty()) {
-                    List<VideoMetadata> objs = metaService.acquireVideo().queryVideosByFileIds(fileIds);
-                    maps.putAll(objs.stream().collect(Collectors.toMap(VideoMetadata::getFileId, o -> o)));
+                    // 视频文件
+                    if (fileTools.isVideo(ext)) {
+                        List<VideoMetadata> objs = metaService.acquireVideo().queryVideosByFileIds(fileIds);
+                        maps.putAll(objs.stream().collect(Collectors.toMap(VideoMetadata::getFileId, o -> o)));
+                    }
+                    // 音频文件
+                    if (fileTools.isAudio(ext)) {
+                        List<AudioMetadata> objs = metaService.acquireAudio().queryAudiosByFileIds(fileIds);
+                        maps.putAll(objs.stream().collect(Collectors.toMap(AudioMetadata::getFileId, o -> o)));
+                    }
+                    // 文档文件
+                    if (fileTools.isDocument(ext)) {
+                        List<DocumentMetadata> objs = metaService.acquireDocument().queryDocumentsByFileIds(fileIds);
+                        maps.putAll(objs.stream().collect(Collectors.toMap(DocumentMetadata::getFileId, o -> o)));
+                    }
                 }
             }
-        }
-
-        // 整理音频文件的元数据映射
-        for (String ext : fileTools.acquireFileExtProperty().acquireAudioSupports()) {
-            List<FileMetadata> videos = fileMap.get(ext);
-            if (ObjectUtil.isNotNull(videos) && !videos.isEmpty()) {
-                List<String> fileIds = videos.stream().map(FileMetadata::getId).collect(Collectors.toList());
-                if (!fileIds.isEmpty()) {
-                    List<AudioMetadata> objs = metaService.acquireAudio().queryAudiosByFileIds(fileIds);
-                    maps.putAll(objs.stream().collect(Collectors.toMap(AudioMetadata::getFileId, o -> o)));
-                }
-            }
-        }
-
-        // 整理 office 文件的元数据映射
-        for (String ext : fileTools.acquireFileExtProperty().acquireOfficeSupports()) {
-            List<FileMetadata> offices = fileMap.get(ext);
-            if (ObjUtil.isNotNull(offices) && !offices.isEmpty()) {
-                List<String> fileIds = offices.stream().map(FileMetadata::getId).collect(Collectors.toList());
-                if (!fileIds.isEmpty()) {
-                    List<OfficeMetadata> objs = metaService.acquireOffice().queryOfficesByFileIds(fileIds);
-                    maps.putAll(objs.stream().collect(Collectors.toMap(OfficeMetadata::getFileId, o -> o)));
-                }
-            }
-        }
+        });
 
         return maps;
     }

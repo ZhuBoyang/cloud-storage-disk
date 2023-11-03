@@ -1,8 +1,10 @@
 package online.yangcloud.common.tools;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
-import online.yangcloud.common.enumration.OfficeTypeEnum;
+import online.yangcloud.common.enumration.FileExtTypeEnum;
 import online.yangcloud.common.properties.FileExtTypeProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,6 +144,16 @@ public class FileTools {
     }
 
     /**
+     * 校验文件是否是视频
+     *
+     * @param ext 文件类型
+     * @return 校验结果
+     */
+    public boolean isVideo(FileExtTypeEnum ext) {
+        return FileExtTypeEnum.VIDEO.equals(ext);
+    }
+
+    /**
      * 校验文件是否是音频
      *
      * @param ext 文件后缀名
@@ -149,6 +161,16 @@ public class FileTools {
      */
     public boolean isAudio(String ext) {
         return acquireFileExtProperty().acquireAudioSupports().contains(ext);
+    }
+
+    /**
+     * 校验文件是否是音频
+     *
+     * @param ext 文件后缀名
+     * @return 校验结果
+     */
+    public boolean isAudio(FileExtTypeEnum ext) {
+        return FileExtTypeEnum.AUDIO.equals(ext);
     }
 
     /**
@@ -162,6 +184,16 @@ public class FileTools {
     }
 
     /**
+     * 校验文件是否是 word
+     *
+     * @param ext 文件后缀名
+     * @return 校验结果
+     */
+    public boolean isWord(FileExtTypeEnum ext) {
+        return FileExtTypeEnum.WORD.equals(ext);
+    }
+
+    /**
      * 校验文件是否是 ppt
      *
      * @param ext 文件后缀名
@@ -169,6 +201,16 @@ public class FileTools {
      */
     public boolean isPpt(String ext) {
         return acquireFileExtProperty().acquirePptSupports().contains(ext);
+    }
+
+    /**
+     * 校验文件是否是 ppt
+     *
+     * @param ext 文件后缀名
+     * @return 校验结果
+     */
+    public boolean isPpt(FileExtTypeEnum ext) {
+        return FileExtTypeEnum.PPT.equals(ext);
     }
 
     /**
@@ -182,6 +224,16 @@ public class FileTools {
     }
 
     /**
+     * 校验文件是否是 excel
+     *
+     * @param ext 文件后缀名
+     * @return 校验结果
+     */
+    public boolean isExcel(FileExtTypeEnum ext) {
+        return FileExtTypeEnum.EXCEL.equals(ext);
+    }
+
+    /**
      * 校验文件是否是 pdf
      *
      * @param ext 文件后缀名
@@ -192,13 +244,53 @@ public class FileTools {
     }
 
     /**
+     * 校验文件是否是 pdf
+     *
+     * @param ext 文件后缀名
+     * @return 校验结果
+     */
+    public boolean isPdf(FileExtTypeEnum ext) {
+        return FileExtTypeEnum.PDF.equals(ext);
+    }
+
+    /**
+     * 检测文件是否是 txt
+     *
+     * @param ext 文件后缀名
+     * @return 校验结果
+     */
+    private boolean isTxt(String ext) {
+        return acquireFileExtProperty().acquireTxtSupports().contains(ext);
+    }
+
+    /**
+     * 检测文件是否是 txt
+     *
+     * @param ext 文件后缀名
+     * @return 校验结果
+     */
+    private boolean isTxt(FileExtTypeEnum ext) {
+        return FileExtTypeEnum.TXT.equals(ext);
+    }
+
+    /**
      * 校验文件是否是 office 文档
      *
      * @param ext 文件后缀名
      * @return 校验结果
      */
-    public boolean isOffice(String ext) {
-        return acquireFileExtProperty().acquireOfficeSupports().contains(ext);
+    public boolean isDocument(String ext) {
+        return acquireFileExtProperty().acquireDocumentSupports().contains(ext);
+    }
+
+    /**
+     * 校验文件是否是 office 文档
+     *
+     * @param ext 文件后缀名
+     * @return 校验结果
+     */
+    public boolean isDocument(FileExtTypeEnum ext) {
+        return isWord(ext) || isPpt(ext) || isExcel(ext) || isPpt(ext) || isTxt(ext);
     }
 
     /**
@@ -207,20 +299,73 @@ public class FileTools {
      * @param ext 文件后缀格式
      * @return 文档类型
      */
-    public OfficeTypeEnum acquireOfficeType(String ext) {
+    public FileExtTypeEnum acquireDocumentType(String ext) {
         if (isWord(ext)) {
-            return OfficeTypeEnum.WORD;
+            return FileExtTypeEnum.WORD;
         }
         if (isPpt(ext)) {
-            return OfficeTypeEnum.PPT;
+            return FileExtTypeEnum.PPT;
         }
         if (isExcel(ext)) {
-            return OfficeTypeEnum.EXCEL;
+            return FileExtTypeEnum.EXCEL;
         }
         if (isPdf(ext)) {
-            return OfficeTypeEnum.PDF;
+            return FileExtTypeEnum.PDF;
+        }
+        if (isTxt(ext)) {
+            return FileExtTypeEnum.TXT;
         }
         return null;
+    }
+
+    /**
+     * 获取文件对应的文档类型
+     *
+     * @param ext 文件后缀格式
+     * @return 文档类型
+     */
+    public FileExtTypeEnum acquireFileType(String ext) {
+        if (isVideo(ext)) {
+            return FileExtTypeEnum.VIDEO;
+        }
+        if (isAudio(ext)) {
+            return FileExtTypeEnum.AUDIO;
+        }
+        return acquireDocumentType(ext);
+    }
+
+    /**
+     * 根据文件类型获取对应的后缀格式列表
+     *
+     * @param ext 文件类型后缀格式
+     * @return 后缀格式列表
+     */
+    public List<String> acquireExtList(FileExtTypeEnum ext) {
+        if (ObjUtil.isNull(ext)) {
+            return ListUtil.empty();
+        }
+        if (FileExtTypeEnum.VIDEO.equals(ext)) {
+            return acquireFileExtProperty().acquireVideoSupports();
+        }
+        if (FileExtTypeEnum.AUDIO.equals(ext)) {
+            return acquireFileExtProperty().acquireAudioSupports();
+        }
+        if (FileExtTypeEnum.WORD.equals(ext)) {
+            return acquireFileExtProperty().acquireWordSupports();
+        }
+        if (FileExtTypeEnum.PPT.equals(ext)) {
+            return acquireFileExtProperty().acquirePptSupports();
+        }
+        if (FileExtTypeEnum.EXCEL.equals(ext)) {
+            return acquireFileExtProperty().acquireExcelSupports();
+        }
+        if (FileExtTypeEnum.PDF.equals(ext)) {
+            return acquireFileExtProperty().acquirePdfSupports();
+        }
+        if (FileExtTypeEnum.TXT.equals(ext)) {
+            return acquireFileExtProperty().acquireTxtSupports();
+        }
+        return ListUtil.empty();
     }
 
     /**

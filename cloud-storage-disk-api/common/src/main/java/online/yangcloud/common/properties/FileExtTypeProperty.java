@@ -47,6 +47,11 @@ public class FileExtTypeProperty {
     private String pdf;
 
     /**
+     * 其他
+     */
+    private String otherDocument;
+
+    /**
      * 获取视频支持的后缀格式
      *
      * @return 格式列表
@@ -101,15 +106,25 @@ public class FileExtTypeProperty {
     }
 
     /**
+     * 获取 txt 支持的后缀格式
+     *
+     * @return 格式列表
+     */
+    public List<String> acquireTxtSupports() {
+        return StrUtil.isBlank(otherDocument) ? Collections.emptyList() : addDotPrefix(otherDocument);
+    }
+
+    /**
      * 获取 office 支持的后缀格式
      *
      * @return 格式列表
      */
-    public List<String> acquireOfficeSupports() {
+    public List<String> acquireDocumentSupports() {
         List<String> supports = acquireWordSupports();
         supports.addAll(acquirePptSupports());
         supports.addAll(acquireExcelSupports());
         supports.addAll(acquirePdfSupports());
+        supports.addAll(acquireTxtSupports());
         return supports;
     }
 
@@ -165,6 +180,14 @@ public class FileExtTypeProperty {
         this.pdf = pdf;
     }
 
+    public String getOtherDocument() {
+        return otherDocument;
+    }
+
+    public void setOtherDocument(String otherDocument) {
+        this.otherDocument = otherDocument;
+    }
+
     @Override
     public String toString() {
         return "FileExtTypeProperty["
@@ -173,7 +196,8 @@ public class FileExtTypeProperty {
                 + " word=" + word + ","
                 + " ppt=" + ppt + ","
                 + " excel=" + excel + ","
-                + " pdf=" + pdf
+                + " pdf=" + pdf + ","
+                + " otherDocument=" + otherDocument
                 + " ]";
     }
 }

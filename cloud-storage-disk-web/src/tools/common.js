@@ -19,7 +19,10 @@ const identifyFileAvatar = (file) => {
     return apiConfig().iconBaseUrl + 'file/directory.png'
   }
   if (extend !== undefined && extend !== null && Object.keys(extend).length > 0) {
-    return apiConfig().apiBaseUrl + extend.thumbnail
+    const { thumbnail } = extend
+    if (thumbnail !== '') {
+      return apiConfig().apiBaseUrl + thumbnail
+    }
   }
   // 检测到是视频文件
   if (acquireSupportTypes().video.indexOf(ext) >= 0) {

@@ -137,7 +137,6 @@ public class RedisTools {
      * @param redisKey redisKey
      */
     public void delete(String redisKey) {
-        logger.info("delete redis [{}]", redisKey);
         redisTemplate.delete(redisKey);
     }
 

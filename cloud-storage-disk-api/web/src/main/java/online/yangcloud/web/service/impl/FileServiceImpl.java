@@ -5,9 +5,11 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.annotation.TimeConsuming;
 import online.yangcloud.common.common.AppConstants;
@@ -157,10 +159,17 @@ public class FileServiceImpl implements FileService {
         metaService.acquireFile().insertWidthPrimaryKey(file);
 
         // 记录各类型文件的详细元数据
-        redisTools.convertAndSend(AppConstants.Topic.PREVIEW, JSONUtil.toJsonStr(file));
+        metaService.acquireSnapshotConvert().addPreviewTask(PreviewConvertTask.builder()
+                .setId(IdTools.fastSimpleUuid())
+                .setFileId(fileId)
+                .setIsOver(YesOrNoEnum.NO.code()));
+
+        // 开启文件预览转换任务
+        redisTools.set(AppConstants.PreviewConverter.CONVERT_TASK, fileId);
 
         // 增加空间使用量
         redisTools.set(AppConstants.Account.INCREMENT + user.getId() + StrUtil.COLON + file.getSize(), StrUtil.EMPTY);
+        redisTools.set(AppConstants.PreviewConverter.CONVERT_LOCK + fileId, fileId);
 
         // 清空文件块的缓存记录
         redisTools.delete(AppConstants.Uploader.FILE_BLOCK_UPLOAD_PREFIX + identifier);
@@ -493,9 +502,9 @@ public class FileServiceImpl implements FileService {
         if (!videos.isEmpty()) {
             thumbnailReflectionMap.putAll(thumbnailService.queryMetadata(videos));
         }
-        
+
         // 检测当前页面是否有 office 文档
-        List<FileMetadata> offices = files.stream().filter(o -> fileTools.isOffice(o.getExt())).collect(Collectors.toList());
+        List<FileMetadata> offices = files.stream().filter(o -> fileTools.isDocument(o.getExt())).collect(Collectors.toList());
         if (!offices.isEmpty()) {
             thumbnailReflectionMap.putAll(thumbnailService.queryMetadata(offices));
         }
@@ -504,23 +513,10 @@ public class FileServiceImpl implements FileService {
         List<FileMetadataView> views = new ArrayList<>(files.size());
         for (FileMetadata metadata : files) {
             FileMetadataView view = FileMetadataView.convert(metadata);
-            if (fileTools.isVideo(metadata.getExt()) || fileTools.isOffice(metadata.getExt())) {
+            if (fileTools.isVideo(metadata.getExt()) || fileTools.isDocument(metadata.getExt())) {
                 Object o = thumbnailReflectionMap.get(metadata.getId());
                 if (ObjectUtil.isNotNull(o)) {
-                    if (fileTools.isVideo(metadata.getExt())) {
-                        VideoMetadata video = JSONUtil.toBean(JSONUtil.toJsonStr(o), VideoMetadata.class);
-                        view.setExtend(JSONUtil.createObj()
-                                .set("thumbnail", video.getThumbnail())
-                                .set("duration", video.getDuration()));
-                    }
-                    if (fileTools.isOffice(metadata.getExt())) {
-                        OfficeMetadata office = JSONUtil.toBean(JSONUtil.toJsonStr(o), OfficeMetadata.class);
-                        view.setExtend(JSONUtil.createObj()
-                                .set("thumbnail", office.getThumbnail())
-                                .set("width", office.getWidth())
-                                .set("height", office.getHeight())
-                                .set("pageTotal", office.getPageTotal()));
-                    }
+                    view.setExtend(JSONUtil.parseObj(o));
                 }
             }
             views.add(view);
@@ -602,9 +598,7 @@ public class FileServiceImpl implements FileService {
 
         // 过滤掉非指定类型件，并查询指定类型文件元数据
         Map<String, Object> metaMaps = new HashMap<>(files.size());
-        List<String> ext = FileExtTypeEnum.VIDEO.equals(extType) ?
-                fileTools.acquireFileExtProperty().acquireVideoSupports() : FileExtTypeEnum.AUDIO.equals(extType) ?
-                fileTools.acquireFileExtProperty().acquireAudioSupports() : Collections.emptyList();
+        List<String> ext = fileTools.acquireExtList(extType);
         files = files.stream().filter(o -> ext.contains(o.getExt()))
                 .sorted(Comparator.comparingLong(FileMetadata::getUploadTime))
                 .collect(Collectors.toList());
@@ -617,25 +611,32 @@ public class FileServiceImpl implements FileService {
         for (FileMetadata file : files) {
             FileMetadataView view = FileMetadataView.convert(file);
             Object o = metaMaps.get(file.getId());
-            if (ObjectUtil.isNotNull(o)) {
-                if (FileExtTypeEnum.VIDEO.equals(extType)) {
-                    VideoMetadata video = JSONUtil.toBean(JSONUtil.toJsonStr(o), VideoMetadata.class);
-                    view.setExtend(JSONUtil.createObj()
-                            .set("thumbnail", video.getThumbnail())
-                            .set("duration", video.getDuration()));
-                }
-                if (FileExtTypeEnum.AUDIO.equals(extType)) {
-                    AudioMetadata audio = JSONUtil.toBean(JSONUtil.toJsonStr(o), AudioMetadata.class);
-                    view.setExtend(JSONUtil.createObj()
-                            .set("title", audio.getTitle())
-                            .set("album", audio.getAlbum())
-                            .set("artist", audio.getArtist())
-                            .set("duration", audio.getDuration()));
-                }
+            if (ObjUtil.isNotNull(o) && ObjUtil.isNotNull(fileTools.acquireFileType(view.getExt()))) {
+                view.setExtend(JSONUtil.parseObj(o));
             }
             views.add(view);
         }
         return views;
+    }
+
+    @Override
+    public JSONObject queryFileExtend(String fileId, FileExtTypeEnum ext) {
+        // 检测是否支持文件的预览
+        List<String> types = fileTools.acquireExtList(ext);
+        if (types.isEmpty()) {
+            ExceptionTools.businessLogger("暂不支持此类型文件的预览");
+        }
+
+        if (fileTools.isVideo(ext)) {
+            return JSONUtil.parseObj(metaService.acquireVideo().queryVideoByFileId(fileId));
+        }
+        if (fileTools.isAudio(ext)) {
+            return JSONUtil.parseObj(metaService.acquireAudio().queryAudioByFileId(fileId));
+        }
+        if (fileTools.isDocument(ext)) {
+            return JSONUtil.parseObj(metaService.acquireDocument().queryDocumentByFileId(fileId));
+        }
+        return null;
     }
 
     @Override

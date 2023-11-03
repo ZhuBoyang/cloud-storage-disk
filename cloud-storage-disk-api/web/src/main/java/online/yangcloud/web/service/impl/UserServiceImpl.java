@@ -2,6 +2,7 @@ package online.yangcloud.web.service.impl;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
@@ -48,8 +49,8 @@ public class UserServiceImpl implements UserService {
     private RedisTools redisTools;
 
     @Override
-    public UserMetaService acquireMeta() {
-        return userMetaService;
+    public boolean hadInitialized() {
+        return ObjUtil.isNotNull(userMetaService.queryFirstUser());
     }
 
     @Override
@@ -85,9 +86,6 @@ public class UserServiceImpl implements UserService {
 
         // 创建用户的文件根目录
         fileService.initialUserRoot(account.getId());
-
-        // 修改是否已完成初始化的标志
-        AppProperties.ACCOUNT_HAS_INITIAL = Boolean.TRUE;
     }
 
     @Override

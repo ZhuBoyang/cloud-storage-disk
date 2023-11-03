@@ -9,7 +9,7 @@ import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.annotation.DatabaseColumn;
 import online.yangcloud.common.annotation.DatabaseIndex;
 import online.yangcloud.common.common.AppConstants;
-import online.yangcloud.common.enumration.DatabaseColumnTypeEnum;
+import online.yangcloud.common.enumration.ColumnTypeEnum;
 import online.yangcloud.common.enumration.FileTypeEnum;
 import online.yangcloud.common.model.request.file.FileUploader;
 import online.yangcloud.common.tools.IdTools;
@@ -30,69 +30,69 @@ public class FileMetadata extends BaseParameter {
      * id
      */
     @TableId
-    @DatabaseColumn(primary = true, name = "id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件 id")
+    @DatabaseColumn(primary = true, name = "id", type = ColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件 id")
     @DatabaseIndex(unique = true)
     private String id;
 
     /**
      * 父级目录 id
      */
-    @DatabaseColumn(name = "pid", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "上级文件 id")
+    @DatabaseColumn(name = "pid", type = ColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "上级文件 id")
     private String pid;
 
     /**
      * 文件名
      */
-    @DatabaseColumn(name = "name", type = DatabaseColumnTypeEnum.VARCHAR, length = 1000, canNull = false, comment = "文件名")
+    @DatabaseColumn(name = "name", type = ColumnTypeEnum.VARCHAR, length = 1000, canNull = false, comment = "文件名")
     private String name;
 
     /**
      * 文件存储路径
      */
-    @DatabaseColumn(name = "path", type = DatabaseColumnTypeEnum.VARCHAR, length = 1000, canNull = false, comment = "文件存储路径")
+    @DatabaseColumn(name = "path", type = ColumnTypeEnum.VARCHAR, length = 1000, canNull = false, comment = "文件存储路径")
     private String path;
 
     /**
      * 文件 hash
      */
-    @DatabaseColumn(name = "hash", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件 hash")
+    @DatabaseColumn(name = "hash", type = ColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件 hash")
     @DatabaseIndex
     private String hash;
 
     /**
      * 文件类型：0.文件；1.文件夹
      */
-    @DatabaseColumn(name = "type", type = DatabaseColumnTypeEnum.TINYINT, canNull = false, comment = "文件类型：0.文件；1.文件夹")
+    @DatabaseColumn(name = "type", type = ColumnTypeEnum.TINYINT, canNull = false, comment = "文件类型：0.文件；1.文件夹")
     private Integer type;
 
     /**
      * 文件后缀
      */
-    @DatabaseColumn(name = "ext", type = DatabaseColumnTypeEnum.VARCHAR, length = 10, canNull = false, comment = "文件后缀名")
+    @DatabaseColumn(name = "ext", type = ColumnTypeEnum.VARCHAR, length = 10, canNull = false, comment = "文件后缀名")
     private String ext;
 
     /**
      * 文件大小
      */
-    @DatabaseColumn(name = "size", type = DatabaseColumnTypeEnum.BIGINT, canNull = false, comment = "文件大小")
+    @DatabaseColumn(name = "size", type = ColumnTypeEnum.BIGINT, canNull = false, comment = "文件大小")
     private Long size;
 
     /**
      * 上传时间
      */
-    @DatabaseColumn(name = "upload_time", type = DatabaseColumnTypeEnum.BIGINT, canNull = false, comment = "上传时间")
+    @DatabaseColumn(name = "upload_time", type = ColumnTypeEnum.BIGINT, canNull = false, comment = "上传时间")
     private Long uploadTime;
 
     /**
      * 所有父级目录 id
      */
-    @DatabaseColumn(name = "ancestors", type = DatabaseColumnTypeEnum.TEXT, canNull = false, comment = "祖级文件 id 列表")
+    @DatabaseColumn(name = "ancestors", type = ColumnTypeEnum.TEXT, canNull = false, comment = "祖级文件 id 列表")
     private String ancestors;
 
     /**
      * 用户 id
      */
-    @DatabaseColumn(name = "user_id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件操作人 id")
+    @DatabaseColumn(name = "user_id", type = ColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件操作人 id")
     private String userId;
 
     public static FileMetadata initial(String userId) {

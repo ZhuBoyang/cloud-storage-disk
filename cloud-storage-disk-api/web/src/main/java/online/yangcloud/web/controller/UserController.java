@@ -6,7 +6,6 @@ import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.annotation.RepeatRequest;
 import online.yangcloud.common.annotation.SessionValid;
 import online.yangcloud.common.common.AppConstants;
-import online.yangcloud.common.common.AppProperties;
 import online.yangcloud.common.common.AppResultCode;
 import online.yangcloud.common.common.ResultData;
 import online.yangcloud.common.model.User;
@@ -57,7 +56,7 @@ public class UserController {
      */
     @PostMapping("/has_initial")
     public ResultData accountHasInitialed() {
-        return ResultData.success(AppProperties.ACCOUNT_HAS_INITIAL);
+        return ResultData.success(userService.hadInitialized());
     }
 
     /**

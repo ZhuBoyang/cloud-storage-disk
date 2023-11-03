@@ -2,10 +2,10 @@ package online.yangcloud.web.service.meta.impl;
 
 import online.yangcloud.common.annotation.TimeConsuming;
 import online.yangcloud.common.enumration.YesOrNoEnum;
-import online.yangcloud.common.mapper.OfficeMetadataMapper;
-import online.yangcloud.common.model.OfficeMetadata;
+import online.yangcloud.common.mapper.DocumentMetadataMapper;
+import online.yangcloud.common.model.DocumentMetadata;
 import online.yangcloud.common.tools.ExceptionTools;
-import online.yangcloud.web.service.meta.OfficeMetadataService;
+import online.yangcloud.web.service.meta.DocumentMetadataService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,27 +19,27 @@ import java.util.List;
 @Service
 @Transactional(rollbackFor = Exception.class)
 @TimeConsuming
-public class OfficeMetadataServiceImpl implements OfficeMetadataService {
+public class DocumentMetadataServiceImpl implements DocumentMetadataService {
 
     @Resource
-    private OfficeMetadataMapper officeMetadataMapper;
+    private DocumentMetadataMapper documentMetadataMapper;
 
     @Override
-    public void addOfficeRecord(OfficeMetadata metadata) {
-        ExceptionTools.updateError(officeMetadataMapper.insertWithPk(metadata));
+    public void addDocumentRecord(DocumentMetadata metadata) {
+        ExceptionTools.updateError(documentMetadataMapper.insertWithPk(metadata));
     }
 
     @Override
-    public OfficeMetadata queryOfficeByFileId(String id) {
-        return officeMetadataMapper.findOne(officeMetadataMapper.query()
+    public DocumentMetadata queryDocumentByFileId(String id) {
+        return documentMetadataMapper.findOne(documentMetadataMapper.query()
                 .where.fileId().eq(id)
                 .and.isDelete().eq(YesOrNoEnum.NO.code())
                 .end());
     }
 
     @Override
-    public List<OfficeMetadata> queryOfficesByFileIds(List<String> fileIds) {
-        return officeMetadataMapper.listEntity(officeMetadataMapper.query()
+    public List<DocumentMetadata> queryDocumentsByFileIds(List<String> fileIds) {
+        return documentMetadataMapper.listEntity(documentMetadataMapper.query()
                 .where.fileId().in(fileIds)
                 .and.isDelete().eq(YesOrNoEnum.NO.code())
                 .end());

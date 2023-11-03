@@ -13,10 +13,8 @@ public interface ThumbnailService {
 
     /**
      * 获取文件的缩略图并记录
-     *
-     * @param file 文件元数据
      */
-    void thumbnail(FileMetadata file);
+    void thumbnail();
 
     /**
      * 查询文件的缩略图

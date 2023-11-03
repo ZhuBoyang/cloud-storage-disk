@@ -1,6 +1,6 @@
 package online.yangcloud.web.service.meta;
 
-import online.yangcloud.common.model.OfficeMetadata;
+import online.yangcloud.common.model.DocumentMetadata;
 
 import java.util.List;
 
@@ -8,14 +8,14 @@ import java.util.List;
  * @author zhuboyang
  * @since 2023年10月20 11:14:54
  */
-public interface OfficeMetadataService {
+public interface DocumentMetadataService {
 
     /**
      * 添加 office 文件信息记录
      *
      * @param metadata 文档元数据
      */
-    void addOfficeRecord(OfficeMetadata metadata);
+    void addDocumentRecord(DocumentMetadata metadata);
 
     /**
      * 查询 office 文件的文档元数据
@@ -23,7 +23,7 @@ public interface OfficeMetadataService {
      * @param id 文件 id
      * @return 文档元数据
      */
-    OfficeMetadata queryOfficeByFileId(String id);
+    DocumentMetadata queryDocumentByFileId(String id);
 
     /**
      * 批量查询 office 文件的文档元数据
@@ -31,6 +31,6 @@ public interface OfficeMetadataService {
      * @param fileIds 文件 id 列表
      * @return 文档元数据
      */
-    List<OfficeMetadata> queryOfficesByFileIds(List<String> fileIds);
+    List<DocumentMetadata> queryDocumentsByFileIds(List<String> fileIds);
 
 }

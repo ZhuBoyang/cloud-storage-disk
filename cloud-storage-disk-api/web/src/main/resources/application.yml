@@ -54,6 +54,7 @@ media:
   ppt: ppt,pptx
   excel: xls,xlsx,csv
   pdf: pdf
+  other-document: txt
 jodconverter:
   local:
     enabled: true

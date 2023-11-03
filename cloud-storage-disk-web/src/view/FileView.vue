@@ -2,7 +2,8 @@
   <div class="file-view">
     <div class="view-box">
       <div class="file-searcher">
-        <a-input class="file-search-input" placeholder="请输入关键词" size="large" v-model:model-value="pager.name" allow-clear>
+        <a-input class="file-search-input" placeholder="请输入关键词" size="large" v-model:model-value="pager.name"
+                 allow-clear>
           <template #prefix>
             <img :src="apiConfig().iconBaseUrl + 'icons/search.png'" alt="search" width="20">
           </template>
@@ -32,7 +33,8 @@
                 @action-change="actionResult"
       ></file-box>
       <div class="file-pagination row-col-center">
-        <a-pagination v-model:current="pager.pageIndex" v-model:page-size="pager.pageSize" :total="pager.total" @change="changePage"/>
+        <a-pagination v-model:current="pager.pageIndex" v-model:page-size="pager.pageSize" :total="pager.total"
+                      @change="changePage"/>
       </div>
     </div>
     <video-player v-if="play.videoMedia"
@@ -46,6 +48,11 @@
                   :audio-id="play.playId"
                   :play-list="play.playList"
                   @on-close="closePlayer"
+    />
+    <document-player :metadata="play.metadata"
+                     :files="play.playList"
+                     @on-change="changeSnapshot"
+                     @on-close="closePlayer"
     />
   </div>
 </template>
@@ -62,13 +69,15 @@ import type from '../tools/type.js'
 const FileBox = defineAsyncComponent(() => import('../components/FileBox.vue'))
 const VideoPlayer = defineAsyncComponent(() => import('../components/VideoPlayer.vue'))
 const AudioPlayer = defineAsyncComponent(() => import('../components/AudioPlayer.vue'))
+const DocumentPlayer = defineAsyncComponent(() => import('../components/DocumentPlayer.vue'))
 
 export default {
   name: 'FileView',
   components: {
     FileBox,
     VideoPlayer,
-    AudioPlayer
+    AudioPlayer,
+    DocumentPlayer
   },
   setup: function () {
     const router = useRouter()
@@ -83,10 +92,11 @@ export default {
       },
       play: {
         url: http.url.file.playUrl, // 获取视频播放地址的接口
-        playId: '', // 要播放的媒体 id
+        metadata: {}, // 文件元数据
         playList: [], // 播放列表
         videoMedia: false, // 是否显示视频播放器
-        audioMedia: false // 是否显示音频播放器
+        audioMedia: false, // 是否显示音频播放器
+        documentMedia: false // 是否显示 office 播放器
       }
     })
     // 查询文件面包屑导航数据
@@ -153,8 +163,8 @@ export default {
       this.queryFiles(this.breads[this.breads.length - 1].id)
     },
     // 选择文件
-    selectChange (record) {
-      const { id, name, type: fileType, ext } = record
+    selectChange (metadata) {
+      const { id, name, type: fileType, ext } = metadata
       if (fileType === 0) {
         this.closePlayer()
         // 打开的文件是视频文件
@@ -173,12 +183,24 @@ export default {
             this.play.playList = response
           })
         }
+        // 打开的文件是文档
+        if (type.isDocument(ext)) {
+          this.play.metadata = metadata
+          http.reqUrl.file.document({ id: this.breads[this.breads.length - 1].id }).then(response => {
+            this.play.documentMedia = true
+            this.play.playList = response
+          })
+        }
       } else {
         const bread = { id, name }
         this.breads.push(bread)
         common.setUrlQuery(this.router, 'router', this.breads[this.breads.length - 1].id)
         this.queryFiles(id)
       }
+    },
+    // 切换预览的文件
+    changeSnapshot (o) {
+      this.play.metadata = o
     },
     // 切换页面
     changePage (pageIndex) {
@@ -201,6 +223,7 @@ export default {
     },
     // 关闭播放器
     closePlayer () {
+      this.play.metadata = {}
       this.play.playId = ''
       this.play.playList = []
       this.play.videoMedia = false

@@ -163,10 +163,12 @@ export default {
       type: String,
       default: ''
     },
-    // 视频文件 id
-    videoId: {
-      type: String,
-      default: ''
+    // 视频文件元数据
+    metadata: {
+      type: Object,
+      default: () => {
+        return {}
+      }
     },
     // 播放列表
     playList: {
@@ -209,7 +211,7 @@ export default {
     }
   },
   mounted () {
-    this.monitorVideoId()
+    this.monitorVideo()
   },
   methods: {
     apiConfig,
@@ -221,21 +223,20 @@ export default {
       return common.formatNumberToTime(time)
     },
     // 监控 props id 的变化
-    monitorVideoId () {
-      const videoId = this.videoId
-      if (videoId === '') {
-        // 关闭播放器，停止视频播放
-        this.stopPlay()
-        this.destroyPlayer()
-        return
-      }
-      if (videoId !== '') {
+    monitorVideo () {
+      this.$watch(() => this.metadata, metadata => {
+        if (Object.keys(metadata).length === 0) {
+          // 关闭播放器，停止视频播放
+          this.stopPlay()
+          this.destroyPlayer()
+          return
+        }
         // 初始化播放器，并开始播放视频
         this.initPlayer(this.$refs.player)
         this.visible = true
-        this.startPlay(this.videoId)
-        this.process.videoId = this.videoId
-      }
+        this.startPlay(metadata.id)
+        this.process.videoId = metadata.id
+      })
     },
     // 初始化播放器
     player (element) {

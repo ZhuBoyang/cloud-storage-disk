@@ -224,6 +224,46 @@ const type = {
     return supportsTypes.audio.indexOf(ext) >= 0
   },
 
+  // 是否是 word
+  isWord (ext) {
+    const supportsTypes = typeSupports === null || typeSupports === undefined ? {} : JSON.parse(typeSupports)
+    return supportsTypes.document.word.indexOf(ext) >= 0
+  },
+
+  // 是否是 ppt
+  isPpt (ext) {
+    const supportsTypes = typeSupports === null || typeSupports === undefined ? {} : JSON.parse(typeSupports)
+    return supportsTypes.document.ppt.indexOf(ext) >= 0
+  },
+
+  // 是否是 excel
+  isExcel (ext) {
+    const supportsTypes = typeSupports === null || typeSupports === undefined ? {} : JSON.parse(typeSupports)
+    return supportsTypes.document.excel.indexOf(ext) >= 0
+  },
+
+  // 是否是 pdf
+  isPdf (ext) {
+    const supportsTypes = typeSupports === null || typeSupports === undefined ? {} : JSON.parse(typeSupports)
+    return supportsTypes.document.pdf.indexOf(ext) >= 0
+  },
+
+  // 是否是 txt
+  isTxt (ext) {
+    const supportsTypes = typeSupports === null || typeSupports === undefined ? {} : JSON.parse(typeSupports)
+    return supportsTypes.document.txt.indexOf(ext) >= 0
+  },
+
+  // 是否是文档
+  isDocument (ext) {
+    return this.isWord(ext) || this.isPpt(ext) || this.isExcel(ext) || this.isPdf(ext) || this.isTxt(ext)
+  },
+
+  // 检测是否是系统支持预览的文件类型
+  isPreviewSupport (ext) {
+    return this.isVideo(ext) || this.isAudio(ext) || this.isDocument(ext)
+  },
+
   /**
    * 严格的身份证校验
    *

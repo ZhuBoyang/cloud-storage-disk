@@ -1,7 +1,9 @@
 package online.yangcloud.web.controller;
 
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import online.yangcloud.common.annotation.SessionValid;
 import online.yangcloud.common.common.AppConstants;
@@ -15,10 +17,7 @@ import online.yangcloud.common.model.request.file.*;
 import online.yangcloud.common.model.request.user.BreadsLooker;
 import online.yangcloud.common.model.view.PagerView;
 import online.yangcloud.common.model.view.file.FileMetadataView;
-import online.yangcloud.common.tools.ExceptionTools;
-import online.yangcloud.common.tools.FileTools;
-import online.yangcloud.common.tools.IdTools;
-import online.yangcloud.common.tools.SystemTools;
+import online.yangcloud.common.tools.*;
 import online.yangcloud.web.service.FileService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,6 +43,9 @@ public class FileController {
 
     @Resource
     private FileTools fileTools;
+    
+    @Resource
+    private RedisTools redisTools;
 
     /**
      * 获取系统支持的各类文件的后缀格式列表
@@ -55,7 +57,14 @@ public class FileController {
         return ResultData.success(JSONUtil.createObj()
                 .set("video", fileTools.acquireFileExtProperty().acquireVideoSupports())
                 .set("audio", fileTools.acquireFileExtProperty().acquireAudioSupports())
-                .set("office", fileTools.acquireFileExtProperty().acquireOfficeSupports()));
+                .set("document", JSONUtil.createObj()
+                        .set("word", fileTools.acquireFileExtProperty().acquireWordSupports())
+                        .set("ppt", fileTools.acquireFileExtProperty().acquirePptSupports())
+                        .set("excel", fileTools.acquireFileExtProperty().acquireExcelSupports())
+                        .set("pdf", fileTools.acquireFileExtProperty().acquirePdfSupports())
+                        .set("txt", fileTools.acquireFileExtProperty().acquireTxtSupports())
+                )
+        );
     }
 
     /**
@@ -320,6 +329,25 @@ public class FileController {
     public ResultData queryAudios(@Valid @RequestBody IdRequest request, User user) {
         List<FileMetadataView> audios = fileService.queryFilesUnderDir(request.getId(), user.getId(), FileExtTypeEnum.AUDIO);
         return ResultData.success(audios);
+    }
+
+    /**
+     * 查询指定目录下所有的文档文件
+     *
+     * @param request 目录的文件 id
+     * @param user    当前登录的用户
+     * @return 音频列表
+     */
+    @SessionValid
+    @PostMapping("/document")
+    public ResultData queryDocuments(@Valid @RequestBody IdRequest request, User user) {
+        List<FileMetadataView> documents = new ArrayList<>();
+        documents.addAll(fileService.queryFilesUnderDir(request.getId(), user.getId(), FileExtTypeEnum.WORD));
+        documents.addAll(fileService.queryFilesUnderDir(request.getId(), user.getId(), FileExtTypeEnum.PPT));
+        documents.addAll(fileService.queryFilesUnderDir(request.getId(), user.getId(), FileExtTypeEnum.EXCEL));
+        documents.addAll(fileService.queryFilesUnderDir(request.getId(), user.getId(), FileExtTypeEnum.PDF));
+        documents.addAll(fileService.queryFilesUnderDir(request.getId(), user.getId(), FileExtTypeEnum.TXT));
+        return ResultData.success(documents);
     }
 
     /**

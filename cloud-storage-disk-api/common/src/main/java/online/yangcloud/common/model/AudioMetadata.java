@@ -1,11 +1,10 @@
 package online.yangcloud.common.model;
 
-import cn.hutool.core.util.StrUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
 import cn.org.atool.fluent.mybatis.annotation.TableId;
 import online.yangcloud.common.annotation.DatabaseColumn;
 import online.yangcloud.common.annotation.DatabaseIndex;
-import online.yangcloud.common.enumration.DatabaseColumnTypeEnum;
+import online.yangcloud.common.enumration.ColumnTypeEnum;
 
 /**
  * @author zhuboyang
@@ -18,51 +17,51 @@ public class AudioMetadata extends BaseParameter {
      * 主键 id
      */
     @TableId
-    @DatabaseColumn(primary = true, name = "id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false)
+    @DatabaseColumn(primary = true, name = "id", type = ColumnTypeEnum.VARCHAR, length = 32, canNull = false)
     @DatabaseIndex(unique = true)
     private String id;
 
     /**
      * 文件 id
      */
-    @DatabaseColumn(name = "file_id", type = DatabaseColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件 id")
+    @DatabaseColumn(name = "file_id", type = ColumnTypeEnum.VARCHAR, length = 32, canNull = false, comment = "文件 id")
     @DatabaseIndex
     private String fileId;
 
     /**
      * 歌曲名称
      */
-    @DatabaseColumn(name = "title", type = DatabaseColumnTypeEnum.VARCHAR, length = 128, canNull = false, comment = "歌曲名称")
+    @DatabaseColumn(name = "title", type = ColumnTypeEnum.VARCHAR, length = 128, canNull = false, comment = "歌曲名称")
     private String title = "未知";
 
     /**
      * 所属专辑
      */
-    @DatabaseColumn(name = "album", type = DatabaseColumnTypeEnum.VARCHAR, length = 128, canNull = false, comment = "所属专辑")
+    @DatabaseColumn(name = "album", type = ColumnTypeEnum.VARCHAR, length = 128, canNull = false, comment = "所属专辑")
     private String album = "未知";
 
     /**
      * 艺术家
      */
-    @DatabaseColumn(name = "artist", type = DatabaseColumnTypeEnum.VARCHAR, length = 128, canNull = false, comment = "艺术家")
+    @DatabaseColumn(name = "artist", type = ColumnTypeEnum.VARCHAR, length = 128, canNull = false, comment = "艺术家")
     private String artist = "未知";
 
     /**
      * 时长
      */
-    @DatabaseColumn(name = "duration", type = DatabaseColumnTypeEnum.DOUBLE, canNull = false, comment = "时长")
+    @DatabaseColumn(name = "duration", type = ColumnTypeEnum.DOUBLE, canNull = false, comment = "时长")
     private Double duration;
 
     /**
      * 比特率
      */
-    @DatabaseColumn(name = "bitrate", type = DatabaseColumnTypeEnum.VARCHAR, length = 20, canNull = false, comment = "比特率")
+    @DatabaseColumn(name = "bitrate", type = ColumnTypeEnum.VARCHAR, length = 20, canNull = false, comment = "比特率")
     private String bitrate;
 
     /**
      * 编码格式
      */
-    @DatabaseColumn(name = "encoder_code", type = DatabaseColumnTypeEnum.VARCHAR, length = 10, canNull = false, comment = "编码格式")
+    @DatabaseColumn(name = "encoder_code", type = ColumnTypeEnum.VARCHAR, length = 10, canNull = false, comment = "编码格式")
     private String encoderCode;
 
     public static AudioMetadata initial() {

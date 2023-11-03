@@ -9,7 +9,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <revision>0.3.1</revision>
+        <revision>0.4.0</revision>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -115,6 +115,16 @@
         </dependency>
 
         <!-- office 转换器 -->
+<!--        <dependency>-->
+<!--            <groupId>com.artofsolving</groupId>-->
+<!--            <artifactId>jodconverter</artifactId>-->
+<!--            <version>2.2.2</version>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>com.github.wjw465150</groupId>
+            <artifactId>jodconverter-all</artifactId>
+            <version>2.2.2</version>
+        </dependency>
         <dependency>
             <groupId>org.jodconverter</groupId>
             <artifactId>jodconverter-local</artifactId>
@@ -125,11 +135,15 @@
             <artifactId>jodconverter-spring-boot-starter</artifactId>
             <version>4.4.6</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
             <version>2.0.26</version>
+        </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itext-asian</artifactId>
+            <version>5.2.0</version>
         </dependency>
 
         <!--        下列依赖用于获取系统资源（内存、硬盘等）使用情况-->

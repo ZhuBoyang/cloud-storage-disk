@@ -38,6 +38,13 @@ public interface UserMetaService {
     void updateUser(User user);
 
     /**
+     * 查询系统创建的第一个用户
+     *
+     * @return 用户信息
+     */
+    User queryFirstUser();
+
+    /**
      * 查询用户信息
      *
      * @param id 用户 id

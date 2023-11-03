@@ -113,7 +113,8 @@ const reqUrl = {
     dirs: obj => req(modules.file + 'dirs', methods.post, obj),
     trash: obj => req(modules.file + 'trash', methods.post, obj), // 查询回收站的文件列表
     videos: obj => req(modules.file + 'videos', methods.post, obj), // 查询目录下所有的视频文件
-    audios: obj => req(modules.file + 'audios', methods.post, obj) // 查询目录下所有的音频文件
+    audios: obj => req(modules.file + 'audios', methods.post, obj), // 查询目录下所有的音频文件
+    document: obj => req(modules.file + 'document', methods.post, obj) // 查询目录下所有的文档文件
   }
 }
 

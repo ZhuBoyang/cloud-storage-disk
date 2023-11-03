@@ -120,16 +120,4 @@ public class TableMapper {
         }
     }
 
-    /**
-     * 生成基础字段 SQL
-     *
-     * @return 基础字段 SQL
-     */
-    private StrBuilder generateBaseParameter() {
-        return StrBuilder.create()
-                .append("  `create_time` bigint NOT NULL,")
-                .append("  `update_time` bigint NOT NULL,")
-                .append("  `is_delete` tinyint DEFAULT '0',");
-    }
-
 }
