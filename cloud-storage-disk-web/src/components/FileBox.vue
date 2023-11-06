@@ -10,7 +10,7 @@
       <div class="header--size">文件大小</div>
       <div class="header--actions"></div>
     </div>
-    <div class="file-box--body">
+    <div class="file-box--body" v-if="fileList.length > 0">
       <div class="file-box--body-item"
            v-for="(item, index) in fileList"
            :class="[{'is-selected': selected[index]}]"
@@ -473,6 +473,9 @@ export default {
   .file-box--body {
     height: calc(100vh - 60px - 30px - 24px - 20px - 50px - 75px - 50px);
     overflow-y: auto;
+    &::-webkit-scrollbar {
+      display: none;
+    }
     .file-box--body-item {
       height: 72px;
       display: flex;

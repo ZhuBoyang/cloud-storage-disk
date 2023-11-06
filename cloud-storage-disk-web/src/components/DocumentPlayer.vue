@@ -1,6 +1,7 @@
 <template>
-  <div class="office-layer" :class="[{'is-show': visible}]"></div>
+  <div class="office-layer" ref="officePlayer" :class="[{'is-show': visible}]"></div>
   <div class="office-landscape"
+       ref="officeLandscape"
        :class="[{'is-show': visible}]"
        @mouseover="showControls"
        @mouseout="hideControls"
@@ -141,10 +142,18 @@ export default {
           const { extend } = metadata
           const { pageTotal } = extend
           this.play.pageTotal = pageTotal
-          this.visible = true
+          this.$refs.officePlayer.style.display = 'block'
+          this.$refs.officeLandscape.style.display = 'block'
+          setTimeout(() => {
+            this.visible = true
+          }, 1)
         } else {
           this.visible = false
           this.clearRecord()
+          setTimeout(() => {
+            this.$refs.officePlayer.style.display = 'none'
+            this.$refs.officeLandscape.style.display = 'none'
+          }, 310)
         }
       })
     },
@@ -248,14 +257,14 @@ export default {
   left: 0;
   width: 100%;
   height: 100vh;
+  display: none;
   background-color: rgba(0, 0, 0, .8);
   opacity: 0;
-  transition: all .3s;
-  z-index: -1;
+  transition: opacity .3s;
+  z-index: 3;
   &.is-show {
     opacity: 1;
-    transition: all .3s;
-    z-index: 3;
+    transition: opacity .3s;
   }
 }
 .office-landscape {
@@ -266,17 +275,17 @@ export default {
   min-width: 500px;
   height: 25vw;
   min-height: 250px;
+  display: none;
   background-color: #ffffff;
   border-radius: 10px;
   transform: translate(-50%, -60%);
   opacity: 0;
   transition: all .3s;
-  z-index: -1;
+  z-index: 3;
   &.is-show {
     opacity: 1;
     transform: translate(-50%, -50%);
     transition: all .3s;
-    z-index: 3;
   }
   .office-box {
     position: relative;
@@ -390,7 +399,10 @@ export default {
       max-height: 100%;
       background-color: #f4f4f4;
       border-radius: 10px;
-      overflow: hidden;
+      overflow-y: auto;
+      &::-webkit-scrollbar {
+        display: none;
+      }
       .office-item {
         padding: 0 10px;
         width: calc(100% - 21px);
@@ -430,27 +442,6 @@ export default {
         }
       }
     }
-  }
-}
-@keyframes scroll {
-  0% {
-    left: 0;
-    transform: translateX(0);
-  }
-
-  10% {
-    left: 0;
-    transform: translateX(0);
-  }
-
-  90% {
-    left: 100%;
-    transform: translateX(-100%);
-  }
-
-  100% {
-    left: 100%;
-    transform: translateX(-100%);
   }
 }
 </style>

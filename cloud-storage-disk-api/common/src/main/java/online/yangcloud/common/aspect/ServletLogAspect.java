@@ -32,7 +32,7 @@ public class ServletLogAspect {
     /**
      * 记录用户信息的类的全类名
      */
-    public static String TOKEN_CLASSPATH = "";
+    public static String TOKEN_CLASSPATH = "online.yangcloud.common.model.User";
 
     @Resource
     private RedisTools redisTools;

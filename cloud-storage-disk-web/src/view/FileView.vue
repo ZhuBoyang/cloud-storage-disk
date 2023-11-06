@@ -119,6 +119,7 @@ export default {
         pid = dataList.breads.length === 0 ? '_' : dataList.breads[dataList.breads.length - 1].id
       }
       dataList.pager.pid = pid
+      dataList.files = []
       http.reqUrl.file.pager(dataList.pager).then(response => {
         dataList.files = response.data
         dataList.pager.total = response.total

@@ -1,4 +1,4 @@
-package online.yangcloud.common.runner;
+package online.yangcloud.web.runner;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.org.atool.fluent.mybatis.annotation.FluentMybatis;
