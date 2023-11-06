@@ -61,36 +61,48 @@
       <div class="box-close-action" :class="[{'is-show': control.visible}]">
         <img :src="apiConfig().iconBaseUrl + 'player/close.png'" alt="close" @click="closePlayer"/>
       </div>
-      <div class="office-files">
-        <div class="office-item"
-             v-for="o in files"
-             :key="o.id"
-             :class="[{'is-selected': o.id === metadata.id}]"
-             @dblclick="changeDocument(o)"
-        >
-          <div class="item-avatar">
-            <img :src="recognizeDocumentIcon(o)" alt="close"/>
-          </div>
-          <a-tooltip position="right" :content="o.name">
-            <div class="item-name">{{ o.name }}{{ o.ext }}</div>
-          </a-tooltip>
-        </div>
-      </div>
     </div>
+  </div>
+  <div class="office-sames-box"
+       v-if="files.length > 0"
+       :class="[{'is-show': visible}, {'is-display': action.visible}]"
+  >
+    <div class="office-item"
+         v-for="o in files"
+         :key="o.id"
+         :class="[{'is-selected': o.id === metadata.id}]"
+         @dblclick="changeDocument(o)"
+    >
+      <div class="item-avatar">
+        <img :src="recognizeDocumentIcon(o)" alt="close"/>
+      </div>
+      <a-tooltip position="right" :content="o.name">
+        <div class="item-name">{{ o.name }}{{ o.ext }}</div>
+      </a-tooltip>
+    </div>
+  </div>
+  <div class="office-sames-action"
+       :class="[{'is-show': visible}, {'is-display': action.visible}]"
+       @click="action.visible = !action.visible"
+  >
+    <icon-caret-left size="20" v-if="action.visible"/>
+    <icon-caret-right size="20" v-else/>
   </div>
 </template>
 
 <script>
 import apiConfig from '../api/apiConfig.js'
 import { reactive, toRefs } from 'vue'
-import { IconExclamationCircleFill } from '@arco-design/web-vue/es/icon'
+import { IconExclamationCircleFill, IconCaretLeft, IconCaretRight } from '@arco-design/web-vue/es/icon'
 import common from '../tools/common.js'
 import type from '../tools/type.js'
 
 export default {
   name: 'DocumentPlayer',
   components: {
-    IconExclamationCircleFill
+    IconExclamationCircleFill,
+    IconCaretLeft,
+    IconCaretRight
   },
   computed: {
     type () {
@@ -118,6 +130,9 @@ export default {
       visible: false, // 是否显示播放器
       control: {
         visible: false // 是否显示控制栏
+      },
+      action: {
+        visible: false // 是否显示同级目录下所有的文档
       },
       play: {
         currentIndex: -1, // 当前显示的页面图片
@@ -272,9 +287,9 @@ export default {
   top: 50%;
   left: 50%;
   width: 50vw;
-  min-width: 500px;
+  min-width: 520px;
   height: 25vw;
-  min-height: 250px;
+  min-height: 260px;
   display: none;
   background-color: #ffffff;
   border-radius: 10px;
@@ -391,57 +406,91 @@ export default {
         filter: invert(100%);
       }
     }
-    .office-files {
-      position: absolute;
-      top: 0;
-      left: -260px;
-      width: 250px;
-      max-height: 100%;
-      background-color: #f4f4f4;
-      border-radius: 10px;
-      overflow-y: auto;
-      &::-webkit-scrollbar {
-        display: none;
-      }
-      .office-item {
-        padding: 0 10px;
-        width: calc(100% - 21px);
-        height: 50px;
-        display: flex;
-        align-items: center;
-        overflow: hidden;
-        white-space: nowrap;
-        cursor: pointer;
-        &:hover {
-          background-color: #ececec;
-        }
-        &.is-selected {
-          border-left: 3px solid #64b47c;
-          .item-name {
-            color: #64b782;
-          }
-        }
-        .item-avatar {
-          width: 40px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          img {
-            max-width: 100%;
-            max-height: 100%;
-          }
-        }
-        .item-name {
-          margin-left: 10px;
-          width: calc(100% - 70px);
-          height: 100%;
-          display: flex;
-          align-items: center;
-          overflow: hidden;
-        }
+  }
+}
+.office-sames-box {
+  position: fixed;
+  top: 50%;
+  left: -260px;
+  width: 260px;
+  height: 25vw;
+  min-height: 260px;
+  display: none;
+  background-color: #f4f4f4;
+  transform: translate(0, -50%);
+  transition: left .3s;
+  overflow-y: auto;
+  z-index: 3;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  &.is-show {
+    display: block;
+  }
+  &.is-display {
+    left: 0;
+    transition: left .3s;
+  }
+  .office-item {
+    padding: 0 10px;
+    width: calc(100% - 21px);
+    height: 50px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: pointer;
+    &:hover {
+      background-color: #ececec;
+    }
+    &.is-selected {
+      border-left: 3px solid #64b47c;
+      .item-name {
+        color: #64b782;
       }
     }
+    .item-avatar {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      img {
+        max-width: 100%;
+        max-height: 100%;
+      }
+    }
+    .item-name {
+      margin-left: 10px;
+      width: calc(100% - 70px);
+      height: 100%;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+  }
+}
+.office-sames-action {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  width: 20px;
+  height: 50px;
+  display: none;
+  color: #242933;
+  background-color: #ffffff;
+  cursor: pointer;
+  transform: translate(0, -50%);
+  transition: left .3s;
+  z-index: 3;
+  &.is-show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  &.is-display {
+    left: 260px;
+    transition: left .3s;
   }
 }
 </style>
