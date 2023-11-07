@@ -114,12 +114,6 @@
             <artifactId>commons-pool2</artifactId>
         </dependency>
 
-        <!-- office 转换器 -->
-<!--        <dependency>-->
-<!--            <groupId>com.artofsolving</groupId>-->
-<!--            <artifactId>jodconverter</artifactId>-->
-<!--            <version>2.2.2</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>com.github.wjw465150</groupId>
             <artifactId>jodconverter-all</artifactId>

@@ -5,7 +5,6 @@ import cn.hutool.core.util.StrUtil;
 import online.yangcloud.common.common.AppConstants;
 import online.yangcloud.common.tools.RedisTools;
 import online.yangcloud.web.service.ThumbnailService;
-import online.yangcloud.web.service.meta.MetaService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +24,7 @@ public class PreviewConvertTask {
 
     @Resource
     private ThumbnailService thumbnailService;
-    
+
     @Resource
     private RedisTools redisTools;
 

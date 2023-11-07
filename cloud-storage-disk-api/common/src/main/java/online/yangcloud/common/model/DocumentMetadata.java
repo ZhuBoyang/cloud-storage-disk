@@ -66,7 +66,7 @@ public class DocumentMetadata extends BaseParameter {
     private String errMsg;
 
     public static DocumentMetadata builder() {
-        return new DocumentMetadata();                
+        return new DocumentMetadata();
     }
 
     public String getId() {

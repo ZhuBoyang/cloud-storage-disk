@@ -29,7 +29,7 @@ public class MetaServiceImpl implements MetaService {
 
     @Resource
     private DocumentMetadataService documentMetadataService;
-    
+
     @Resource
     private PreviewConvertMetaService previewConvertMetaService;
 

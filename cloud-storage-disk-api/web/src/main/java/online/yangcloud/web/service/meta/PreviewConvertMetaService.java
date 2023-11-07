@@ -17,6 +17,7 @@ public interface PreviewConvertMetaService {
 
     /**
      * 修改转换任务
+     *
      * @param task 转换任务
      */
     void updatePreviewTask(PreviewConvertTask task);
