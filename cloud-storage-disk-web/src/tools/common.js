@@ -112,9 +112,15 @@ const formatDate = (timestamp) => {
 }
 
 const notify = {
-  warning: msg => { Notification.warning({ title: '警告', content: msg }) },
-  success: msg => { Notification.success({ title: '操作成功', content: msg }) },
-  error: msg => { Notification.error({ title: '操作失败', content: msg }) }
+  warning: msg => {
+    Notification.warning({ title: '警告', content: msg })
+  },
+  success: msg => {
+    Notification.success({ title: '操作成功', content: msg })
+  },
+  error: msg => {
+    Notification.error({ title: '操作失败', content: msg })
+  }
 }
 
 // 重写浏览器地址中的 query 参数
@@ -162,6 +168,25 @@ const formatNumberToTime = time => {
   }
   hour = hour < 10 ? '0' + hour : hour
   return `${hour}:${minute}:${second}`
+}
+
+// 减法函数
+export function sub (subtraction, reduction) {
+  let r1, r2
+  try {
+    r1 = subtraction.toString().split('.')[1].length
+  } catch (e) {
+    r1 = 0
+  }
+  try {
+    r2 = reduction.toString().split('.')[1].length
+  } catch (e) {
+    r2 = 0
+  }
+  // 动态控制精度长度
+  const m = Math.pow(10, Math.max(r1, r2))
+  const n = r1 >= r2 ? r1 : r2
+  return ((subtraction * m - reduction * m) / m).toFixed(n)
 }
 
 const common = {

@@ -3,6 +3,7 @@
   <div class="office-landscape"
        ref="officeLandscape"
        :class="[{'is-show': visible}]"
+       :style="calculatePlayerDimension()"
        @mouseover="showControls"
        @mouseout="hideControls"
   >
@@ -26,35 +27,27 @@
           <div class="error-msg">{{ metadata.extend.errMsg }}</div>
         </a-empty>
       </div>
-      <div class="box-actions"
-           v-if="isShowDocumentsActions()"
-           :class="[{'is-show': control.visible}]"
-      >
-        <div class="action-display">
+      <div class="box-actions" :class="[{'is-show': control.visible}]">
+        <div class="action-item" v-if="isShowPptActions()">
+          <img :src="apiConfig().iconBaseUrl + 'general/left.png'" alt="left" @click="changePrev"/>
+        </div>
+        <div class="action-item">
+          <img :src="apiConfig().iconBaseUrl + 'general/reduce.png'" alt="reduce" @click="reduce"/>
+        </div>
+        <div class="action-display" v-if="isShowDocumentsActions()">
           <div class="item-label">共</div>
           <div class="item-total">{{ play.pageTotal }}</div>
           <div class="item-label">页</div>
         </div>
-      </div>
-      <div class="box-actions"
-           v-if="isShowPptActions()"
-           :class="[{'is-show': control.visible}]"
-      >
-        <div class="action-item">
-          <img :src="apiConfig().iconBaseUrl + 'general/left.png'" alt="left" @click="changePrev"/>
-        </div>
-<!--        <div class="action-item">-->
-<!--          <img :src="apiConfig().iconBaseUrl + 'general/blow_up.png'" alt="blow_up" @click="blowUp"/>-->
-<!--        </div>-->
-        <div class="action-display">
+        <div class="action-display" v-if="isShowPptActions()">
           <div class="item-current">{{ play.currentIndex + 1 }}</div>
           <div class="item-separator">/</div>
           <div class="item-total">{{ play.pageTotal }}</div>
         </div>
-<!--        <div class="action-item">-->
-<!--          <img :src="apiConfig().iconBaseUrl + 'general/reduce.png'" alt="reduce" @click="reduce"/>-->
-<!--        </div>-->
         <div class="action-item">
+          <img :src="apiConfig().iconBaseUrl + 'general/blow_up.png'" alt="blow_up" @click="blowUp"/>
+        </div>
+        <div class="action-item" v-if="isShowPptActions()">
           <img :src="apiConfig().iconBaseUrl + 'general/right.png'" alt="right" @click="changeNext"/>
         </div>
       </div>
@@ -64,6 +57,7 @@
     </div>
   </div>
   <div class="office-sames-box"
+       ref="officeSamesBox"
        v-if="files.length > 0"
        :class="[{'is-show': visible}, {'is-display': action.visible}]"
   >
@@ -82,8 +76,9 @@
     </div>
   </div>
   <div class="office-sames-action"
+       ref="officeSamesAction"
        :class="[{'is-show': visible}, {'is-display': action.visible}]"
-       @click="action.visible = !action.visible"
+       @click="showOrHideDocumentList"
   >
     <icon-caret-left size="20" v-if="action.visible"/>
     <icon-caret-right size="20" v-else/>
@@ -93,7 +88,7 @@
 <script>
 import apiConfig from '../api/apiConfig.js'
 import { reactive, toRefs } from 'vue'
-import { IconExclamationCircleFill, IconCaretLeft, IconCaretRight } from '@arco-design/web-vue/es/icon'
+import { IconCaretLeft, IconCaretRight, IconExclamationCircleFill } from '@arco-design/web-vue/es/icon'
 import common from '../tools/common.js'
 import type from '../tools/type.js'
 
@@ -137,6 +132,9 @@ export default {
       play: {
         currentIndex: -1, // 当前显示的页面图片
         pageTotal: 0 // 总页数
+      },
+      style: {
+        width: 50 // 播放器宽度，单位/vw
       }
     })
     return {
@@ -188,12 +186,59 @@ export default {
       }
       this.play.currentIndex--
     },
-    // // 放大
-    // blowUp () {
-    // },
-    // // 缩小
-    // reduce () {
-    // },
+    // 缩小
+    reduce () {
+      if (this.style.width > 50) {
+        this.style.width -= 10
+      } else {
+        common.notify.warning('已放至最小')
+      }
+    },
+    // 放大
+    blowUp () {
+      if (this.style.width >= 100) {
+        common.notify.warning('已放至最大')
+      }
+      // 计算浏览器视窗尺寸，及播放器的尺寸
+      const size = this.calculateAfterBlowUpResize(1)
+      const { window, after } = size
+      const { windowWidth, windowHeight } = window
+      const { afterWidth, afterHeight } = after
+      if (afterWidth >= windowWidth || afterHeight >= windowHeight) {
+        common.notify.warning('已放至最大')
+        return
+      }
+      // 等比放大播放器尺寸
+      this.style.width += 10
+    },
+    // 计算当前播放器的具体尺寸，和改变后的尺寸
+    calculateAfterBlowUpResize (mode) {
+      if (mode === undefined || mode === null) {
+        mode = 0
+      }
+      const windowWidth = window.innerWidth
+      const windowHeight = window.innerHeight
+
+      const beforeWidth = this.style.width
+      const beforeHeight = beforeWidth / 2
+
+      // 计算目前播放器的尺寸
+      const beforePlayerWidth = Math.trunc(windowWidth * (beforeWidth / 100))
+      const beforePlayerHeight = Math.trunc(windowWidth * (beforeHeight / 100))
+
+      const afterWidth = this.style.width + mode * 10
+      const afterHeight = afterWidth / 2
+
+      // 计算放大之后的播放器尺寸
+      const afterPlayerWidth = Math.trunc(windowWidth * (afterWidth / 100))
+      const afterPlayerHeight = Math.trunc(windowWidth * (afterHeight / 100))
+
+      return {
+        window: { windowWidth, windowHeight },
+        before: { beforeWidth: beforePlayerWidth, beforeHeight: beforePlayerHeight },
+        after: { afterWidth: afterPlayerWidth, afterHeight: afterPlayerHeight }
+      }
+    },
     // 切换至下一页
     changeNext () {
       if (this.play.currentIndex >= this.play.pageTotal - 1) {
@@ -214,6 +259,10 @@ export default {
     clearRecord () {
       this.play.currentIndex = -1
       this.play.pageTotal = 0
+    },
+    // 弹出或隐藏文件目录
+    showOrHideDocumentList () {
+      this.action.visible = !this.action.visible
     },
     // 是否显示非 ppt 的操作栏
     isShowDocumentsActions () {
@@ -251,6 +300,13 @@ export default {
         return '检测到此文档已被加密，目前系统不支持文档解密，因此暂不支持此类文件的预览'
       }
       return ''
+    },
+    // 计算文档播放器的尺寸
+    calculatePlayerDimension () {
+      return {
+        width: this.style.width + 'vw',
+        height: this.style.width / 2 + 'vw'
+      }
     },
     // 识别文档的 icon 图标
     recognizeDocumentIcon (o) {
@@ -290,6 +346,7 @@ export default {
   min-width: 520px;
   height: 25vw;
   min-height: 260px;
+  max-height: 100vh;
   display: none;
   background-color: #ffffff;
   border-radius: 10px;
@@ -374,8 +431,15 @@ export default {
         align-items: center;
         & > div {
           margin: 0 5px;
-          color: #ffffff;
-          text-shadow: 0 0 5px #000000;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #000000;
+          background-color: #ffffff;
+          box-shadow: 0 0 5px #000000;
+          border-radius: 50%;
           &:first-child {
             margin-left: 0;
           }
@@ -477,9 +541,12 @@ export default {
   width: 20px;
   height: 50px;
   display: none;
-  color: #242933;
-  background-color: #ffffff;
+  color: #ffffff;
+  background-color: #242933;
   cursor: pointer;
+  box-shadow: 3px 0 10px #767676;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
   transform: translate(0, -50%);
   transition: left .3s;
   z-index: 3;
