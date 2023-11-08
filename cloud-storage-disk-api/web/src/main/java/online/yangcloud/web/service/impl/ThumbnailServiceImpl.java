@@ -202,6 +202,7 @@ public class ThumbnailServiceImpl implements ThumbnailService {
             logger.error(oe.getMessage(), oe);
         }
 
+        logger.info("Start to split the pdf file 【{}】", metadata.getName() + metadata.getExt());
         try (PDDocument pdDocument = PDDocument.load(FileUtil.file(target))) {
             // 对 pdf 文件进行切分，并将每页转为图片
             PDFRenderer renderer = new PDFRenderer(pdDocument);
@@ -227,6 +228,10 @@ public class ThumbnailServiceImpl implements ThumbnailService {
                         .setErrMsg(e.getMessage());
             }
         } finally {
+            logger.info("The pdf file 【{}】 has been split into photo sets :=> {}",
+                    metadata.getName() + metadata.getExt(),
+                    document
+            );
             // 记录文档元数据
             metaService.acquireDocument().addDocumentRecord(document);
             // 清理临时生成的 pdf 文件

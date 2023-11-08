@@ -31,20 +31,20 @@ public class DocumentMetadata extends BaseParameter {
     /**
      * 文档总页数
      */
-    @DatabaseColumn(name = "page_total", type = ColumnTypeEnum.SMALLINT, canNull = false, comment = "文档总页数")
+    @DatabaseColumn(name = "page_total", type = ColumnTypeEnum.SMALLINT, defaultValue = "0", comment = "文档总页数")
     @DatabaseIndex
     private Integer pageTotal;
 
     /**
      * 图片宽度
      */
-    @DatabaseColumn(name = "width", type = ColumnTypeEnum.SMALLINT, canNull = false, comment = "图片宽度")
+    @DatabaseColumn(name = "width", type = ColumnTypeEnum.SMALLINT, defaultValue = "0", comment = "图片宽度")
     private Integer width;
 
     /**
      * 图片高度
      */
-    @DatabaseColumn(name = "height", type = ColumnTypeEnum.SMALLINT, canNull = false, comment = "图片高度")
+    @DatabaseColumn(name = "height", type = ColumnTypeEnum.SMALLINT, defaultValue = "0", comment = "图片高度")
     private Integer height;
 
     /**
